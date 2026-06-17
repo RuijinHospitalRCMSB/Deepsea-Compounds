@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Aspergillus versicolor — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0077b6;--primary-hover:#005f8c;--primary-light:rgba(0,119,182,0.08);--bg-page:#f0f4f8;--bg-content:#fff;--bg-card:#f8fafc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace}
+body{background:var(--bg-page);font-family:var(--font-sans);color:var(--text-primary)}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100}
+.side-nav .nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.side-nav .nav-header .back-link{font-size:12px;color:var(--text-muted);text-decoration:none;display:block;margin-bottom:12px;transition:color .2s}
+.side-nav .nav-header .back-link:hover{color:var(--primary)}
+.side-nav .nav-header .nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.side-nav .nav-header .nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.3}
+.side-nav .nav-items{list-style:none}
+.side-nav .nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.side-nav .nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.side-nav .nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:rgba(21,101,192,0.06);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.35;flex-shrink:0}
+.main-content{margin-left:200px;min-height:100vh;padding:0 32px 60px;background:var(--bg-page)}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:12px;margin-bottom:16px;transition:color .15s}
+.back-link:hover{color:var(--primary)}
+.detail-hero{display:flex;flex-direction:row;gap:16px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.detail-hero-title{font-size:24px;font-weight:700;color:var(--text-primary);margin:0;line-height:1.3}
+.hero-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hero-badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:4px;font-weight:600}
+.hero-badge.genus{background:var(--primary-light);color:var(--primary)}
+.hero-badge.depth{color:#fff}
+.info-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.info-card{background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;text-align:center;box-shadow:var(--shadow-sm)}
+.info-card-icon{font-size:18px;margin-bottom:2px}
+.info-card-label{font-size:9px;text-transform:uppercase;color:var(--text-muted);letter-spacing:.04em;font-weight:600}
+.info-card-value{font-size:13px;color:var(--text-primary);font-weight:500;margin-top:2px;word-break:break-word}
+.taxonomy-bar{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-bottom:16px}
+.tax-item{display:flex;align-items:center;gap:4px;padding:3px 10px;background:var(--bg-content);border:1px solid var(--border);border-radius:4px;font-size:11px}
+.tax-rank{color:var(--text-muted);font-size:9px;text-transform:uppercase;letter-spacing:.03em}
+.tax-name{color:var(--text-primary);font-weight:500}
+.section{margin-bottom:20px}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.section-header h2{font-size:16px;font-weight:700;color:var(--text-primary);margin:0}
+.section-line{flex:1;height:1px;background:var(--border)}
+.ctags{display:flex;flex-wrap:wrap;gap:6px}
+.ctag{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+.ext-links{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:100%}
+.ext-link{display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-lg);text-decoration:none;transition:all .2s;box-shadow:var(--shadow-sm)}
+.ext-link:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.ext-link-icon{font-size:24px;line-height:1}
+.ext-link-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.ext-link-desc{font-size:11px;color:var(--text-muted);line-height:1.3}
+.ext-link-id{display:inline-flex;gap:5px;margin-top:2px;font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--primary);background:var(--primary-light);padding:3px 10px;border-radius:6px;width:fit-content}
+.ext-link:hover .ext-link-id{background:var(--primary);color:#fff}
+.details-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.detail-card{background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm)}
+.detail-card h4{font-size:12px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.detail-card h4 span{font-size:14px}
+.dtl-row{display:flex;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:12px;line-height:1.6}
+.dtl-row:last-child{border-bottom:none}
+.dtl-label{color:var(--text-muted);min-width:120px;flex-shrink:0;font-size:11px}
+.dtl-value{color:var(--text-primary);font-weight:500;flex:1}
+.dtl-value.mono{font-family:var(--font-mono);font-size:11px}
+.dtl-value i{font-style:italic}
+.dtl-badge{display:inline-block;background:var(--primary-light);color:var(--primary);font-family:var(--font-mono);font-size:11px;padding:1px 8px;border-radius:4px;font-weight:600}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s;cursor:pointer}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-img{width:42px;text-align:center}
+.cpd-td-img img{width:32px;height:32px;border-radius:4px;object-fit:contain;background:#f8fafc;display:block;margin:0 auto}
+.cpd-td-img .fallback{font-size:16px;color:var(--text-muted);opacity:.4}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-sub{font-size:10px;color:var(--text-muted);margin-top:2px;line-height:1.2}
+.cpd-td-formula{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-mw{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);white-space:nowrap}
+.cpd-td-chemotype{font-size:12px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cpd-td-depth{font-size:11px;color:var(--primary);font-weight:600}
+.sortable-th{cursor:pointer;user-select:none}
+.sortable-th:hover{color:var(--primary)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+.sortable-th:hover .sort-arrow{opacity:1}
+.sort-active .sort-arrow{opacity:1}
+@media(max-width:900px){.side-nav{display:none}.main-content{margin-left:0;padding:0 20px 60px}}
+@media(max-width:800px){.info-row{grid-template-columns:repeat(3,1fr)}.ext-links{grid-template-columns:1fr 1fr}.details-grid{grid-template-columns:1fr}}
+@media(max-width:500px){.info-row{grid-template-columns:repeat(2,1fr)}.ext-links{grid-template-columns:1fr}.detail-hero-title{font-size:20px}}
+</style>
+</head>
+<body>
+    <nav class="side-nav">
+    <div class="nav-header">
+    <a href="../pages/browse-strains.html" class="back-link">← Database</a>
+    <div class="nav-title">Strain Detail</div>
+    <div class="nav-sub"><i>Aspergillus versicolor</i></div>
+    </div>
+    <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html" class="active"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+    </ul>
+    </nav>
+    <div class="main-content"><div class="detail-hero"><div style="flex:1;min-width:0;"><h1 class="detail-hero-title"><i>Aspergillus versicolor</i></h1><div class="hero-badges" style="margin-top:6px;"><span class="hero-badge genus">Aspergillus</span><span class="hero-badge depth" style="background:#071a5e">Deep (3614 m)</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:4px;">🔬 Representative: <i>Cottoquinazoline H</i></div></div></div><div class="info-row"><div class="info-card"><div class="info-card-icon">🧬</div><div class="info-card-label">Genus</div><div class="info-card-value">Aspergillus</div></div><div class="info-card"><div class="info-card-icon">🌍</div><div class="info-card-label">Location</div><div class="info-card-value" title="Western Pacific Ocean — Magellan Seamounts">Western Pacific Ocean — Magellan Seamounts</div></div><div class="info-card"><div class="info-card-icon">🏷️</div><div class="info-card-label">Source</div><div class="info-card-value">strain AS-212, deep-sea coral isolate</div></div><div class="info-card"><div class="info-card-icon">🌊</div><div class="info-card-label">Depth</div><div class="info-card-value">Deep</div></div><div class="info-card"><div class="info-card-icon">🧪</div><div class="info-card-label">Compounds</div><div class="info-card-value">1</div></div></div><div class="section"><div class="section-header"><h2>🔗 External Links · 外部链接</h2><div class="section-line"></div></div><div class="ext-links"><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name=Aspergillus%20versicolor" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🔬</div><div class="ext-link-title">NCBI Taxonomy</div><div class="ext-link-desc">Taxonomic classification and lineage</div><div class="ext-link-id">taxid:46472</div></a><a href="https://www.ncbi.nlm.nih.gov/nuccore/PZ484243" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🫧</div><div class="ext-link-title">GenBank (rDNA ITS)</div><div class="ext-link-desc">524 bp · genomic DNA</div><div class="ext-link-id">PZ484243</div></a><a href="https://www.mycobank.org/search?q=Aspergillus" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🧫</div><div class="ext-link-title">MycoBank</div><div class="ext-link-desc">Fungal nomenclatural database</div><div class="ext-link-id">genus:Aspergillus</div></a></div></div><div class="section"><div class="section-header"><h2>📊 Strain Details · 菌种详情</h2><div class="section-line"></div></div><div class="details-grid"><div class="detail-card"><h4><span>🛡️</span> Collection &amp; Isolation</h4><div class="dtl-row"><span class="dtl-label">Scientific Name</span><span class="dtl-value"><i>Aspergillus versicolor</i> <a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=46472" target="_blank" rel="noopener" style="font-size:10px;color:var(--primary);text-decoration:none;">NCBI↗</a></span></div><div class="dtl-row"><span class="dtl-label">Strain</span><span class="dtl-value"></span></div><div class="dtl-row"><span class="dtl-label">Isolation Source</span><span class="dtl-value"></span></div></div><div class="detail-card"><h4><span>🫧</span> Molecular Data</h4><div class="dtl-row"><span class="dtl-label">GenBank Accession</span><span class="dtl-value"><a href="https://www.ncbi.nlm.nih.gov/nuccore/PZ484243" target="_blank" rel="noopener" class="dtl-badge" style="text-decoration:none;">PZ484243 ↗</a></span></div><div class="dtl-row"><span class="dtl-label">Sequence Length</span><span class="dtl-value mono">524 bp</span></div><div class="dtl-row"><span class="dtl-label">Molecule Type</span><span class="dtl-value">Genomic DNA</span></div><div class="dtl-row"><span class="dtl-label">Description</span><span class="dtl-value" style="font-size:11px;">Aspergillus versicolor isolate H1005 small subunit ribosomal…</span></div></div><div class="detail-card"><h4><span>📖</span> Submission &amp; Reference</h4><div class="dtl-row"><span class="dtl-label">Title</span><span class="dtl-value" style="font-size:11px;font-style:italic;">Taxonomy and Phylogeny of Eurotiomycetes: Insights into <a href="https://scholar.google.com/scholar?q=Taxonomy%20and%20Phylogeny%20of%20Eurotiomycetes%3A%20Insights%20into%20Bhunjun%2CC.S.%2C%20Manawasinghe%2CI.S.%2C%20Kandawatte%2CT.C.%2C%20Tian%2CQ.%2C" target="_blank" rel="noopener" style="font-size:10px;color:var(--primary);text-decoration:none;white-space:nowrap;">Scholar↗</a></span></div><div class="dtl-row"><span class="dtl-label">Authors</span><span class="dtl-value">Bhunjun,C.S., Manawasinghe,I.S., Kandawatte,T.C., Tian,Q.,</span></div><div class="dtl-row"><span class="dtl-label">Institution</span><span class="dtl-value" style="font-size:11px;"></span></div><div class="dtl-row"><span class="dtl-label">Submitted</span><span class="dtl-value"></span></div><div class="dtl-row"><span class="dtl-label">Sequencing</span><span class="dtl-value">Sanger dideoxy sequencing</span></div></div></div></div><div class="section"><div class="section-header"><h2>🧪 Chemotypes · 化学类型</h2><div class="section-line"></div></div><div class="ctags"><span class="ctag" style="background:#2e7d3218;color:#2e7d32;border:1px solid #2e7d3230;">Alkaloid</span></div></div><div class="section"><div class="section-header"><h2>🧪 Associated Compounds · 相关化合物 (1)</h2><div class="section-line"></div></div><table class="cpd-table" id="cpd-sort-table"><thead><tr><th style="width:36px">Str</th><th class="sortable-th" data-sort="name">Compound · 化合物 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="formula">Formula · 分子式 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="mw" style="width:90px">MW · 分子量 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="chemotype">Chemotype · 化学分类 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="depth">Depth · 深度 <span class="sort-arrow"></span></th></tr></thead><tbody id="cpd-list"><tr onclick="window.location='../1-Compounds/cottoquinazoline-h.html'"><td class="cpd-td-img"><span class="fallback">?</span></td><td><a href="../1-Compounds/cottoquinazoline-h.html" class="cpd-td-name">Cottoquinazoline H</a></td><td><span class="cpd-td-formula">C25H23N5O4</span></td><td><span class="cpd-td-mw">457.1750</span></td><td><span class="cpd-td-chemotype" style="background:#2e7d3218;color:#2e7d32">Alkaloid</span></td><td><span class="cpd-td-depth">Deep (3614 m)</span></td></tr></tbody></table></div><script>(function(){var sortState={field:"name",dir:1};var tbody=document.getElementById("cpd-list");if(!tbody)return;var rows=Array.prototype.slice.call(tbody.querySelectorAll("tr"));var cellIdx={name:1,formula:2,mw:3,chemotype:4,depth:5};function getVal(row,field){var idx=cellIdx[field]||1,c=row.cells[idx];if(!c)return"";var v=c.textContent.trim().toLowerCase();if(field==="mw"){var n=parseFloat(v);return isNaN(n)?0:n;}return v;}function sortTable(field,dir){rows.sort(function(a,b){var va=getVal(a,field),vb=getVal(b,field);return va>vb?dir:va<vb?-dir:0;});rows.forEach(function(r){tbody.appendChild(r);});}document.getElementById("cpd-sort-table").addEventListener("click",function(e){var th=e.target.closest(".sortable-th");if(!th)return;var field=th.dataset.sort;if(sortState.field===field)sortState.dir=-sortState.dir;else{sortState.field=field;sortState.dir=1;}document.querySelectorAll(".sortable-th").forEach(function(t){t.classList.remove("sort-active");var a=t.querySelector(".sort-arrow");if(a)a.textContent="";});th.classList.add("sort-active");var arrow=th.querySelector(".sort-arrow");if(arrow)arrow.textContent=sortState.dir===1?"▲":"▼";sortTable(field,sortState.dir);});sortTable("name",1);})();</script></body></html>
