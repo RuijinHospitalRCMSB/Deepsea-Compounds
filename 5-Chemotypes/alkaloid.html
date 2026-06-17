@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Alkaloid — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#2e7d32;--primary-hover:#2e7d32cc;--primary-light:rgba(46,125,50,0.08);--bg-page:#f5f0f8;--bg-content:#ffffff;--bg-card:#faf8fc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.65;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s;cursor:pointer}
+.back-link:hover{color:var(--primary)}
+.ct-hero{background:linear-gradient(135deg,#f3e5f5 0%,#429146 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.ct-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(46,125,50,0.03) 0%,transparent 70%);pointer-events:none}
+.ct-hero-content{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ct-hero-left{flex:1;min-width:200px}
+.ct-hero-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+.ct-hero-sub{font-size:14px;color:var(--text-muted);margin-bottom:8px}
+.ct-hero-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ct-hero-tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px;background:#2e7d3218;color:#2e7d32}
+.ct-hero-right{display:flex;gap:10px;flex-wrap:wrap}
+.ct-hero-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:72px}
+.ct-hero-stat-value{font-size:22px;font-weight:700;color:var(--text-primary)}
+.ct-hero-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.detail-section{margin-bottom:28px}
+.detail-section-title{font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:12px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.function-text{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text-secondary);text-decoration:none;transition:all .15s;background:var(--bg-content);white-space:nowrap}
+.ext-link-pill:hover{border-color:#2e7d32;color:var(--primary);background:var(--primary-light)}
+.sub-class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sub-class-item{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border:1px solid var(--border-light);border-radius:7px;background:var(--bg-content)}
+.sub-class-name{font-size:13px;color:var(--text-primary);font-weight:500}
+.sub-class-count{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-mono{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-link{color:var(--primary);text-decoration:none;font-size:12px;font-weight:500}
+.cpd-td-link:hover{text-decoration:underline}
+@media(max-width:700px){.sub-class-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot" style="background:#2e7d32;opacity:1;"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · Deep-Sea DB</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-inner">
+
+    <a href="../pages/browse-chemotypes.html" class="back-link">← Back to Chemotypes · 返回化学分类</a>
+
+    <div class="ct-hero">
+      <div class="ct-hero-content">
+        <div class="ct-hero-left">
+          <div class="ct-hero-tags">
+            <span class="ct-hero-tag">Alkaloid</span>
+          </div>
+          <h1 class="ct-hero-title">Alkaloid</h1>
+          <p class="ct-hero-sub">59 compounds · 9 sub-classes</p>
+        </div>
+        <div class="ct-hero-right">
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">59</div>
+            <div class="ct-hero-stat-label">Compounds</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">9</div>
+            <div class="ct-hero-stat-label">Sub-classes</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">59</div>
+            <div class="ct-hero-stat-label">With Data</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">External Links · 外部链接</h2>
+      <div class="ext-links-row">
+    <a href="https://pubchem.ncbi.nlm.nih.gov/#query=Alkaloid&input_type=text" target="_blank" rel="noopener" class="ext-link-pill"><span>🔬</span> PubChem ↗</a>
+    <a href="https://en.wikipedia.org/wiki/Alkaloid" target="_blank" rel="noopener" class="ext-link-pill"><span>📖</span> Wikipedia ↗</a>
+    <a href="https://www.ncbi.nlm.nih.gov/pmc/?term=Alkaloid+deep-sea+natural+product" target="_blank" rel="noopener" class="ext-link-pill"><span>📄</span> PubMed ↗</a></div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Overview · 概述</h2>
+      <p class="function-text">Alkaloids are nitrogen-containing basic compounds that often exhibit significant pharmacological activities. Marine-derived alkaloids feature unique heterocyclic systems and are important leads for drug discovery.</p>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Sub-classes · 亚类分布 <span class="section-count">9</span></h2>
+      <div class="sub-class-grid">
+        <div class="sub-class-item"><span class="sub-class-name">Other Alkaloid</span><span class="sub-class-count">22</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Indole</span><span class="sub-class-count">13</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Pyridine</span><span class="sub-class-count">12</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Quinoline</span><span class="sub-class-count">4</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Pyrrole</span><span class="sub-class-count">3</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Isoquinoline</span><span class="sub-class-count">2</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">—</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Pyrroloiminoquinone</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Pyrroloiminoquinone Alkaloid</span><span class="sub-class-count">1</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Compounds · 化合物清单 <span class="section-count">59</span></h2>
+      <table class="cpd-table">
+        <thead><tr>
+          <th>Name · 名称</th>
+          <th>Formula · 分子式</th>
+          <th>MW · 分子量</th>
+          <th>Source Strain · 来源菌株</th>
+          <th>Depth · 深度</th>
+          <th>Sub-class · 亚类</th>
+          <th>Link</th>
+        </tr></thead>
+        <tbody>
+<tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/11-epi-chaetomugilin-i.html">11-Epi-chaetomugilin I</a></td>
+  <td class="cpd-td-mono">C22H27ClO5</td>
+  <td class="cpd-td-mono">406.9</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum OUPS-T106B-6</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/11-epi-chaetomugilin-i.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/4-epi-chaetomugilin-a.html">4&#39;-Epi-chaetomugilin A</a></td>
+  <td class="cpd-td-mono">C23H27ClO7</td>
+  <td class="cpd-td-mono">450.9000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3415–3972 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/4-epi-chaetomugilin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/6-hydroxybenzothiazole.html">6-Hydroxybenzothiazole</a></td>
+  <td class="cpd-td-mono">C7H5NOS</td>
+  <td class="cpd-td-mono">151.0092</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Mariana Trench-associated actinomycete Streptomyces sp. SY2255</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(6000–11000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/6-hydroxybenzothiazole.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/ageliferin.html">Ageliferin</a></td>
+  <td class="cpd-td-mono">C22H24Br2N10O2</td>
+  <td class="cpd-td-mono">618.0450</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Agelas sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyrrole</td>
+  <td><a href="../1-Compounds/ageliferin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/bathymodiolamide-a.html">Bathymodiolamide A</a></td>
+  <td class="cpd-td-mono">C49H89NO7</td>
+  <td class="cpd-td-mono">803.6639</td>
+  <td style="font-size:12px;color:var(--text-secondary)">*Bathymodiolus thermophilus * (mussel)</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1733 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/bathymodiolamide-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/bathymodiolamide-b.html">Bathymodiolamide B</a></td>
+  <td class="cpd-td-mono">C42H77NO7</td>
+  <td class="cpd-td-mono">707.5700</td>
+  <td style="font-size:12px;color:var(--text-secondary)">*Bathymodiolus thermophilus * (mussel)</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1733 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/bathymodiolamide-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/berninamycin-j.html">Berninamycin J</a></td>
+  <td class="cpd-td-mono">C51H53N15O15S</td>
+  <td class="cpd-td-mono">1148.1400</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 11878</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1396 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/berninamycin-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/cj-16-196.html">CJ-16,196</a></td>
+  <td class="cpd-td-mono">C19H21NO4</td>
+  <td class="cpd-td-mono">327.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/cj-16-196.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/cladosporone-a.html">Cladosporone A</a></td>
+  <td class="cpd-td-mono">C20H16O6</td>
+  <td class="cpd-td-mono">352.3</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Cladosporium halotolerans FS702</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2372 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/cladosporone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/cottoquinazoline-h.html">Cottoquinazoline H</a></td>
+  <td class="cpd-td-mono">C25H23N5O4</td>
+  <td class="cpd-td-mono">457.1750</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus versicolor</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3614 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">—</td>
+  <td><a href="../1-Compounds/cottoquinazoline-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/delitschiapyrone-a.html">Delitschiapyrone A</a></td>
+  <td class="cpd-td-mono">C24H26O9</td>
+  <td class="cpd-td-mono">458.5000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Delitschia sp. FL1581</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(0–1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/delitschiapyrone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/deoxynyboquinone.html">Deoxynyboquinone</a></td>
+  <td class="cpd-td-mono">C15H12N2O4</td>
+  <td class="cpd-td-mono">284.0797</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pseudonocardia antitumoralis SCSIO 01299</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/deoxynyboquinone.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dercitin.html">Dercitin</a></td>
+  <td class="cpd-td-mono">C21H20N4S</td>
+  <td class="cpd-td-mono">360.1409</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Dercitus sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(100–200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Quinoline</td>
+  <td><a href="../1-Compounds/dercitin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dermacozine-e.html">Dermacozine E</a></td>
+  <td class="cpd-td-mono">C23H16N4O3</td>
+  <td class="cpd-td-mono">396.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Dermacoccus abyssi MT1.1/MT1.2</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(10898 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Isoquinoline</td>
+  <td><a href="../1-Compounds/dermacozine-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dermacozine-m.html">Dermacozine M</a></td>
+  <td class="cpd-td-mono">C30H20N4O4</td>
+  <td class="cpd-td-mono">500.1485</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Dermacoccus abyssi MT1.1T</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(10898 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Isoquinoline</td>
+  <td><a href="../1-Compounds/dermacozine-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/diaporphasine-e.html">Diaporphasine E</a></td>
+  <td class="cpd-td-mono">C21H25NO4</td>
+  <td class="cpd-td-mono">355.1784</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Lachnum sp. IW157</td>
+  <td style="font-size:12px;color:var(--text-secondary)"></td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/diaporphasine-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dichloroorcinol.html">Dichloroorcinol</a></td>
+  <td class="cpd-td-mono">C7H5NO</td>
+  <td class="cpd-td-mono">119.1230</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum SCSIO 41001</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3386 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/dichloroorcinol.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dihydrodeoxybromotopsentin.html">DIHYDRODEOXYBROMOTOPSENTIN</a></td>
+  <td class="cpd-td-mono">C20H15BrN4O</td>
+  <td class="cpd-td-mono">406.0429</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Spongosorites</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/dihydrodeoxybromotopsentin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/discorhabdin-w.html">DISCORHABDIN W</a></td>
+  <td class="cpd-td-mono">C38H23Br2F3N6O6S2</td>
+  <td class="cpd-td-mono">940.6</td>
+  <td style="font-size:12px;color:var(--text-secondary)"></td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(569 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyrroloiminoquinone</td>
+  <td><a href="../1-Compounds/discorhabdin-w.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/dragmacidin-a.html">Dragmacidin A</a></td>
+  <td class="cpd-td-mono">C21H20Br2N4</td>
+  <td class="cpd-td-mono">488.2000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Dragmacidon</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(40 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/dragmacidin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/engyodontiumin-a.html">Engyodontiumin A</a></td>
+  <td class="cpd-td-mono">C12H15ClO4</td>
+  <td class="cpd-td-mono">258.7000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Engyodontium album Ea588</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3542 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/engyodontiumin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/fumigatoside-e.html">Fumigatoside E</a></td>
+  <td class="cpd-td-mono">C21H16N4O3</td>
+  <td class="cpd-td-mono">372.1222</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus fumigatus SCSIO 41012</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3614 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/fumigatoside-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/fumiquinazoline-g.html">Fumiquinazoline G</a></td>
+  <td class="cpd-td-mono">C21H18N4O2</td>
+  <td class="cpd-td-mono">358.4</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus fumigatus SCSIO 41012</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3614 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/fumiquinazoline-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/gelliusine-a.html">Gelliusine A</a></td>
+  <td class="cpd-td-mono">C30H30Br2N6O</td>
+  <td class="cpd-td-mono">648.0848</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Gellius</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(300–400 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/gelliusine-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/leptosphaerone-c.html">Leptosphaerone C</a></td>
+  <td class="cpd-td-mono">C8H12O3</td>
+  <td class="cpd-td-mono">156.1810</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Leptosphaerulina chartarum MCCC 3A00935</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5842 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/leptosphaerone-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/longidiacid-a.html">Longidiacid A</a></td>
+  <td class="cpd-td-mono">C24H36O6</td>
+  <td class="cpd-td-mono">420.5460</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Diaporthe longicolla FS429</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/longidiacid-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/lynamicin-a.html">Lynamicin A</a></td>
+  <td class="cpd-td-mono">C22H15Cl2N3O2</td>
+  <td class="cpd-td-mono">423.0541</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Actinomyces nPS12745Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000–4000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/lynamicin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/makaluvamine-f.html">MAKALUVAMINE F</a></td>
+  <td class="cpd-td-mono">C18H14BrN3O2S</td>
+  <td class="cpd-td-mono">414.9990</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Zyzzya fuliginosa</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(40–348 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyrrole</td>
+  <td><a href="../1-Compounds/makaluvamine-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/makaluvamine-i.html">MAKALUVAMINE I</a></td>
+  <td class="cpd-td-mono">C12H10F3N3O3</td>
+  <td class="cpd-td-mono"></td>
+  <td style="font-size:12px;color:var(--text-secondary)">Zyzzya fuliginosa</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(40–348 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyrroloiminoquinone Alkaloid</td>
+  <td><a href="../1-Compounds/makaluvamine-i.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/makaluvamine-k.html">MAKALUVAMINE K</a></td>
+  <td class="cpd-td-mono">C19H19N3O2</td>
+  <td class="cpd-td-mono">321.1477</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aaptos sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(200–400 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/makaluvamine-k.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/makaluvamine-n.html">MAKALUVAMINE N</a></td>
+  <td class="cpd-td-mono">C10H10BrN3O</td>
+  <td class="cpd-td-mono">267.0007</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Zyzzya sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(3–200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyrrole</td>
+  <td><a href="../1-Compounds/makaluvamine-n.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/makaluvamine-p.html">MAKALUVAMINE P</a></td>
+  <td class="cpd-td-mono">C20H22ClN3O2</td>
+  <td class="cpd-td-mono">371.1401</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Zyzzya fuliginosa</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(40–348 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/makaluvamine-p.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/meridine.html">Meridine</a></td>
+  <td class="cpd-td-mono">C18H9N3O2</td>
+  <td class="cpd-td-mono">299.0695</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Corticium sp. / marine sponge source</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Quinoline</td>
+  <td><a href="../1-Compounds/meridine.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/n-methyl-nortopsentin-b.html">N-METHYL NORTOPSENTIN B</a></td>
+  <td class="cpd-td-mono">C22H19BrN4</td>
+  <td class="cpd-td-mono">418.0793</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Spongosorites ruetzleri</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(73–325 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/n-methyl-nortopsentin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/nortopsentin-b.html">Nortopsentin B</a></td>
+  <td class="cpd-td-mono">C19H13BrN4</td>
+  <td class="cpd-td-mono">376.0324</td>
+  <td style="font-size:12px;color:var(--text-secondary)">*Spongosorites ruetzleri *</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(73–210 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/nortopsentin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/nortopsentin-c.html">Nortopsentin C</a></td>
+  <td class="cpd-td-mono">C19H13BrN4</td>
+  <td class="cpd-td-mono">376.0324</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Spongosorites ruetzleri</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/nortopsentin-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/nyuzenamide-a.html">Nyuzenamide A</a></td>
+  <td class="cpd-td-mono">C66H81N11O20</td>
+  <td class="cpd-td-mono">1348.4310</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. N11-34</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(311 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/nyuzenamide-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/paxilline.html">Paxilline</a></td>
+  <td class="cpd-td-mono">C27H33NO4</td>
+  <td class="cpd-td-mono">435.2410</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium paxilli Bainier</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000–4000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/paxilline.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/piericidin-a1.html">Piericidin A1</a></td>
+  <td class="cpd-td-mono">C25H37NO4</td>
+  <td class="cpd-td-mono">415.2723</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/piericidin-a1.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/pinazaphilone-b.html">Pinazaphilone B</a></td>
+  <td class="cpd-td-mono">C21H20O9</td>
+  <td class="cpd-td-mono">416.3820</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Talaromyces minioluteus CS-113</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/pinazaphilone-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/pseudonocardian-a.html">Pseudonocardian A</a></td>
+  <td class="cpd-td-mono">C18H18N2O5</td>
+  <td class="cpd-td-mono">342.1216</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pseudonocardia sp. SCSIO 01299</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/pseudonocardian-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/pseudonocardian-b.html">Pseudonocardian B</a></td>
+  <td class="cpd-td-mono">C19H20N2O5</td>
+  <td class="cpd-td-mono">356.1372</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pseudonocardia sp. SCSIO 01299</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/pseudonocardian-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/pseudonocardian-c.html">Pseudonocardian C</a></td>
+  <td class="cpd-td-mono">C21H24N2O8</td>
+  <td class="cpd-td-mono">432.1533</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pseudonocardia sp. SCSIO 01299</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Quinoline</td>
+  <td><a href="../1-Compounds/pseudonocardian-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/roquefortine.html">Roquefortine</a></td>
+  <td class="cpd-td-mono">C22H23N5O2</td>
+  <td class="cpd-td-mono">389.4590</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium granulatum MCCC 3A00475</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2284 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/roquefortine.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/seco-chaetomugilin-a.html">Seco-chaetomugilin A</a></td>
+  <td class="cpd-td-mono">C24H31ClO8</td>
+  <td class="cpd-td-mono">119.0371</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum OUPS-T106B-6</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3415–3972 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/seco-chaetomugilin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/spirograterpene-a.html">Spirograterpene A</a></td>
+  <td class="cpd-td-mono">C20H30O3</td>
+  <td class="cpd-td-mono">318.4570</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium granulatum MCCC 3A00475</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2284 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/spirograterpene-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/spiroindimicin-a.html">Spiroindimicin A</a></td>
+  <td class="cpd-td-mono">C24H15Cl2N3O4</td>
+  <td class="cpd-td-mono">479.0440</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3412 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/spiroindimicin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/spiroindimicin-b.html">Spiroindimicin B</a></td>
+  <td class="cpd-td-mono">C23H17Cl2N3O2</td>
+  <td class="cpd-td-mono">437.0698</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3412 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/spiroindimicin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/spiroindimicin-c.html">Spiroindimicin C</a></td>
+  <td class="cpd-td-mono">C22H15Cl2N3O2</td>
+  <td class="cpd-td-mono">423.0541</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3412 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/spiroindimicin-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/spiroindimicin-d.html">Spiroindimicin D</a></td>
+  <td class="cpd-td-mono">C25H19Cl2N3O4</td>
+  <td class="cpd-td-mono">495.0753</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SCSIO 03032</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3412 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Indole</td>
+  <td><a href="../1-Compounds/spiroindimicin-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/stachybotrysin-a.html">Stachybotrysin A</a></td>
+  <td class="cpd-td-mono">C26H34O4</td>
+  <td class="cpd-td-mono">414.5000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Stachybotrys chartarum FS705</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4187 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/stachybotrysin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/sterigmatocystin.html">Sterigmatocystin</a></td>
+  <td class="cpd-td-mono">C18H12O6</td>
+  <td class="cpd-td-mono">324.3</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus versicolor CXCTD-06-6a</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(800 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/sterigmatocystin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-a.html">Tersone A</a></td>
+  <td class="cpd-td-mono">C19H19NO3</td>
+  <td class="cpd-td-mono">309.1365</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-b.html">(±)-Tersone B</a></td>
+  <td class="cpd-td-mono">C19H19NO3</td>
+  <td class="cpd-td-mono">309.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-c.html">(±)-Tersone C</a></td>
+  <td class="cpd-td-mono">C19H19NO3</td>
+  <td class="cpd-td-mono">309.1365</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-d.html">(±)-Tersone D</a></td>
+  <td class="cpd-td-mono">C19H19NO2</td>
+  <td class="cpd-td-mono">293.1416</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-e.html">(±)-Tersone E</a></td>
+  <td class="cpd-td-mono">C19H19NO2</td>
+  <td class="cpd-td-mono">293.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tersone-g.html">Tersone G</a></td>
+  <td class="cpd-td-mono">C14H11NO2</td>
+  <td class="cpd-td-mono">225.2400</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Pyridine</td>
+  <td><a href="../1-Compounds/tersone-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/viridicatin.html">Viridicatin</a></td>
+  <td class="cpd-td-mono">C15H11NO2</td>
+  <td class="cpd-td-mono">237.0790</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus carneus HQ889708Penicillium solitum MCCC 3A00215</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3034 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Quinoline</td>
+  <td><a href="../1-Compounds/viridicatin.html" class="cpd-td-link">View →</a></td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
