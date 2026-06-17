@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citrinin — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ── Compound Page Specific Styles ── */
+:root {
+  --nav-width: 200px;
+  --font-sans: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-page); color: var(--text-primary); line-height: 1.65; display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* Side nav */
+.side-nav { position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh; background: var(--bg-content); border-right: 1px solid var(--border); padding: 28px 0; overflow-y: auto; z-index: 100; }
+.side-nav .nav-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.side-nav .nav-header .back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: color 0.2s; }
+.side-nav .nav-header .back-link:hover { color: var(--primary); }
+.side-nav .nav-header .nav-title { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+.side-nav .nav-header .nav-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.side-nav .nav-items { list-style: none; }
+.side-nav .nav-items li a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text-secondary); text-decoration: none; font-size: 13px; transition: all 0.15s; border-left: 2px solid transparent; }
+.side-nav .nav-items li a:hover { color: var(--text-primary); background: var(--bg-card); }
+.side-nav .nav-items li a.active { color: var(--primary); border-left-color: var(--primary); background: rgba(21,101,192,0.06); font-weight: 500; }
+.nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.35; flex-shrink: 0; }
+
+.main-content { margin-left: var(--nav-width); flex: 1; min-width: 0; max-width: 1020px; padding: 0 40px 60px; background: var(--bg-page); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 260px 1fr; gap: 28px; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.hero-structure { background: rgba(255,255,255,0.45); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.hero-structure img { width: 100%; height: auto; max-height: 220px; object-fit: contain; }
+.hero-info { display: flex; flex-direction: column; justify-content: center; }
+.hero-info .compound-name { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.15; color: var(--text-primary); }
+.hero-info .hero-divider { width: 40px; height: 2px; background: var(--gold); margin: 4px 0 6px; opacity: 0.5; border-radius: 1px; }
+.hero-info .iupac-name { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; max-width: 560px; }
+.hero-info .source-line { font-size: 14px; color: var(--text-secondary); margin-top: 12px; }
+.hero-info .source-line em { color: var(--gold); font-style: italic; }
+.hero-info .depth-badges { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.depth-badge { display: inline-block; padding: 3px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+.depth-badge.shallow { background: rgba(21,101,192,0.12); color: var(--depth-shallow); border: 1px solid rgba(21,101,192,0.25); }
+.depth-badge.slope { background: rgba(13,71,161,0.12); color: var(--depth-slope); border: 1px solid rgba(13,71,161,0.25); }
+.depth-badge.deep { background: rgba(7,26,94,0.12); color: var(--depth-deep); border: 1px solid rgba(7,26,94,0.25); }
+.depth-badge.hadal { background: rgba(59,31,122,0.12); color: var(--depth-hadal); border: 1px solid rgba(59,31,122,0.25); }
+.hero-info .id-line { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+.hero-info .id-line a { color: var(--primary); text-decoration: none; }
+.hero-info .id-line a:hover { text-decoration: underline; }
+.hero-info .class-badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 8px; }
+.class-badge.deep { background: rgba(7,26,94,0.1); color: var(--depth-deep); }
+.class-badge.marine { background: rgba(21,101,192,0.1); color: var(--primary); }
+.class-badge.non-marine { background: rgba(120,144,156,0.1); color: #78909c; }
+
+/* Sections */
+.section { margin-bottom: 28px; scroll-margin-top: 24px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.section-header .section-number { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--primary); opacity: 0.12; min-width: 36px; }
+.section-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+.section-header .section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* Properties grid */
+.props-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.prop-item { background: var(--bg-content); padding: 7px 10px; position: relative; cursor: default; }
+.prop-item .prop-label { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+.prop-item .prop-value { font-size: 12px; color: var(--text-primary); margin-top: 1px; word-break: break-all; line-height: 1.3; }
+.prop-item .prop-value.mono { font-family: var(--font-mono); font-size: 11px; }
+.prop-item .prop-value a { color: var(--primary); text-decoration: none; }
+.prop-item .prop-value a:hover { text-decoration: underline; }
+.prop-item .prop-tip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #0d1b2a; color: #fff; font-size: 11px; line-height: 1.4; padding: 7px 12px; border-radius: 6px; white-space: nowrap; z-index: 20; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: opacity 0.2s, visibility 0.2s; }
+.prop-item .prop-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #0d1b2a; }
+.prop-item:hover .prop-tip { visibility: visible; opacity: 1; }
+[data-theme="dark"] .prop-item .prop-tip { background: #1a3050; }
+[data-theme="dark"] .prop-item .prop-tip::after { border-top-color: #1a3050; }
+.props-synonyms { grid-column: 1 / -1; background: var(--bg-content); padding: 8px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.props-synonyms .syn-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-right: 6px; }
+
+/* Sources */
+.sources-list { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.source-item { padding: 10px 14px; background: var(--bg-content); }
+.source-item .source-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 3px; }
+.source-item .source-value { font-size: 14px; color: var(--text-primary); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-content); }
+.empty-state .empty-icon { font-size: 24px; display: block; margin-bottom: 8px; }
+
+/* Activities */
+.activities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.activity-card { background: var(--bg-content); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+.activity-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+.activity-card .act-category { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.activity-card .act-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
+.activity-card .act-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+.activity-card .act-ref { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.activity-card .act-ref a { color: var(--primary); text-decoration: none; }
+.activity-card .act-ref a:hover { text-decoration: underline; }
+
+/* References */
+.ref-list { counter-reset: ref-counter; }
+.ref-item { counter-increment: ref-counter; padding: 6px 12px; background: var(--bg-content); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 3px; display: flex; gap: 8px; align-items: flex-start; transition: background 0.15s; }
+.ref-item:hover { background: var(--bg-card); }
+.ref-item .ref-num { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--primary); opacity: 0.4; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
+.ref-item .ref-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.ref-item .ref-text a { color: var(--primary); text-decoration: none; font-weight: 500; }
+.ref-item .ref-text a:hover { text-decoration: underline; }
+
+/* Chemotype info */
+.chemotype-tag { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px; }
+.ct-polyketide { background: rgba(21,101,192,0.12); color: #1565c0; }
+.ct-terpenoid { background: rgba(212,83,42,0.12); color: #d4532a; }
+.ct-alkaloid { background: rgba(46,125,50,0.12); color: #2e7d32; }
+.ct-alkaloid-peptide { background: rgba(106,27,154,0.12); color: #6a1b9a; }
+.ct-polyketide-peptide { background: rgba(230,81,0,0.12); color: #e65100; }
+.ct-peptide { background: rgba(0,131,143,0.12); color: #00838f; }
+.ct-phenylpropanoid { background: rgba(249,168,37,0.12); color: #f9a825; }
+.ct-other { background: rgba(120,144,156,0.12); color: #78909c; }
+
+/* Back link */
+.back-to-db { display: inline-block; font-size: 12px; color: var(--text-muted); text-decoration: none; padding: 14px 0 0; transition: color 0.2s; }
+.back-to-db:hover { color: var(--primary); }
+
+/* Mobile nav */
+.mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: var(--bg-content); border-bottom: 1px solid var(--border); padding: 12px 16px; align-items: center; justify-content: space-between; }
+.mobile-nav .mob-back { color: var(--text-muted); text-decoration: none; font-size: 13px; }
+.mobile-nav .mob-title { font-size: 14px; font-weight: 600; color: var(--text-primary); max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-nav .mob-menu-btn { background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.mobile-nav-dropdown { display: none; position: fixed; top: 48px; left: 0; right: 0; z-index: 199; background: var(--bg-content); border-bottom: 1px solid var(--border); padding: 6px 0; }
+.mobile-nav-dropdown.open { display: block; }
+.mobile-nav-dropdown a { display: block; padding: 10px 20px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+.mobile-nav-dropdown a:hover { background: var(--bg-card); color: var(--text-primary); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .side-nav { display: none; }
+  .mobile-nav { display: flex !important; }
+  .main-content { margin-left: 0; padding: 0 20px 60px; padding-top: 56px; }
+  .hero { grid-template-columns: 1fr; gap: 24px; }
+  .hero-structure { max-width: 220px; margin: 0 auto; }
+  .hero-info .compound-name { font-size: 26px; }
+  .props-grid { grid-template-columns: repeat(2, 1fr); }
+  .activities-grid { grid-template-columns: 1fr; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff !important; color: #000 !important; display: block !important; }
+  .side-nav, .mobile-nav, .mobile-nav-dropdown, .float-toolbar, #scroll-progress, .back-to-db { display: none !important; }
+  .main-content { margin-left: 0 !important; max-width: 100% !important; padding: 0 !important; }
+  .hero { grid-template-columns: 1fr 2fr; border-bottom: 2px solid #000; }
+  .prop-item { background: #fff !important; border: 1px solid #ddd !important; }
+  .prop-item .prop-tip { display: none !important; }
+  .section { break-inside: avoid; }
+  @page { margin: 1.5cm; }
+}
+</style>
+</head>
+<body>
+<div id="scroll-progress" style="position:fixed;top:0;left:0;width:100%;height:3px;z-index:9999;pointer-events:none;"><div class="fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--gold));transition:width 0.05s linear;" id="progressFill"></div></div>
+
+<div class="mobile-nav">
+  <a href="../index.html" class="mob-back">&larr; Database</a>
+  <span class="mob-title">Citrinin</span>
+  <button class="mob-menu-btn" onclick="toggleMobileMenu()">Contents</button>
+</div>
+<div class="mobile-nav-dropdown" id="mobileDropdown">
+  <a href="#overview" onclick="closeMobile()">概览 Overview</a>
+  <a href="#properties" onclick="closeMobile()">基本性质 Properties</a>
+  <a href="#sources" onclick="closeMobile()">来源 Sources</a>
+  <a href="#targets" onclick="closeMobile()">蛋白靶标 Targets</a>
+  <a href="#phenotypes" onclick="closeMobile()">表型谱 Phenotypes</a>
+  <a href="#references" onclick="closeMobile()">参考文献 References</a>
+</div>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <a href="../index.html" class="back-link">&larr; Database</a>
+    <div class="nav-title">Citrinin</div>
+    <div class="nav-sub">C13H14O5</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="#overview" class="active"><span class="nav-dot"></span>概览 Overview</a></li>
+    <li><a href="#properties"><span class="nav-dot"></span>基本性质 Properties</a></li>
+    <li><a href="#sources"><span class="nav-dot"></span>来源 Sources</a></li>
+    <li><a href="#targets"><span class="nav-dot"></span>蛋白靶标 Targets</a></li>
+    <li><a href="#phenotypes"><span class="nav-dot"></span>表型谱 Phenotypes</a></li>
+    <li><a href="#references"><span class="nav-dot"></span>参考文献 References</a></li>
+  </ul>
+</nav>
+
+<div class="main-content">
+
+  <a href="../index.html" class="back-to-db">&larr; Back to Database</a>
+
+  
+  <section class="hero" id="overview">
+    <div class="hero-structure">
+      
+      <img src="https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid=54682830&t=l" alt="Citrinin 2D structure" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><text x=%22100%22 y=%22110%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%235a7a9a%22>No structure</text></svg>'">
+      
+    </div>
+    <div class="hero-info">
+      <h1 class="compound-name">Citrinin</h1>
+      <div class="hero-divider"></div>
+      <div class="iupac-name">6-hydroxy-3,4,5-trimethyl-8-oxo-3,4-dihydroisochromene-7-carboxylic acid</div>
+      
+      <div class="source-line">Source: <strong>Penicillium citrinum W17</strong> &mdash; Marine Fungus</div>
+      
+      <div style="margin-top:8px;">
+        <span class="class-badge deep">DEEP</span>
+      </div>
+      <div class="depth-badges">
+        <span class="depth-badge hadal">Hadal (5000–6000 m)</span>
+        <span class="chemotype-tag ct-polyketide">Polyketide</span>
+      </div>
+      <div class="id-line">
+        PubChem CID: <a href="https://pubchem.ncbi.nlm.nih.gov/compound/54682830" target="_blank">54682830</a>
+        &middot; ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank">CHEMBL510139</a>
+        &middot; CAS: 11118-72-2
+        &middot; Compound #419
+      </div>
+    </div>
+  </section>
+
+    <section class="section" id="properties">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>基本性质 Basic Properties</h2>
+      <span class="section-line"></span>
+    </div>
+        <div class="props-grid">
+      <div class="prop-item" style="grid-column:1/-1;background:var(--bg-card);display:flex;gap:16px;align-items:center;padding:8px 14px;">
+        <span class="class-badge deep" style="font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;text-transform:uppercase;background:rgba(7,26,94,0.1);color:var(--depth-deep);">DEEP</span>
+        <span class="chemotype-tag ct-polyketide" style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;">Polyketide</span>
+        <span style="font-size:11px;color:var(--text-muted);">Compound #419</span>
+        <span style="font-size:10px;color:var(--text-muted);font-style:italic;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="6-hydroxy-3,4,5-trimethyl-8-oxo-3,4-dihydroisochromene-7-carboxylic acid">6-hydroxy-3,4,5-trimethyl-8-oxo-3,4-dihydroisochromene-7-carboxylic acid</span>
+      </div>
+      
+      <div class="prop-item" style="grid-column:1/-1"><div class="prop-label">SMILES</div><div class="prop-value mono" style="font-size:11px;word-break:break-all;">CC1C(OC=C2C1=C(C(=C(C2=O)C(=O)O)O)C)C<button class="copy-btn" data-copy="CC1C(OC=C2C1=C(C(=C(C2=O)C(=O)O)O)C)C">Copy</button></div></div>
+      
+      <div class="prop-item" style="grid-column:1/-1"><div class="prop-label">InChIKey</div><div class="prop-value mono" style="font-size:11px;word-break:break-all;">CBGDIJWINPWWJW-IYSWYEEDSA-N<button class="copy-btn" data-copy="CBGDIJWINPWWJW-IYSWYEEDSA-N">Copy</button></div></div>
+      
+      <div class="props-synonyms"><span class="syn-label">Synonyms</span><span class="syn-text">11118-72-2, 4,6-Dihydro-8-hydroxy-3,4,5-trimethyl-6-oxo-3H-2-benzopyran-7-carboxylic acid, 8-Hydroxy-3,4,5-trimethyl-6-oxo-4,6-dihydro-3H-isochromene-7-carboxylic acid, CHEMBL495067, CHEBI:48709, NSC 186, 6-hydroxy-3,4,5-trimethyl-8-oxo-3,4-dihydroisochromene-7-carboxylic acid, 1329611-85-9, Cltrinin, Citrinin; Meleamycin, CQIUKKVOEOPUDV-UHFFFAOYSA-N, BDBM50565695, BS-1351, NCGC00095228-01, NCGC00095228-02</span></div>
+      
+      <div class="prop-item"><div class="prop-label">Molecular Formula</div><div class="prop-value">C13H14O5</div></div>
+      <div class="prop-item"><div class="prop-label">Molecular Weight</div><div class="prop-value">250.0841 g/mol</div></div>
+      <div class="prop-item"><div class="prop-label">Molecular Volume</div><div class="prop-value">220.1040 A³</div></div>
+      <div class="prop-item"><div class="prop-label">CAS Number</div><div class="prop-value">11118-72-2</div></div>
+      <div class="prop-item"><div class="prop-label">Heavy Atoms</div><div class="prop-value">18</div></div>
+      <div class="prop-item"><div class="prop-label">Rings (Ar/Al/To)</div><div class="prop-value">0 / 2 / 2</div></div>
+      
+      <div class="prop-item"><div class="prop-label">H-Bond Donor</div><div class="prop-value">2</div></div>
+      <div class="prop-item"><div class="prop-label">H-Bond Acceptor</div><div class="prop-value">4</div></div>
+      <div class="prop-item"><div class="prop-label">Rotatable Bonds</div><div class="prop-value">1</div></div>
+      <div class="prop-item"><div class="prop-label">Stereocenters</div><div class="prop-value">2</div></div>
+      <div class="prop-item"><div class="prop-label">LogP (Crippen)</div><div class="prop-value mono">1.7210</div></div>
+      <div class="prop-item"><div class="prop-label">LogD pH 7.4</div><div class="prop-value mono">1.7210</div></div>
+      <div class="prop-item"><div class="prop-label">LogS ESOL</div><div class="prop-value">-2.4088 (Moderately soluble)</div></div>
+      <div class="prop-item"><div class="prop-label">TPSA</div><div class="prop-value">83.83 Å²</div></div>
+      <div class="prop-item"><div class="prop-label">Fsp³ Fraction</div><div class="prop-value mono">0.3846</div></div>
+      
+      <div class="prop-item"><div class="prop-label">PubChem CID</div><div class="prop-value"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/54682830" target="_blank">54682830</a></div></div>
+      <div class="prop-item"><div class="prop-label">Lipinski Rule-of-5</div><div class="prop-value" style="font-size:11px;">0 violation(s) → PASS</div></div>
+      <div class="prop-item"><div class="prop-label">Veber Rule</div><div class="prop-value" style="font-size:11px;">PASS</div></div>
+      <div class="prop-item"><div class="prop-label">Ghose Filter</div><div class="prop-value" style="font-size:11px;">PASS</div></div>
+      <div class="prop-item"><div class="prop-label">Synth. Accessibility</div><div class="prop-value mono">3.83</div></div>
+      
+      <div class="prop-item"><div class="prop-label">NP-likeness</div><div class="prop-value" style="font-size:11px;">0.392</div></div>
+      <div class="prop-item"><div class="prop-label">PAINS Alerts</div><div class="prop-value" style="font-size:11px;">0 (clean)</div></div>
+      <div class="prop-item"><div class="prop-label">Brenk Alerts</div><div class="prop-value" style="font-size:11px;">Michael_acceptor_4</div></div>
+      <div class="prop-item"><div class="prop-label">GI Absorption</div><div class="prop-value" style="font-size:11px;">High</div></div>
+      <div class="prop-item"><div class="prop-label">Oral Bioavail.</div><div class="prop-value mono">0.85</div></div>
+      
+      <div class="prop-item"><div class="prop-label">BBB Permeant</div><div class="prop-value" style="font-size:11px;">Unknown</div></div>
+      <div class="prop-item"><div class="prop-label">Chemotype</div><div class="prop-value"><span class="chemotype-tag ct-polyketide" style="font-size:11px;padding:1px 8px;border-radius:8px;">Polyketide</span></div></div>
+      <div class="prop-item"><div class="prop-label">Sub-class</div><div class="prop-value">Macrolide</div></div>
+      <div class="prop-item"><div class="prop-label">ChEMBL ID</div><div class="prop-value"><a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank">CHEMBL510139</a></div></div>
+      <div class="prop-item"><div class="prop-label">NP Score</div><div class="prop-value mono">3.85</div></div>
+      
+      <div class="prop-item" style="grid-column:1/-1;background:var(--bg-card);display:flex;gap:24px;padding:8px 14px;justify-content:space-around;">
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">Total Activities</div><div class="prop-value" style="font-weight:700;font-size:16px;">94</div></div>
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">Unique Targets</div><div class="prop-value" style="font-weight:700;font-size:16px;">90</div></div>
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">References</div><div class="prop-value" style="font-weight:700;font-size:16px;">19</div></div>
+      </div>
+</div>
+  </section>
+
+    <section class="section" id="sources">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>来源 Sources</h2>
+      <span class="section-line"></span>
+    </div>
+    <div class="sources-row" style="display:grid;grid-template-columns:1.6fr 1fr;gap:24px;">
+      
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="sources-list" style="display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+          <div class="source-item" style="padding:12px 16px;background:var(--bg-content);border-left:3px solid var(--depth-slope);display:flex;gap:12px;align-items:center;">
+            <div class="source-body" style="flex:1;min-width:0;">
+              <div class="source-main" style="font-size:13px;color:var(--text-primary);line-height:1.5;"><strong>Organism.</strong> <a class="taxon-link" href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name=Penicillium%20citrinum%20W17" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--primary);"><em>Penicillium citrinum W17</em></a> &mdash; Marine Fungus</div>
+              <div class="source-ref" style="font-size:12px;color:var(--text-muted);margin-top:2px;">deep-sea</div>
+            </div>
+            <span class="source-depth-badge" style="font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700;white-space:nowrap;background:rgba(13,71,161,0.12);color:var(--depth-slope);">Hadal (5000–6000 m)</span>
+          </div>
+          <div class="source-item" style="padding:12px 16px;background:var(--bg-content);border-left:3px solid var(--primary);display:flex;gap:12px;align-items:center;">
+            <div class="source-body" style="flex:1;min-width:0;">
+              <div class="source-main" style="font-size:13px;color:var(--text-primary);line-height:1.5;"><strong>Location.</strong> Western Pacific Ocean</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="map-container" style="border-radius:10px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);">
+          <div id="compound-map" style="height:300px;width:100%;"></div>
+        </div>
+      </div>
+      
+      <div class="depth-profile-wrapper" style="display:flex;gap:24px;height:100%;min-height:420px;">
+        <div class="depth-scale" style="width:48px;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(13,27,42,0.10);">
+          <div class="depth-zone zone-shallow" style="flex:0.05;display:flex;align-items:center;justify-content:center;font-size:10px;background:#1565c0;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">0–200 m</div>
+          <div class="depth-zone zone-slope" style="flex:0.10;display:flex;align-items:center;justify-content:center;font-size:10px;background:#0d47a1;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">200–1K</div>
+          <div class="depth-zone zone-deep" style="flex:0.35;display:flex;align-items:center;justify-content:center;font-size:10px;background:#071a5e;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">1K–4K</div>
+          <div class="depth-zone zone-hadal" style="flex:0.50;display:flex;align-items:center;justify-content:center;font-size:10px;background:#3b1f7a;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">&gt;4K</div>
+        </div>
+        <div class="depth-markers" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;">
+          <div class="depth-marker-item" style="border-left-color:var(--depth-hadal);padding:14px 18px;background:var(--bg-content);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-secondary);line-height:1.5;border-left:4px solid transparent;box-shadow:0 2px 8px rgba(13,27,42,0.06);">
+            <div class="dm-body">
+              <span class="dm-depth" style="font-weight:700;color:var(--text-primary);font-size:16px;display:block;margin-bottom:3px;">Hadal (5000–6000 m)</span>
+              <a class="taxon-link" href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name=Penicillium%20citrinum%20W17" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--primary);"><em>Penicillium citrinum W17</em></a>
+              <span class="dm-loc" style="display:block;font-size:12px;color:var(--text-muted);margin-top:3px;">Western Pacific Ocean &mdash; deep-sea</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="targets">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>蛋白靶标 Protein Targets</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="activities-grid">
+      
+      <div class="activity-card">
+        <div class="act-category">Enzyme Inhibition</div>
+        <div class="act-title">Acetylcholinesterase</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/P22303/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: P22303</a> &mdash; ACHE</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 3.11 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/23062825/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">23062825</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Enzyme Inhibition</div>
+        <div class="act-title">Cholinesterase</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/P06276/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: P06276</a> &mdash; BCHE</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 11.31 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/23062825/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">23062825</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Enzyme Inhibition</div>
+        <div class="act-title">Deoxynucleoside triphosphate triphosphohydrolase SAMHD1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q502K2/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q502K2</a> &mdash; samhd1</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 18.71 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/38318365/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">38318365</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Enzyme Inhibition</div>
+        <div class="act-title">Fructose-bisphosphate aldolase</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/P04075/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: P04075</a> &mdash; ALDOA</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Potency = 12559.4 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Antimicrobial</div>
+        <div class="act-title">Microtubule-associated protein tau</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/P10636/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: P10636</a> &mdash; MAPT</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Potency = 31622.8 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Organic anion transporter 3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q9UIG8/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q9UIG8</a> &mdash; SLCO3A1</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">K<sub>i</sub> = 15400.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/11669456/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">11669456</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Solute carrier family 22 member 11</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q6ICL7/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q6ICL7</a> &mdash; SLC35E4</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">K<sub>i</sub> = 366400.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/12063169/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">12063169</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Solute carrier family 22 member 6</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/A1A5C7/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: A1A5C7</a> &mdash; SLC22A23</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">K<sub>i</sub> = 3080000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/11669456/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">11669456</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/21571536/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21571536</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Solute carrier organic anion transporter family member 1B1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q9Y6L6/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q9Y6L6</a> &mdash; SLCO1B1</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 34.39 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/23571415/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">23571415</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Solute carrier organic anion transporter family member 1B3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q9NPD5/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q9NPD5</a> &mdash; SLCO1B3</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 67.29 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/23571415/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">23571415</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Vitamin D3 receptor</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/P11473/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: P11473</a> &mdash; VDR</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Potency = 89125.1 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+    <section class="section" id="phenotypes">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>表型谱 Phenotypic Profiles</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="activities-grid">
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">786-0</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Renal cell carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 24547.09 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A498</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Renal carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 781.63 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A549</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Lung carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 70469.31 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">ACHN</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Renal cell carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 20989.4 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Agrobacterium tumefaciens</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Activity = -26.0 % (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Amaranthus hypochondriacus</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 55000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/10869195/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">10869195</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Antimicrobial</div>
+        <div class="act-title">Bacillus subtilis</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">MIC = 25.0 μg/mL (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">BT-549</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Breast ductal carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 13304.54 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CAKI-1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Renal clear cell carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 27289.78 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CCRF-CEM</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> T-cell leukemia</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 14825.18 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">COLO 205</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 33884.42 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">DLD-1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 18197.01 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">DMS-114</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 11455.13 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">DMS-273</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 43954.16 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">DU-145</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Prostate carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 24154.61 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Echinochloa crus-galli</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 63000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/10869195/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">10869195</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">EKVX</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Non-small cell lung cancer</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 18749.95 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">GroEL/GroES</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 99.0 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/30852084/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">30852084</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">GroEL/GroES</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Inhibition = 79.0 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/30852084/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">30852084</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">HCC 2998</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 19098.53 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HCT-116</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = > 10000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/21761866/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21761866</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HCT-116</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 25822.6 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">HCT-15</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 16865.53 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HL-60</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Acute promyelocytic leukemia</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = > 10000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/21761866/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21761866</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HL-60</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Acute promyelocytic leukemia</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 11117.32 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">HOP-18</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15240.53 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HOP-62</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 17100.15 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HOP-92</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 25118.86 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">Hs-578T</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Breast ductal carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 27478.94 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HT-29</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 33884.42 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">IGROV-1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 18578.04 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">K562</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Chronic myelogenous leukemia</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15275.66 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">KB</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = > 10000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/21761866/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21761866</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">KM-20L2</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 23823.19 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">KM12</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 26853.44 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">LOX IMVI</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 16255.49 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">M14</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 23014.42 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">M19-MEL</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 24490.63 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">Malme-3M</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 50118.72 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MCF7</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15739.83 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MDA-MB-231</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Breast adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 23173.95 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MDA-MB-435</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Melanoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 26977.39 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MDA-N</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 26242.19 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MOLT-4</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> T-cell leukemia</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 13091.82 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI-H226</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 23280.91 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI-H23</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 20511.62 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI-H322M</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 20370.42 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI-H460</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 11803.21 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI-H522</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 12387.97 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">NCI/ADR-RES</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 43752.21 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">OVCAR-3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 16749.43 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">OVCAR-4</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 32885.16 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">OVCAR-5</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 59841.16 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">OVCAR-8</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 13152.25 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">P388</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Mouse leukemia cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 17021.59 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">P388/ADR</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 11508.0 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">PC-3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Prostate adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 31988.95 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">Radical scavenging activity</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 160000.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/18281952/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">18281952</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">RPMI-8226</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Multiple myeloma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15776.11 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">RXF 393</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 13182.57 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SF-268</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Glioblastoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 6998.42 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SF-295</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Glioblastoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 35809.64 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SF-539</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Glioblastoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 12274.39 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SK-MEL-2</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Melanoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 16255.49 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SK-MEL-28</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Melanoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 31768.74 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SK-MEL-5</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Melanoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 12823.31 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">SK-OV-3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Ovarian adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 71779.43 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SN12C</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 21727.01 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">SN12K1</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15310.87 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SNB-19</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 21877.62 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SNB-75</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Glioblastoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 32583.67 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">SNB-78</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 11194.38 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SR</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Lymphoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 15631.48 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Antimicrobial</div>
+        <div class="act-title">Staphylococcus aureus</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">Activity > 50.0 % (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/35724567/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">35724567</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SW-620</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Colorectal adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 20558.91 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">T47D</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 29241.52 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">TK-10</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Renal cell carcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 24547.09 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">U-251</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Glioblastoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 14621.77 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">UACC-257</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 29716.66 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">UACC-62</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 20323.57 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">UO-31</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 48305.88 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Bioactivity</div>
+        <div class="act-title">XF498</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 5546.26 nM (ChEMBL)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          
+          <span>ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL510139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">CHEMBL510139</a></span>
+          
+          
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+    <section class="section" id="references">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>参考文献 References</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="ref-list">
+      
+      <div class="ref-item">
+        <span class="ref-num">1</span>
+        <span class="ref-text">Tsuda M., Sekine T., Takeda M., Cha S., Kanai Y., et al. (1999). Transport of ochratoxin A by renal multispecific organic anion transporter 1. J Pharmacol Exp Ther, 289(3): 1301-5 <a href="https://pubmed.ncbi.nlm.nih.gov/10869195/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 10869195</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">2</span>
+        <span class="ref-text">Macías M., Ulloa M., Gamboa A., Mata R. (2000). Phytotoxic compounds from the new coprophilous fungus guanomyces polythrix. J Nat Prod, 63(6): 757-61 <a href="https://pubmed.ncbi.nlm.nih.gov/10869195/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 10869195</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">3</span>
+        <span class="ref-text">Jung K., Takeda M., Kim D., Tojo A., Narikawa S., et al. (2001). Characterization of ochratoxin A transport by human organic anion transporters. Life Sci, 69(18): 2123-35 <a href="https://pubmed.ncbi.nlm.nih.gov/11669456/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 11669456</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">4</span>
+        <span class="ref-text">Babu E., Takeda M., Narikawa S., Kobayashi Y., Enomoto A., et al. (2002). Role of human organic anion transporter 4 in the transport of ochratoxin A. Biochim Biophys Acta, 1590(1-3): 64-75 <a href="https://pubmed.ncbi.nlm.nih.gov/12063169/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 12063169</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">5</span>
+        <span class="ref-text">Lu Z., Lin Z., Wang W., Du L., Zhu T., et al. (2008). Citrinin dimers from the halotolerant fungus Penicillium citrinum B-57. J Nat Prod, 71(4): 543-6 <a href="https://pubmed.ncbi.nlm.nih.gov/18281952/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 18281952</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">6</span>
+        <span class="ref-text">Kouznetsova V., Tsigelny I., Nagle M., Nigam S. (2011). Elucidation of common pharmacophores from analysis of targeted metabolites transported by the multispecific drug transporter-Organic anion transporter1 (Oat1). Bioorg Med Chem, 19(11): 3320-40 <a href="https://pubmed.ncbi.nlm.nih.gov/21571536/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 21571536</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">7</span>
+        <span class="ref-text">Du L., Liu H., Fu W., Li D., Pan Q., et al. (2011). Unprecedented citrinin trimer tricitinol B functions as a novel topoisomerase IIα inhibitor. J Med Chem, 54(16): 5796-810 <a href="https://pubmed.ncbi.nlm.nih.gov/21761866/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 21761866</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">8</span>
+        <span class="ref-text">Brunhofer G., Fallarero A., Karlsson D., Batista-Gonzalez A., Shinde P., et al. (2012). Exploration of natural compounds as sources of new bifunctional scaffolds targeting cholinesterases and beta amyloid aggregation: the case of chelerythrine. Bioorg Med Chem, 20(22): 6669-79 <a href="https://pubmed.ncbi.nlm.nih.gov/23062825/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 23062825</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">9</span>
+        <span class="ref-text">De Bruyn T., van Westen G., Ijzerman A., Stieger B., de Witte P., et al. (2013). Structure-based identification of OATP1B1/3 inhibitors. Mol Pharmacol, 83(6): 1257-67 <a href="https://pubmed.ncbi.nlm.nih.gov/23571415/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 23571415</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">10</span>
+        <span class="ref-text">Stevens M., Abdeen S., Salim N., Ray A., Washburn A., et al. (2019). HSP60/10 chaperonin systems are inhibited by a variety of approved drugs, natural products, and known bioactive molecules. Bioorg Med Chem Lett, 29(9): 1106-1112 <a href="https://pubmed.ncbi.nlm.nih.gov/30852084/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 30852084</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">11</span>
+        <span class="ref-text">Deng Y., Liu Y., Li J., Wang X., He S., et al. (2022). Marine natural products and their synthetic analogs as promising antibiofilm agents for antibiotics discovery and development. Eur J Med Chem, 239: 114513 <a href="https://pubmed.ncbi.nlm.nih.gov/35724567/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 35724567</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">12</span>
+        <span class="ref-text">Zhang S., Paulin C., Shu H., Yagüe-Capilla M., Michel M., et al. (2024). Identification and evaluation of small-molecule inhibitors against the dNTPase SAMHD1 via a comprehensive screening funnel. iScience, 27(2): 108907 <a href="https://pubmed.ncbi.nlm.nih.gov/38318365/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 38318365</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">13</span>
+        <span class="ref-text">Fan H., Shao X., Zhang Z., Ni C., Feng C., et al. (2024). Penicilloneines A and B, Quinolone-Citrinin Hybrids from a Starfish-Derived J Nat Prod, 87(4): 705-712 <a href="https://pubmed.ncbi.nlm.nih.gov/38547118/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 38547118</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">14</span>
+        <span class="ref-text">Berger M., Deharde M., Neuhoff J., Monien B., Siodlaczek S., et al. (2025). Mycotoxins - Determination of aflatoxins, ochratoxin A, free ochratoxin α, gliotoxin, citrinin, and dihydrocitrinone in urine by LC-MS/MS: Biomonitoring Method - Translation of the German version from 2025. MAK Collect Occup Health Saf, 10(2): Doc045 <a href="https://pubmed.ncbi.nlm.nih.gov/41973598/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 41973598</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">15</span>
+        <span class="ref-text">Kiningham KK et al. (1999). Overexpression of manganese superoxide dismutase protects against mitochondrial-initiated poly(ADP-ribose) polymerase-mediated cell death. FASEB J. 13(12):1601-10 <a href="https://pubmed.ncbi.nlm.nih.gov/10463952/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 10463952</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">16</span>
+        <span class="ref-text">Pueyo ME et al. (2000). Angiotensin II stimulates endothelial vascular cell adhesion molecule-1 via nuclear factor-kappaB activation induced by intracellular oxidative stress. Arterioscler Thromb Vasc Biol. 20(3):645-51 <a href="https://pubmed.ncbi.nlm.nih.gov/10712386/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 10712386</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">17</span>
+        <span class="ref-text">Chang TI et al. (2003). Oxidant regulation of gene expression and neural tube development: Insights gained from diabetic pregnancy on molecular causes of neural tube defects. Diabetologia. 46(4):538-45 <a href="https://pubmed.ncbi.nlm.nih.gov/12739027/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 12739027</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">18</span>
+        <span class="ref-text">Sarbassov DD et al. (2005). Redox regulation of the nutrient-sensitive raptor-mTOR pathway and complex. J Biol Chem. 280(47):39505-9 <a href="https://pubmed.ncbi.nlm.nih.gov/16183647/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 16183647</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">19</span>
+        <span class="ref-text">Han D et al. (2006). Hydrogen peroxide and redox modulation sensitize primary mouse hepatocytes to TNF-induced apoptosis. Free Radic Biol Med. 41(4):627-39 <a href="https://pubmed.ncbi.nlm.nih.gov/16863996/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 16863996</a></span>
+      </div>
+      
+    </div>
+    
+  </section>
+
+ 
+
+</div>
+
+<div class="float-toolbar" style="position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px;">
+  <button class="toolbar-btn" id="themeToggle" aria-label="Toggle dark mode" style="width:42px;height:42px;border-radius:50%;background:var(--bg-content);border:1px solid var(--border);color:var(--text-primary);font-size:18px;cursor:pointer;box-shadow:var(--shadow-md);">🌙</button>
+  <button class="toolbar-btn" onclick="window.print()" aria-label="Print / PDF" style="width:42px;height:42px;border-radius:50%;background:var(--bg-content);border:1px solid var(--border);color:var(--text-primary);font-size:18px;cursor:pointer;box-shadow:var(--shadow-md);">🖨</button>
+</div>
+
+<script>
+// ===== Scroll Progress =====
+const progressFill = document.getElementById('progressFill');
+window.addEventListener('scroll', function() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  progressFill.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+}, { passive: true });
+
+// ===== Active Nav =====
+const sections = document.querySelectorAll('.section, .hero');
+const navLinks = document.querySelectorAll('.side-nav .nav-items a');
+function updateActiveNav() {
+  let current = 'overview';
+  sections.forEach(function(sec) {
+    if (sec.getBoundingClientRect().top <= 250) current = sec.id;
+  });
+  navLinks.forEach(function(link) {
+    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+updateActiveNav();
+
+// ===== Mobile Menu =====
+function toggleMobileMenu() { document.getElementById('mobileDropdown').classList.toggle('open'); }
+function closeMobile() { document.getElementById('mobileDropdown').classList.remove('open'); }
+
+// ===== Dark Mode =====
+(function() {
+  const toggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('deepsea-theme');
+  if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); if (toggle) toggle.textContent = '☀️'; }
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('deepsea-theme', 'light'); toggle.textContent = '🌙'; }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('deepsea-theme', 'dark'); toggle.textContent = '☀️'; }
+    });
+  }
+})();
+
+// ===== Geographic Map =====
+(function() {
+  var container = document.getElementById('compound-map');
+  if (!container) return;
+  var lat = 0;
+  var lng = 160;
+  var zoom = 3;
+  var map = L.map('compound-map', { center: [lat, lng], zoom: zoom, zoomControl: true, attributionControl: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+  L.circleMarker([lat, lng], { radius: 12, fillColor: '#1565c0', color: '#fff', weight: 2, fillOpacity: 0.5 }).addTo(map)
+    .bindPopup('<strong>Western Pacific Ocean</strong><br><em>Penicillium citrinum W17</em><br>Depth: Hadal (5000–6000 m)');
+  // Fit bounds with padding
+  map.fitBounds([[lat-10, lng-15], [lat+10, lng+15]], { padding: [30, 30] });
+})();
+
+// ===== Copy to Clipboard =====
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  e.preventDefault();
+  const text = btn.getAttribute('data-copy');
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  }).catch(function() {
+    btn.textContent = 'Failed';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+  });
+});
+</script>
+</body>
+</html>
