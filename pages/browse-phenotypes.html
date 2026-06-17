@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Phenotypes — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #0077b6;
+  --primary-hover: #005f8c;
+  --primary-light: rgba(0,119,182,0.08);
+  --bg-page: #f0f8f0;
+  --bg-content: #ffffff;
+  --bg-card: #f6faf6;
+  --border: #d0e0d4;
+  --border-light: #e0efe4;
+  --text-primary: #0d1b2a;
+  --text-secondary: #455a64;
+  --text-muted: #78909c;
+  --shadow-sm: 0 1px 3px rgba(13,27,42,0.06);
+  --shadow-md: 0 4px 12px rgba(13,27,42,0.08);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --font-sans: 'Noto Sans SC', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Playfair Display', serif;
+}
+body { font-family:var(--font-sans); background:var(--bg-page); color:var(--text-primary); line-height:1.65; min-height:100vh; -webkit-font-smoothing:antialiased; display:flex; }
+
+/* SIDEBAR */
+.side-nav { position:fixed; top:0; left:0; width:200px; height:100vh; background:var(--bg-content); border-right:1px solid var(--border); padding:28px 0; overflow-y:auto; z-index:100; display:flex; flex-direction:column; }
+.nav-header { padding:0 20px 20px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.nav-title { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+.nav-title em { color:var(--primary); font-style:normal; }
+.nav-sub { font-size:12px; color:var(--text-muted); margin-top:3px; }
+.nav-items { list-style:none; padding:0; margin:0; flex:1; }
+.nav-items li a { display:flex; align-items:center; gap:10px; padding:9px 20px; color:var(--text-secondary); text-decoration:none; font-size:13px; transition:all 0.15s; border-left:2px solid transparent; }
+.nav-items li a:hover { color:var(--text-primary); background:var(--bg-card); }
+.nav-items li a.active { color:#2e7d32; border-left-color:#2e7d32; background:rgba(46,125,50,0.06); font-weight:500; }
+.nav-dot { width:5px; height:5px; border-radius:50%; background:currentColor; opacity:0.35; flex-shrink:0; }
+.nav-footer { padding:12px 20px; border-top:1px solid var(--border); font-size:11px; color:var(--text-muted); margin-top:auto; text-align:center; }
+
+/* MAIN */
+.main-content { margin-left:200px; flex:1; min-width:0; background:var(--bg-page); }
+
+/* Header */
+.page-header {
+  background:linear-gradient(135deg,#e8f5e9 0%,#e0f0e8 40%,#f0f4f8 100%);
+  border-bottom:1px solid var(--border);
+  padding:24px 12px 20px; position:relative; overflow:hidden;
+}
+.page-header::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 400px 200px at 15% 30%, rgba(46,125,50,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 80% 20%, rgba(0,150,136,0.03) 0%, transparent 70%);
+  pointer-events:none;
+}
+.header-inner { position:relative; z-index:1; max-width:1100px; }
+.header-row { display:flex; align-items:center; gap:18px; margin-bottom:16px; }
+.header-icon { font-size:36px; }
+.header-title { font-size:28px; font-weight:700; color:var(--text-primary); line-height:1.15; }
+.header-count { font-size:16px; font-weight:600; background:rgba(46,125,50,0.1); color:#2e7d32; padding:2px 10px; border-radius:8px; vertical-align:middle; }
+.header-sub { font-size:14px; color:var(--text-muted); font-weight:400; letter-spacing:1px; margin-top:2px; }
+
+/* Summary Charts */
+.summary-section { max-width:1100px; margin:0 12px; padding:16px 0 8px; }
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.summary-card { background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; box-shadow:var(--shadow-sm); }
+.summary-card h3 { font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.summary-card h3 span { color:#2e7d32; font-weight:700; }
+.bar-chart { display:flex; flex-direction:column; gap:5px; }
+.bar-row { display:flex; align-items:center; gap:10px; }
+.bar-label { width:140px; font-size:11px; color:var(--text-muted); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:18px; background:var(--bg-card); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; background:linear-gradient(90deg,#2e7d32,#66bb6a); }
+.bar-count { width:30px; font-size:11px; font-family:var(--font-mono); color:var(--text-primary); font-weight:500; text-align:right; }
+
+/* Stats bar */
+.stats-row { display:flex; gap:10px; margin:14px 0 0; flex-wrap:wrap; }
+.stat-item { flex:1; min-width:100px; padding:10px 14px; border:1px solid var(--border-light); border-radius:8px; background:var(--bg-content); text-align:left; }
+.stat-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+.stat-value { font-size:20px; font-weight:700; color:var(--text-primary); margin-top:2px; }
+.stat-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+
+/* Toolbar */
+.toolbar-section { max-width:1100px; margin:0 12px; padding:8px 0 0; }
+.toolbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:12px 18px; box-shadow:var(--shadow-sm); }
+.search-box { position:relative; flex:1; min-width:200px; max-width:360px; }
+.search-box input { width:100%; padding:8px 14px 8px 36px; border:1px solid var(--border); border-radius:20px; font-size:13px; background:var(--bg-page); color:var(--text-primary); outline:none; font-family:inherit; transition:border-color 0.15s; }
+.search-box input:focus { border-color:#2e7d32; box-shadow:0 0 0 2px rgba(46,125,50,0.08); }
+.search-box input::placeholder { color:var(--text-muted); }
+.search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:13px; opacity:0.4; }
+.filter-chips { display:flex; gap:5px; flex-wrap:wrap; flex:2; }
+.filter-chip { padding:4px 12px; border:1px solid var(--border); border-radius:14px; font-size:11px; color:var(--text-secondary); background:var(--bg-content); cursor:pointer; transition:all 0.12s; user-select:none; white-space:nowrap; }
+.filter-chip:hover { border-color:#2e7d32; color:#2e7d32; }
+.filter-chip.active { background:#2e7d32; color:#fff; border-color:#2e7d32; }
+.result-num { font-size:12px; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
+.result-num strong { color:var(--text-primary); }
+
+/* Phenotype Cards — 2‑column (matched to browse‑strains) */
+.pheno-section { max-width:1100px; margin:0 12px; padding:16px 0 40px; }
+.pheno-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.pheno-card {
+  display:flex; flex-direction:column;
+  background:var(--bg-content); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:18px;
+  transition:all 0.2s; cursor:pointer; text-decoration:none;
+  box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+}
+.pheno-card:hover { border-color:#2e7d32; box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.pheno-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#2e7d32,#66bb6a); opacity:0; transition:opacity 0.2s; }
+.pheno-card:hover::before { opacity:1; }
+.pcard-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+.pcard-name { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.3; flex:1; }
+.pcard-count { display:flex; flex-direction:column; align-items:center; gap:1px; flex-shrink:0; margin-left:12px; }
+.pcard-count-num { font-size:22px; font-weight:700; color:#2e7d32; line-height:1; }
+.pcard-count-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+.pcard-meta { display:flex; flex-wrap:wrap; gap:6px 12px; margin-bottom:10px; font-size:12px; color:var(--text-muted); }
+.pcard-meta-item { display:flex; align-items:center; gap:4px; }
+.pcard-meta-item .label { color:var(--text-muted); opacity:0.6; }
+.pcard-cats { display:flex; gap:4px; flex-wrap:wrap; }
+.pcard-cat { display:inline-block; padding:2px 10px; border-radius:10px; font-size:10px; font-weight:500; }
+
+/* Pagination */
+.page-nav { display:flex; justify-content:center; align-items:center; gap:4px; margin-top:28px; }
+.page-btn { width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:13px; background:var(--bg-content); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all 0.12s; }
+.page-btn:hover { border-color:#2e7d32; color:#2e7d32; }
+.page-btn.active { background:#2e7d32; color:#fff; border-color:#2e7d32; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:var(--radius-lg); background:var(--bg-content); grid-column:1/-1; }
+
+/* Loading */
+.loading-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:14px; grid-column:1/-1; }
+
+@media(max-width:900px){
+  .side-nav{width:180px;}
+  .main-content{margin-left:180px;}
+  .summary-grid{grid-template-columns:1fr;}
+  .page-header{padding:28px 12px 20px;}
+  .toolbar-section{padding:8px 12px 0;}
+  .pheno-section{padding:16px 12px 40px;}
+  .summary-section{padding:24px 12px 8px;}
+}
+@media(max-width:600px){
+  .side-nav{display:none;}
+  .main-content{margin-left:0;}
+  .header-title{font-size:22px;}
+  .page-header{padding:20px 12px 16px;}
+  .toolbar-section{padding:8px 12px 0;}
+  .pheno-section{padding:12px 12px 30px;}
+  .summary-section{padding:16px 12px 4px;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{max-width:none;}
+  .pheno-grid{grid-template-columns:1fr;}
+}
+</style>
+</head><body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">⛱ Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="browse-phenotypes.html" class="active"><span class="nav-dot" style="background:#2e7d32;opacity:1;"></span> Phenotypes · 表型</a></li>
+    <li><a href="browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · 347 phenotypes</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="header-inner">
+      <div class="header-row">
+        <div class="header-icon">📊</div>
+        <div>
+          <h1 class="header-title">Phenotypic Activities · 表型 <span class="header-count" id="phenotype-count"></span></h1>
+          <div class="header-sub">Browse bioactivity profiles of deep-sea compounds</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>🏆 <span>Most Active Phenotypes</span></h3>
+        <div class="bar-chart" id="topPhenotypeBars"></div>
+      </div>
+      <div class="summary-card">
+        <h3>📂 <span>Category Distribution</span></h3>
+        <div class="donut-wrapper" id="catDonutWrapper" style="text-align:center;padding:4px 0;">
+          <canvas id="catDonut" class="donut-canvas" width="180" height="180" style="display:block;margin:0 auto;"></canvas>
+          <div id="catLegend" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row" id="stats-row">
+      <div class="stat-item"><div class="stat-label">Total Entities</div><div class="stat-value" id="stat-total">—</div><div class="stat-sub">unique phenotype entries</div></div>
+      <div class="stat-item"><div class="stat-label">Categories</div><div class="stat-value" id="stat-categories">—</div><div class="stat-sub">分类标签</div></div>
+      <div class="stat-item"><div class="stat-label">Activities</div><div class="stat-value" id="stat-activities">—</div><div class="stat-sub">活性数据条目</div></div>
+      <div class="stat-item"><div class="stat-label">References</div><div class="stat-value" id="stat-pmids">—</div><div class="stat-sub">PubMed citations</div></div>
+    </div>
+  </div>
+
+  <div class="toolbar-section">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="phenotype-search" placeholder="Search by name...">
+      </div>
+      <div class="sort-control" style="display:flex;align-items:center;gap:6px;">
+        <label for="phenotype-sort" style="font-size:11px;color:var(--text-muted);white-space:nowrap;font-weight:500;">Sort · 排序</label>
+        <select id="phenotype-sort" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--bg-page);color:var(--text-primary);outline:none;font-family:inherit;cursor:pointer;">
+          <option value="count-desc" selected>Compound Count ↓</option>
+          <option value="count-asc">Compound Count ↑</option>
+          <option value="name-asc">Name A–Z</option>
+          <option value="name-desc">Name Z–A</option>
+          <option value="category">Category</option>
+        </select>
+      </div>
+      <div class="filter-chips" id="phenotype-category-filters">
+        <div class="filter-chip active" data-category="">All · 全部</div>
+      </div>
+      <div class="result-num">Showing <strong id="resultCount">0</strong></div>
+    </div>
+  </div>
+
+  <div class="pheno-section">
+    <div class="pheno-grid" id="phenotype-list">
+      <div class="loading-state">Loading phenotype data...</div>
+    </div>
+    <div class="page-nav" id="pageNav"></div>
+  </div>
+</div>
+
+<script src="../assets/data/phenotypes_detail.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var allEntities = PHENOTYPE_ENTITIES || [];
+  var filtered = [];
+  var currentPage = 0;
+  var pageSize = 30;
+  var activeCat = '';
+  var sortMode = 'count-desc';
+
+  var PHENOTYPE_COLORS = window.PHENOTYPE_COLORS || {
+    'Anticancer': '#e53935', 'Antimicrobial': '#2e7d32',
+    'Anti-inflammatory': '#1565c0', 'Enzyme Inhibition': '#6a1b9a',
+    'Antioxidant': '#f9a825', 'Antiviral': '#00897b',
+    'Antiparasitic': '#d4532a', 'Neuroprotective': '#00acc1',
+    'Bioactivity (Generic)': '#78909c', 'Other': '#bdbdbd'
+  };
+
+  function esc(t) {
+    if (!t) return '';
+    var d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+  }
+
+  function renderStats() {
+    document.getElementById('phenotype-count').textContent = allEntities.length;
+    document.getElementById('stat-total').textContent = allEntities.length;
+    // 统计实际使用的分类数（取每个实体的主分类）
+    var usedCats = {};
+    allEntities.forEach(function (e) {
+      var ec = e.cats || e.categories || [];
+      if (ec.length > 0) usedCats[ec[0]] = 1;
+    });
+    document.getElementById('stat-categories').textContent = Object.keys(usedCats).length;
+    document.getElementById('stat-activities').textContent = TOTAL_ACTIVITY_ENTRIES || '—';
+    document.getElementById('stat-pmids').textContent = '—';
+    var navCount = document.getElementById('nav-count');
+    if (navCount) navCount.textContent = allEntities.length;
+  }
+
+  function renderTopBars() {
+    var sorted = allEntities.slice().sort(function (a, b) {
+      return (b.count || b.compound_count || 0) - (a.count || a.compound_count || 0);
+    });
+    var top = sorted.slice(0, 10);
+    var maxVal = top[0] ? (top[0].count || top[0].compound_count || 1) : 1;
+
+    var html = '';
+    top.forEach(function (e) {
+      var cnt = e.count || e.compound_count || 0;
+      var pct = Math.round((cnt / maxVal) * 100);
+      var cat = (e.cats || e.categories || ['Other'])[0] || 'Other';
+      var color = PHENOTYPE_COLORS[cat] || '#78909c';
+      html += '<div class="bar-row">';
+      html += '  <div class="bar-label" title="' + esc(e.name) + '">' + esc(e.name.length > 20 ? e.name.slice(0, 18) + '..' : e.name) + '</div>';
+      html += '  <div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + color + ',' + color + '88)"></div></div>';
+      html += '  <div class="bar-count">' + cnt + '</div>';
+      html += '</div>';
+    });
+    document.getElementById('topPhenotypeBars').innerHTML = html;
+  }
+
+  function renderDonut() {
+    var catCount = {};
+    allEntities.forEach(function (e) {
+      var cats = e.cats || e.categories || [];
+      // 每个实体只计主分类（第一个），避免多分类重复计数
+      if (cats.length > 0) {
+        var c = cats[0];
+        catCount[c] = (catCount[c] || 0) + (e.count || e.compound_count || 0);
+      }
+    });
+    var cats = Object.keys(catCount);
+    var canvas = document.getElementById('catDonut');
+    var ctx = canvas.getContext('2d');
+    var total = cats.reduce(function (s, c) { return s + catCount[c]; }, 0);
+    var startAngle = -Math.PI / 2;
+    var cx = 90, cy = 90, r = 72, inR = 40;
+    ctx.clearRect(0, 0, 180, 180);
+    cats.forEach(function (cat) {
+      var val = catCount[cat] / total;
+      var endAngle = startAngle + val * Math.PI * 2;
+      var color = PHENOTYPE_COLORS[cat] || '#78909c';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, startAngle - 0.02, endAngle);
+      ctx.arc(cx, cy, inR, endAngle, startAngle - 0.02, true);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      startAngle = endAngle;
+    });
+    // Draw total in center hole
+    if (total > 0) {
+      ctx.fillStyle = '#0d1b2a';
+      ctx.font = 'bold 26px "Noto Sans SC",-apple-system,sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(total), cx, cy - 8);
+      ctx.font = '10px "Noto Sans SC",-apple-system,sans-serif';
+      ctx.fillStyle = '#78909c';
+      ctx.fillText('activities', cx, cy + 12);
+    }
+
+    var legend = document.getElementById('catLegend');
+    var legHtml = '<div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">Total: <span style="color:#2e7d32">' + total + '</span> activities · 活性数据</div>';
+    legHtml += '<div style="display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;">';
+    cats.forEach(function (cat) {
+      var color = PHENOTYPE_COLORS[cat] || '#78909c';
+      legHtml += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-secondary);">';
+      legHtml += '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';display:inline-block;"></span>';
+      legHtml += esc(cat) + ' (' + catCount[cat] + ')';
+      legHtml += '</div>';
+    });
+    legHtml += '</div>';
+    legend.innerHTML = legHtml;
+  }
+
+  function renderFilterChips() {
+    var cats = {};
+    allEntities.forEach(function (e) {
+      var ec = e.cats || e.categories || [];
+      // 与环形图一致：只计主分类
+      if (ec.length > 0) {
+        cats[ec[0]] = (cats[ec[0]] || 0) + (e.count || e.compound_count || 0);
+      }
+    });
+    var catList = Object.keys(cats);
+    var container = document.getElementById('phenotype-category-filters');
+    var html = '<div class="filter-chip active" data-category="">All · 全部</div>';
+    catList.sort().forEach(function (cat) {
+      html += '<div class="filter-chip" data-category="' + esc(cat) + '">' + esc(cat) + ' (' + cats[cat] + ')</div>';
+    });
+    container.innerHTML = html;
+
+    container.addEventListener('click', function (e) {
+      var chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+      container.querySelectorAll('.filter-chip').forEach(function (c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      activeCat = chip.dataset.category || '';
+      currentPage = 0;
+      filterAndRender();
+    });
+  }
+
+  function sortEntities(arr) {
+    var mode = sortMode;
+    var catsOrder = Object.keys(PHENOTYPE_COLORS);
+    arr.sort(function (a, b) {
+      var ac = a.count || a.compound_count || 0;
+      var bc = b.count || b.compound_count || 0;
+      if (mode === 'count-desc') return bc - ac;
+      if (mode === 'count-asc') return ac - bc;
+      if (mode === 'name-asc') return (a.name || '').localeCompare(b.name || '');
+      if (mode === 'name-desc') return (b.name || '').localeCompare(a.name || '');
+      if (mode === 'category') {
+        var ca = (a.cats || a.categories || ['Other'])[0] || 'Other';
+        var cb = (b.cats || b.categories || ['Other'])[0] || 'Other';
+        var ci = catsOrder.indexOf(ca); if (ci === -1) ci = 99;
+        var cj = catsOrder.indexOf(cb); if (cj === -1) cj = 99;
+        if (ci !== cj) return ci - cj;
+        return bc - ac;
+      }
+      return 0;
+    });
+  }
+
+  function filterAndRender() {
+    var query = (document.getElementById('phenotype-search').value || '').toLowerCase();
+    filtered = allEntities.filter(function (e) {
+      var ec = e.cats || e.categories || [];
+      if (activeCat && ec.indexOf(activeCat) === -1) return false;
+      if (query && (e.name || '').toLowerCase().indexOf(query) === -1) return false;
+      return true;
+    });
+    sortEntities(filtered);
+    document.getElementById('resultCount').textContent = filtered.length;
+    currentPage = 0;
+    renderPage();
+  }
+
+  function renderPage() {
+    var grid = document.getElementById('phenotype-list');
+    var start = currentPage * pageSize;
+    var page = filtered.slice(start, start + pageSize);
+    var totalPages = Math.ceil(filtered.length / pageSize) || 1;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No matching phenotypes found</div>';
+      document.getElementById('pageNav').innerHTML = '';
+      return;
+    }
+
+    var html = '';
+    page.forEach(function (e) {
+      var eCats = e.cats || e.categories || [];
+      var slug = e.slug || ((e.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.html');
+      var catBadges = eCats.map(function (c) {
+        return '<span class="pcard-cat" style="background:' + (PHENOTYPE_COLORS[c] || '#78909c') + '18;color:' + (PHENOTYPE_COLORS[c] || '#78909c') + '">' + esc(c) + '</span>';
+      }).join('');
+      var cpdCount = e.count || e.compound_count || 0;
+
+      html += '<a href="../4-Phenotypes/' + esc(slug) + '" class="pheno-card">';
+      html += '  <div class="pcard-header">';
+      html += '    <div class="pcard-name">' + esc(e.name) + '</div>';
+      html += '    <div class="pcard-count"><div class="pcard-count-num">' + cpdCount + '</div><div class="pcard-count-lbl">entries · 活性</div></div>';
+      html += '  </div>';
+      html += '  <div class="pcard-meta">';
+      if (e.tissue) {
+        html += '    <span class="pcard-meta-item">🧫 <span class="label">Tissue:</span> ' + esc(e.tissue) + '</span>';
+      }
+      if (e.cvcl) {
+        html += '    <span class="pcard-meta-item">🔬 <span class="label">CVCL:</span> ' + esc(e.cvcl) + '</span>';
+      }
+      html += '  </div>';
+      html += '  <div class="pcard-cats">' + (catBadges || '<span style="font-size:10px;color:var(--text-muted);">Unclassified</span>') + '</div>';
+      html += '</a>';
+    });
+    grid.innerHTML = html;
+
+    var nav = document.getElementById('pageNav');
+    var navHtml = '';
+    navHtml += '<div class="page-btn" onclick="' + (currentPage > 0 ? 'window.goToPage(' + (currentPage - 1) + ')' : '') + '" style="' + (currentPage === 0 ? 'opacity:0.3;pointer-events:none;' : 'cursor:pointer;') + '">‹</div>';
+    var startP = Math.max(0, currentPage - 2);
+    var endP = Math.min(totalPages, currentPage + 3);
+    for (var i = startP; i < endP; i++) {
+      navHtml += '<div class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="window.goToPage(' + i + ')" style="cursor:pointer;">' + (i + 1) + '</div>';
+    }
+    navHtml += '<div class="page-btn" onclick="' + (currentPage < totalPages - 1 ? 'window.goToPage(' + (currentPage + 1) + ')' : '') + '" style="' + (currentPage >= totalPages - 1 ? 'opacity:0.3;pointer-events:none;' : 'cursor:pointer;') + '">›</div>';
+    nav.innerHTML = navHtml;
+  }
+
+  window.goToPage = function (p) {
+    currentPage = p;
+    renderPage();
+  };
+
+  document.getElementById('phenotype-search').addEventListener('input', function () {
+    currentPage = 0;
+    filterAndRender();
+  });
+
+  document.getElementById('phenotype-sort').addEventListener('change', function () {
+    sortMode = this.value;
+    filterAndRender();
+  });
+
+  function init() {
+    if (!allEntities || allEntities.length === 0) {
+      document.getElementById('phenotype-list').innerHTML = '<div class="empty-state">No phenotype data loaded</div>';
+      return;
+    }
+    renderStats();
+    renderTopBars();
+    renderDonut();
+    renderFilterChips();
+    filterAndRender();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</ht
