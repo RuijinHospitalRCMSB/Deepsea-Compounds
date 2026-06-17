@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mythimna separata - Deep-Sea Compound Database</title>
+
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0077b6;--primary-hover:#005f8c;--primary-light:rgba(0,119,182,0.08);--bg-page:#f0f4f8;--bg-content:#fff;--bg-card:#f8fafc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--font-mono:"SF Mono","Cascadia Code","Consolas",monospace}
+body{background:var(--bg-page);font-family:var(--font-sans);color:var(--text-primary);line-height:1.65;min-height:100vh;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all 0.15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:#2e7d32;border-left-color:#2e7d32;background:rgba(46,125,50,0.06);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:0 24px 50px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s}
+.back-link:hover{color:var(--primary)}
+.pheno-hero{background:linear-gradient(135deg,#e8f5e9 0%,#e0f0e8 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:20px;position:relative;overflow:hidden}
+.pheno-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(46,125,50,0.03) 0%,transparent 70%),radial-gradient(ellipse 300px 200px at 80% 20%,rgba(0,150,136,0.02) 0%,transparent 70%);pointer-events:none}
+.hero-body{display:flex;gap:0;min-height:90px;position:relative;z-index:1}
+.hero-left{flex:1;padding:14px 24px;display:flex;flex-direction:column;justify-content:center}
+.hero-right{width:360px;flex-shrink:0;padding:8px 8px 8px 12px;display:flex;align-items:center}
+.hero-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:100%}
+.hero-stat{background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.5);border-radius:6px;padding:5px 4px;text-align:center;min-width:0}
+.hero-stat-label{font-size:8px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px;white-space:nowrap}
+.hero-stat-value{font-size:12px;font-weight:700;color:var(--text-primary);line-height:1.2;word-break:break-all;max-width:100%}
+.hero-stat-value a{color:var(--primary);text-decoration:none}
+.hero-stat-value a:hover{text-decoration:underline}
+.hero-stat-sub{font-size:10px;color:var(--text-muted);margin-top:1px}
+.hero-tags{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.hero-cat{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px}
+.hero-title{font-size:18px;font-weight:700;color:var(--text-primary);margin:0;line-height:1.25}
+.detail-section{margin-bottom:18px}
+.detail-section-title{font-size:14px;font-weight:700;color:var(--text-primary);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:11px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;background:var(--bg-content);border:1px solid var(--border);color:var(--text-secondary);transition:all .15s}
+.ext-link-pill:hover{border-color:var(--primary);color:var(--primary);box-shadow:var(--shadow-sm)}
+.ext-link-icon{font-size:16px}
+.func-card{background:var(--bg-content);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:12px}
+.func-text{font-size:13px;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap}
+.func-source{margin-top:10px;font-size:12px}
+.func-source a{color:var(--primary);text-decoration:none}
+.func-source a:hover{text-decoration:underline}
+.info-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;font-size:14px;background:var(--bg-content);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px}
+.info-label{font-weight:600;color:var(--text-muted);white-space:nowrap}
+.info-value{color:var(--text-primary)}
+.syn-grid{display:flex;gap:6px;flex-wrap:wrap;background:var(--bg-content);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:14px 16px}
+.syn-chip{display:inline-block;padding:4px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;font-size:12px;color:var(--text-secondary);font-family:var(--font-mono)}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:7px 8px;font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.cpd-table td{padding:7px 8px;border-bottom:1px solid var(--border-light);vertical-align:middle;font-size:12px}
+.cpd-table tbody tr{transition:background .12s}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-img{width:36px;text-align:center}
+.cpd-td-img img{width:26px;height:26px;border-radius:3px;object-fit:contain;background:#f8fafc;display:block;margin:0 auto}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-sub{font-size:10px;color:var(--text-muted);margin-top:2px;line-height:1.2}
+.cpd-td-activity{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--primary)}
+.cpd-td-pmid{color:var(--primary);text-decoration:none;font-weight:500;font-size:11px;white-space:nowrap}
+.cpd-td-pmid:hover{text-decoration:underline}
+.cpd-td-chemotype{font-size:10px;font-weight:600;white-space:nowrap}
+.sortable-th{cursor:pointer;user-select:none}
+.sortable-th:hover{color:var(--primary)}
+.sort-arrow{font-size:8px;margin-left:2px;opacity:.5}
+.sortable-th:hover .sort-arrow{opacity:1}
+.sort-active .sort-arrow{opacity:1}
+.cat-badge{display:inline-block;padding:3px 12px;border-radius:10px;color:#fff;font-size:11px;font-weight:600;margin:1px 3px;white-space:nowrap}
+.pmid-summary{font-size:13px;color:var(--text-muted);border-top:1px solid var(--border-light);padding-top:10px;margin-top:16px;text-align:right}
+@media(max-width:900px){.side-nav{width:180px}.main-content{margin-left:180px}.hero-body{flex-direction:column}.hero-right{width:100%;padding:0 16px 16px}.hero-stats-grid{grid-template-columns:repeat(4,1fr)}.page-inner{padding:0 16px 40px}}
+@media(max-width:600px){.side-nav{display:none}.main-content{margin-left:0}.hero-title{font-size:18px}.hero-stats-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html" class="active"><span class="nav-dot" style="background:#2e7d32;opacity:1;"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 &middot; 2 compounds</div>
+</nav>
+
+<div class="main-content">
+<div class="page-inner">
+
+<a href="../pages/browse-phenotypes.html" class="back-link">&larr; Phenotypes &middot; 返回表型总览</a>
+
+<div class="pheno-hero">
+<div class="hero-body">
+  <div class="hero-left">
+    <div class="hero-tags"><span class="cat-badge" style="background:#78909c">Bioactivity (Generic)</span>
+    
+    </div>
+    <h1 class="hero-title">Mythimna separata</h1>
+  </div>
+  <div class="hero-right">
+    <div class="hero-stats-grid">
+      
+      <div class="hero-stat"><div class="hero-stat-label">Category</div><div class="hero-stat-value" style="font-size:12px">Bioactivity (Generic)</div></div>
+      
+      
+      <div class="hero-stat"><div class="hero-stat-label">Compounds</div><div class="hero-stat-value">2</div><div class="hero-stat-sub">active compounds</div></div>
+      <div class="hero-stat"><div class="hero-stat-label">References</div><div class="hero-stat-value">1</div><div class="hero-stat-sub">PubMed / ChEMBL</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="detail-section">
+<h2 class="detail-section-title"> Active Compounds &middot; 活性化合物 <span class="section-count">2</span></h2>
+<table class="cpd-table" id="cpd-sort-table">
+  <thead>
+    <tr>
+      <th style="width:36px">Str</th>
+      <th class="sortable-th" data-sort="name">Compound &middot; 化合物 <span class="sort-arrow"></span></th>
+      <th class="sortable-th" data-sort="activity">Activity (IC₅₀ / MIC) &middot; 活性 <span class="sort-arrow"></span></th>
+      <th class="sortable-th" data-sort="chemotype">Chemotype &middot; 化学分类 <span class="sort-arrow"></span></th>
+      <th>Reference &middot; 参考文献</th>
+    </tr>
+  </thead>
+  <tbody id="cpd-list">
+<tr><td class="cpd-td-img"><img src="https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid=3002143&t=s" alt="" loading="lazy"></td><td><a href="../1-Compounds/helvolic-acid.html" class="cpd-td-name">Helvolic acid</a> <a href="https://pubchem.ncbi.nlm.nih.gov/compound/3002143" target="_blank" rel="noopener" style="font-size:10px;color:var(--text-muted);text-decoration:none;" title="View on PubChem">⧉</a></td><td class="cpd-td-activity">AFI = 7.5 % (ChEMBL)</td><td><span class="cpd-td-chemotype" style="background:#2e7d3218;color:#2e7d32">Polyketide</span></td><td><a class="cpd-td-pmid" href="https://pubmed.ncbi.nlm.nih.gov/17755578/" target="_blank" rel="noopener">PMID:17755578</a><br><a class="cpd-td-pmid cpd-td-chembl" href="https://www.ebi.ac.uk/chembl/g/#browse/compounds/filter/_=all&search=3002143" target="_blank" rel="noopener" style="font-weight:400;font-size:10px">ChEMBL &#8599;</a></td></tr>
+<tr><td class="cpd-td-img"><img src="https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid=104862&t=s" alt="" loading="lazy"></td><td><a href="../1-Compounds/verruculogen.html" class="cpd-td-name">Verruculogen</a> <a href="https://pubchem.ncbi.nlm.nih.gov/compound/104862" target="_blank" rel="noopener" style="font-size:10px;color:var(--text-muted);text-decoration:none;" title="View on PubChem">⧉</a></td><td class="cpd-td-activity">AFI = 55.0 % (PubMed)</td><td><span class="cpd-td-chemotype" style="background:#9c27b018;color:#9c27b0">Alkaloid-Peptide</span></td><td><a class="cpd-td-pmid cpd-td-chembl" href="https://www.ebi.ac.uk/chembl/g/#browse/compounds/filter/_=all&search=104862" target="_blank" rel="noopener" style="font-weight:400;font-size:10px">ChEMBL &#8599;</a></td></tr>
+
+  </tbody>
+</table>
+<div class="pmid-summary">📄 1 PubMed reference available</div>
+</div>
+
+</div><!-- /page-inner -->
+</div><!-- /main-content -->
+
+<script>
+(function(){
+  var sortState={field:"name",dir:1};
+  var tbody=document.getElementById("cpd-list");
+  if(!tbody)return;
+  var rows=Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+  var cellIdx={name:1,activity:2,chemotype:3};
+  function getVal(row,field){
+    var idx=cellIdx[field]||1,c=row.cells[idx];
+    if(!c)return"";
+    var v=c.textContent.trim().toLowerCase();
+    if(field==="activity"){var m=v.match(/[\d.]+/);return m?parseFloat(m[0]):999999;}
+    return v;
+  }
+  function sortTable(field,dir){
+    rows.sort(function(a,b){
+      var va=getVal(a,field),vb=getVal(b,field);
+      try{return va>vb?dir:va<vb?-dir:0;}catch(e){return 0;}
+    });
+    rows.forEach(function(r){tbody.appendChild(r);});
+  }
+  document.getElementById("cpd-sort-table").addEventListener("click",function(e){
+    var th=e.target.closest(".sortable-th");
+    if(!th)return;
+    var field=th.dataset.sort;
+    if(sortState.field===field)sortState.dir=-sortState.dir;
+    else{sortState.field=field;sortState.dir=1;}
+    document.querySelectorAll(".sortable-th").forEach(function(t){
+      t.classList.remove("sort-active");
+      var a=t.querySelector(".sort-arrow");if(a)a.textContent="";
+    });
+    th.classList.add("sort-active");
+    var arrow=th.querySelector(".sort-arrow");
+    if(arrow)arrow.textContent=sortState.dir===1?"▲":"▼";
+    sortTable(field,sortState.dir);
+  });
+  sortTable("name",1);
+})();
+</script>
+
+</body>
+</html>
