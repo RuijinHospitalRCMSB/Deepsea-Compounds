@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>(+)-Discodermolide — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ── Compound Page Specific Styles ── */
+:root {
+  --nav-width: 200px;
+  --font-sans: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font-sans); background: var(--bg-page); color: var(--text-primary); line-height: 1.65; display: flex; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* Side nav */
+.side-nav { position: fixed; top: 0; left: 0; width: var(--nav-width); height: 100vh; background: var(--bg-content); border-right: 1px solid var(--border); padding: 28px 0; overflow-y: auto; z-index: 100; }
+.side-nav .nav-header { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.side-nav .nav-header .back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; display: block; margin-bottom: 12px; transition: color 0.2s; }
+.side-nav .nav-header .back-link:hover { color: var(--primary); }
+.side-nav .nav-header .nav-title { font-size: 15px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+.side-nav .nav-header .nav-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.side-nav .nav-items { list-style: none; }
+.side-nav .nav-items li a { display: flex; align-items: center; gap: 10px; padding: 9px 20px; color: var(--text-secondary); text-decoration: none; font-size: 13px; transition: all 0.15s; border-left: 2px solid transparent; }
+.side-nav .nav-items li a:hover { color: var(--text-primary); background: var(--bg-card); }
+.side-nav .nav-items li a.active { color: var(--primary); border-left-color: var(--primary); background: rgba(21,101,192,0.06); font-weight: 500; }
+.nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.35; flex-shrink: 0; }
+
+.main-content { margin-left: var(--nav-width); flex: 1; min-width: 0; max-width: 1020px; padding: 0 40px 60px; background: var(--bg-page); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 260px 1fr; gap: 28px; padding: 32px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.hero-structure { background: rgba(255,255,255,0.45); border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.hero-structure img { width: 100%; height: auto; max-height: 220px; object-fit: contain; }
+.hero-info { display: flex; flex-direction: column; justify-content: center; }
+.hero-info .compound-name { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1.15; color: var(--text-primary); }
+.hero-info .hero-divider { width: 40px; height: 2px; background: var(--gold); margin: 4px 0 6px; opacity: 0.5; border-radius: 1px; }
+.hero-info .iupac-name { font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; max-width: 560px; }
+.hero-info .source-line { font-size: 14px; color: var(--text-secondary); margin-top: 12px; }
+.hero-info .source-line em { color: var(--gold); font-style: italic; }
+.hero-info .depth-badges { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.depth-badge { display: inline-block; padding: 3px 14px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+.depth-badge.shallow { background: rgba(21,101,192,0.12); color: var(--depth-shallow); border: 1px solid rgba(21,101,192,0.25); }
+.depth-badge.slope { background: rgba(13,71,161,0.12); color: var(--depth-slope); border: 1px solid rgba(13,71,161,0.25); }
+.depth-badge.deep { background: rgba(7,26,94,0.12); color: var(--depth-deep); border: 1px solid rgba(7,26,94,0.25); }
+.depth-badge.hadal { background: rgba(59,31,122,0.12); color: var(--depth-hadal); border: 1px solid rgba(59,31,122,0.25); }
+.hero-info .id-line { font-size: 12px; color: var(--text-muted); margin-top: 10px; }
+.hero-info .id-line a { color: var(--primary); text-decoration: none; }
+.hero-info .id-line a:hover { text-decoration: underline; }
+.hero-info .class-badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-top: 8px; }
+.class-badge.deep { background: rgba(7,26,94,0.1); color: var(--depth-deep); }
+.class-badge.marine { background: rgba(21,101,192,0.1); color: var(--primary); }
+.class-badge.non-marine { background: rgba(120,144,156,0.1); color: #78909c; }
+
+/* Sections */
+.section { margin-bottom: 28px; scroll-margin-top: 24px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.section-header .section-number { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--primary); opacity: 0.12; min-width: 36px; }
+.section-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+.section-header .section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* Properties grid */
+.props-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.prop-item { background: var(--bg-content); padding: 7px 10px; position: relative; cursor: default; }
+.prop-item .prop-label { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+.prop-item .prop-value { font-size: 12px; color: var(--text-primary); margin-top: 1px; word-break: break-all; line-height: 1.3; }
+.prop-item .prop-value.mono { font-family: var(--font-mono); font-size: 11px; }
+.prop-item .prop-value a { color: var(--primary); text-decoration: none; }
+.prop-item .prop-value a:hover { text-decoration: underline; }
+.prop-item .prop-tip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #0d1b2a; color: #fff; font-size: 11px; line-height: 1.4; padding: 7px 12px; border-radius: 6px; white-space: nowrap; z-index: 20; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,0.25); transition: opacity 0.2s, visibility 0.2s; }
+.prop-item .prop-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #0d1b2a; }
+.prop-item:hover .prop-tip { visibility: visible; opacity: 1; }
+[data-theme="dark"] .prop-item .prop-tip { background: #1a3050; }
+[data-theme="dark"] .prop-item .prop-tip::after { border-top-color: #1a3050; }
+.props-synonyms { grid-column: 1 / -1; background: var(--bg-content); padding: 8px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.props-synonyms .syn-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-right: 6px; }
+
+/* Sources */
+.sources-list { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.source-item { padding: 10px 14px; background: var(--bg-content); }
+.source-item .source-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 3px; }
+.source-item .source-value { font-size: 14px; color: var(--text-primary); }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-content); }
+.empty-state .empty-icon { font-size: 24px; display: block; margin-bottom: 8px; }
+
+/* Activities */
+.activities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.activity-card { background: var(--bg-content); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+.activity-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+.activity-card .act-category { font-size: 9px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.activity-card .act-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-top: 3px; }
+.activity-card .act-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+.activity-card .act-ref { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.activity-card .act-ref a { color: var(--primary); text-decoration: none; }
+.activity-card .act-ref a:hover { text-decoration: underline; }
+
+/* References */
+.ref-list { counter-reset: ref-counter; }
+.ref-item { counter-increment: ref-counter; padding: 6px 12px; background: var(--bg-content); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 3px; display: flex; gap: 8px; align-items: flex-start; transition: background 0.15s; }
+.ref-item:hover { background: var(--bg-card); }
+.ref-item .ref-num { font-family: var(--font-display); font-size: 12px; font-weight: 600; color: var(--primary); opacity: 0.4; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
+.ref-item .ref-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.ref-item .ref-text a { color: var(--primary); text-decoration: none; font-weight: 500; }
+.ref-item .ref-text a:hover { text-decoration: underline; }
+
+/* Chemotype info */
+.chemotype-tag { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin: 2px; }
+.ct-polyketide { background: rgba(21,101,192,0.12); color: #1565c0; }
+.ct-terpenoid { background: rgba(212,83,42,0.12); color: #d4532a; }
+.ct-alkaloid { background: rgba(46,125,50,0.12); color: #2e7d32; }
+.ct-alkaloid-peptide { background: rgba(106,27,154,0.12); color: #6a1b9a; }
+.ct-polyketide-peptide { background: rgba(230,81,0,0.12); color: #e65100; }
+.ct-peptide { background: rgba(0,131,143,0.12); color: #00838f; }
+.ct-phenylpropanoid { background: rgba(249,168,37,0.12); color: #f9a825; }
+.ct-other { background: rgba(120,144,156,0.12); color: #78909c; }
+
+/* Back link */
+.back-to-db { display: inline-block; font-size: 12px; color: var(--text-muted); text-decoration: none; padding: 14px 0 0; transition: color 0.2s; }
+.back-to-db:hover { color: var(--primary); }
+
+/* Mobile nav */
+.mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: var(--bg-content); border-bottom: 1px solid var(--border); padding: 12px 16px; align-items: center; justify-content: space-between; }
+.mobile-nav .mob-back { color: var(--text-muted); text-decoration: none; font-size: 13px; }
+.mobile-nav .mob-title { font-size: 14px; font-weight: 600; color: var(--text-primary); max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-nav .mob-menu-btn { background: none; border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.mobile-nav-dropdown { display: none; position: fixed; top: 48px; left: 0; right: 0; z-index: 199; background: var(--bg-content); border-bottom: 1px solid var(--border); padding: 6px 0; }
+.mobile-nav-dropdown.open { display: block; }
+.mobile-nav-dropdown a { display: block; padding: 10px 20px; color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+.mobile-nav-dropdown a:hover { background: var(--bg-card); color: var(--text-primary); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .side-nav { display: none; }
+  .mobile-nav { display: flex !important; }
+  .main-content { margin-left: 0; padding: 0 20px 60px; padding-top: 56px; }
+  .hero { grid-template-columns: 1fr; gap: 24px; }
+  .hero-structure { max-width: 220px; margin: 0 auto; }
+  .hero-info .compound-name { font-size: 26px; }
+  .props-grid { grid-template-columns: repeat(2, 1fr); }
+  .activities-grid { grid-template-columns: 1fr; }
+}
+
+/* Print */
+@media print {
+  body { background: #fff !important; color: #000 !important; display: block !important; }
+  .side-nav, .mobile-nav, .mobile-nav-dropdown, .float-toolbar, #scroll-progress, .back-to-db { display: none !important; }
+  .main-content { margin-left: 0 !important; max-width: 100% !important; padding: 0 !important; }
+  .hero { grid-template-columns: 1fr 2fr; border-bottom: 2px solid #000; }
+  .prop-item { background: #fff !important; border: 1px solid #ddd !important; }
+  .prop-item .prop-tip { display: none !important; }
+  .section { break-inside: avoid; }
+  @page { margin: 1.5cm; }
+}
+</style>
+</head>
+<body>
+<div id="scroll-progress" style="position:fixed;top:0;left:0;width:100%;height:3px;z-index:9999;pointer-events:none;"><div class="fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--gold));transition:width 0.05s linear;" id="progressFill"></div></div>
+
+<div class="mobile-nav">
+  <a href="../index.html" class="mob-back">&larr; Database</a>
+  <span class="mob-title">(+)-Discodermolide</span>
+  <button class="mob-menu-btn" onclick="toggleMobileMenu()">Contents</button>
+</div>
+<div class="mobile-nav-dropdown" id="mobileDropdown">
+  <a href="#overview" onclick="closeMobile()">概览 Overview</a>
+  <a href="#properties" onclick="closeMobile()">基本性质 Properties</a>
+  <a href="#sources" onclick="closeMobile()">来源 Sources</a>
+  <a href="#targets" onclick="closeMobile()">蛋白靶标 Targets</a>
+  <a href="#phenotypes" onclick="closeMobile()">表型谱 Phenotypes</a>
+  <a href="#references" onclick="closeMobile()">参考文献 References</a>
+</div>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <a href="../index.html" class="back-link">&larr; Database</a>
+    <div class="nav-title">(+)-Discodermolide</div>
+    <div class="nav-sub">C33H55NO8</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="#overview" class="active"><span class="nav-dot"></span>概览 Overview</a></li>
+    <li><a href="#properties"><span class="nav-dot"></span>基本性质 Properties</a></li>
+    <li><a href="#sources"><span class="nav-dot"></span>来源 Sources</a></li>
+    <li><a href="#targets"><span class="nav-dot"></span>蛋白靶标 Targets</a></li>
+    <li><a href="#phenotypes"><span class="nav-dot"></span>表型谱 Phenotypes</a></li>
+    <li><a href="#references"><span class="nav-dot"></span>参考文献 References</a></li>
+  </ul>
+</nav>
+
+<div class="main-content">
+
+  <a href="../index.html" class="back-to-db">&larr; Back to Database</a>
+
+  
+  <section class="hero" id="overview">
+    <div class="hero-structure">
+      
+      <img src="https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid=643668&t=l" alt="(+)-Discodermolide 2D structure" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><text x=%22100%22 y=%22110%22 text-anchor=%22middle%22 font-size=%2214%22 fill=%22%235a7a9a%22>No structure</text></svg>'">
+      
+    </div>
+    <div class="hero-info">
+      <h1 class="compound-name">(+)-Discodermolide</h1>
+      <div class="hero-divider"></div>
+      <div class="iupac-name">[(3Z,5S,6S,7S,8R,9S,11Z,13S,14S,15S,16Z,18S)-8,14,18-trihydroxy-19-[(2S,3R,4S,5R)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl]-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl] carbamate</div>
+      
+      <div class="source-line">Source: <strong>Discodermia dissoluta</strong> &mdash; Marine Sponge</div>
+      
+      <div style="margin-top:8px;">
+        <span class="class-badge marine">MARINE</span>
+      </div>
+      <div class="depth-badges">
+        <span class="depth-badge shallow">Shallow (30–1200 m)</span>
+        <span class="chemotype-tag ct-terpenoid">Terpenoid</span>
+      </div>
+      <div class="id-line">
+        PubChem CID: <a href="https://pubchem.ncbi.nlm.nih.gov/compound/643668" target="_blank">643668</a>
+        &middot; ChEMBL: <a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL503340/" target="_blank">CHEMBL503340</a>
+        &middot; CAS: 127943-53-7
+        &middot; Compound #318
+      </div>
+    </div>
+  </section>
+
+    <section class="section" id="properties">
+    <div class="section-header">
+      <span class="section-number">01</span>
+      <h2>基本性质 Basic Properties</h2>
+      <span class="section-line"></span>
+    </div>
+        <div class="props-grid">
+      <div class="prop-item" style="grid-column:1/-1;background:var(--bg-card);display:flex;gap:16px;align-items:center;padding:8px 14px;">
+        <span class="class-badge marine" style="font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;text-transform:uppercase;background:rgba(21,101,192,0.1);color:var(--primary);">MARINE</span>
+        <span class="chemotype-tag ct-terpenoid" style="font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;">Terpenoid</span>
+        <span style="font-size:11px;color:var(--text-muted);">Compound #318</span>
+        <span style="font-size:10px;color:var(--text-muted);font-style:italic;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="[(3Z,5S,6S,7S,8R,9S,11Z,13S,14S,15S,16Z,18S)-8,14,18-trihydroxy-19-[(2S,3R,4S,5R)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl]-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl] carbamate">[(3Z,5S,6S,7S,8R,9S,11Z,13S,14S,15S,16Z,18S)-8,14,18-trihydroxy-19-[(2S,3R,4S,5R)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl]-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl] carbamate</span>
+      </div>
+      
+      <div class="prop-item" style="grid-column:1/-1"><div class="prop-label">SMILES</div><div class="prop-value mono" style="font-size:11px;word-break:break-all;">C=CC=CC(C)C(OC(N)=O)C(C)C(O)C(C)CC(C)=CC(C)C(O)C(C)C=CC(O)CC1OC(=O)C(C)C(O)C1C<button class="copy-btn" data-copy="C=CC=CC(C)C(OC(N)=O)C(C)C(O)C(C)CC(C)=CC(C)C(O)C(C)C=CC(O)CC1OC(=O)C(C)C(O)C1C">Copy</button></div></div>
+      
+      <div class="prop-item" style="grid-column:1/-1"><div class="prop-label">InChIKey</div><div class="prop-value mono" style="font-size:11px;word-break:break-all;">AADVCYNFEREWOS-OBRABYBLSA-N<button class="copy-btn" data-copy="AADVCYNFEREWOS-OBRABYBLSA-N">Copy</button></div></div>
+      
+      <div class="props-synonyms"><span class="syn-label">Synonyms</span><span class="syn-text">Discodermolide, Disermolide, XAA-296, Disermolida, XAA 296, DHG59994DN, XAA296, [(3Z,5S,6S,7S,8R,9S,11Z,13S,14S,15S,16Z,18S)-8,14,18-trihydroxy-19-[(2S,3R,4S,5R)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl]-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl] carbamate, DTXSID40893493, 2H-Pyran-2-one, 6-(14-((aminocarbonyl)oxy)-2,6,12-trihydroxy-5,7,9,11,13,15-hexamethyl-3,8,16,18-nonadecatetraenyl)tetrahydro-4-hydroxy-3,5-dimethyl-, (3S-(3alpha,4beta,5beta,6alpha(2R*,3Z,5R*,6R*,7S*,8Z,11R*,12S*,13S*,14S*,15R*,16E)))-, disermolidum, ((3Z,5S,6S,7S,8R,9S,11Z,13S,14S,15S,16Z,18S)-8,14,18-trihydroxy-19-((2S,3R,4S,5R)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl)-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl) carbamate, RefChem:920483, DTXCID301323511, ((3Z,5R,6R,7R,8S,9R,11Z,13R,14R,15R,16Z,18R)-8,14,18-trihydroxy-19-((2R,3S,4R,5S)-4-hydroxy-3,5-dimethyl-6-oxooxan-2-yl)-5,7,9,11,13,15-hexamethylnonadeca-1,3,11,16-tetraen-6-yl) carbamate</span></div>
+      
+      <div class="prop-item"><div class="prop-label">Molecular Formula</div><div class="prop-value">C33H55NO8</div></div>
+      <div class="prop-item"><div class="prop-label">Molecular Weight</div><div class="prop-value">593.3928 g/mol</div></div>
+      <div class="prop-item"><div class="prop-label">Molecular Volume</div><div class="prop-value">601.8880 A³</div></div>
+      <div class="prop-item"><div class="prop-label">CAS Number</div><div class="prop-value">127943-53-7</div></div>
+      <div class="prop-item"><div class="prop-label">Heavy Atoms</div><div class="prop-value">42</div></div>
+      <div class="prop-item"><div class="prop-label">Rings (Ar/Al/To)</div><div class="prop-value">0 / 1 / 1</div></div>
+      
+      <div class="prop-item"><div class="prop-label">H-Bond Donor</div><div class="prop-value">5</div></div>
+      <div class="prop-item"><div class="prop-label">H-Bond Acceptor</div><div class="prop-value">8</div></div>
+      <div class="prop-item"><div class="prop-label">Rotatable Bonds</div><div class="prop-value">16</div></div>
+      <div class="prop-item"><div class="prop-label">Stereocenters</div><div class="prop-value">13</div></div>
+      <div class="prop-item"><div class="prop-label">LogP (Crippen)</div><div class="prop-value mono">4.2969</div></div>
+      <div class="prop-item"><div class="prop-label">LogD pH 7.4</div><div class="prop-value mono"></div></div>
+      <div class="prop-item"><div class="prop-label">LogS ESOL</div><div class="prop-value"></div></div>
+      <div class="prop-item"><div class="prop-label">TPSA</div><div class="prop-value">159.54 Å²</div></div>
+      <div class="prop-item"><div class="prop-label">Fsp³ Fraction</div><div class="prop-value mono">0.697</div></div>
+      
+      <div class="prop-item"><div class="prop-label">PubChem CID</div><div class="prop-value"><a href="https://pubchem.ncbi.nlm.nih.gov/compound/643668" target="_blank">643668</a></div></div>
+      <div class="prop-item"><div class="prop-label">Lipinski Rule-of-5</div><div class="prop-value" style="font-size:11px;">1 violation(s) → PASS</div></div>
+      <div class="prop-item"><div class="prop-label">Veber Rule</div><div class="prop-value" style="font-size:11px;">FAIL</div></div>
+      <div class="prop-item"><div class="prop-label">Ghose Filter</div><div class="prop-value" style="font-size:11px;">FAIL</div></div>
+      <div class="prop-item"><div class="prop-label">Synth. Accessibility</div><div class="prop-value mono">6.01</div></div>
+      
+      <div class="prop-item"><div class="prop-label">NP-likeness</div><div class="prop-value" style="font-size:11px;">0.448</div></div>
+      <div class="prop-item"><div class="prop-label">PAINS Alerts</div><div class="prop-value" style="font-size:11px;">0 (clean)</div></div>
+      <div class="prop-item"><div class="prop-label">Brenk Alerts</div><div class="prop-value" style="font-size:11px;">isolated_alkene</div></div>
+      <div class="prop-item"><div class="prop-label">GI Absorption</div><div class="prop-value" style="font-size:11px;">Low</div></div>
+      <div class="prop-item"><div class="prop-label">Oral Bioavail.</div><div class="prop-value mono">0.55</div></div>
+      
+      <div class="prop-item"><div class="prop-label">BBB Permeant</div><div class="prop-value" style="font-size:11px;">No</div></div>
+      <div class="prop-item"><div class="prop-label">Chemotype</div><div class="prop-value"><span class="chemotype-tag ct-terpenoid" style="font-size:11px;padding:1px 8px;border-radius:8px;">Terpenoid</span></div></div>
+      <div class="prop-item"><div class="prop-label">Sub-class</div><div class="prop-value">Triterpene</div></div>
+      <div class="prop-item"><div class="prop-label">ChEMBL ID</div><div class="prop-value"><a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL503340/" target="_blank">CHEMBL503340</a></div></div>
+      <div class="prop-item"><div class="prop-label">NP Score</div><div class="prop-value mono">6.97</div></div>
+      
+      <div class="prop-item" style="grid-column:1/-1;background:var(--bg-card);display:flex;gap:24px;padding:8px 14px;justify-content:space-around;">
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">Total Activities</div><div class="prop-value" style="font-weight:700;font-size:16px;">29</div></div>
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">Unique Targets</div><div class="prop-value" style="font-weight:700;font-size:16px;">25</div></div>
+        <div style="text-align:center;"><div class="prop-label" style="font-size:8px;">References</div><div class="prop-value" style="font-weight:700;font-size:16px;">10</div></div>
+      </div>
+</div>
+  </section>
+
+    <section class="section" id="sources">
+    <div class="section-header">
+      <span class="section-number">02</span>
+      <h2>来源 Sources</h2>
+      <span class="section-line"></span>
+    </div>
+    <div class="sources-row" style="display:grid;grid-template-columns:1.6fr 1fr;gap:24px;">
+      
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="sources-list" style="display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+          <div class="source-item" style="padding:12px 16px;background:var(--bg-content);border-left:3px solid var(--depth-slope);display:flex;gap:12px;align-items:center;">
+            <div class="source-body" style="flex:1;min-width:0;">
+              <div class="source-main" style="font-size:13px;color:var(--text-primary);line-height:1.5;"><strong>Organism.</strong> <a class="taxon-link" href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name=Discodermia%20dissoluta" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--primary);"><em>Discodermia dissoluta</em></a> &mdash; Marine Sponge</div>
+              <div class="source-ref" style="font-size:12px;color:var(--text-muted);margin-top:2px;">deep-water</div>
+            </div>
+            <span class="source-depth-badge" style="font-size:11px;padding:2px 10px;border-radius:10px;font-weight:700;white-space:nowrap;background:rgba(13,71,161,0.12);color:var(--depth-slope);">Shallow (30–1200 m)</span>
+          </div>
+          <div class="source-item" style="padding:12px 16px;background:var(--bg-content);border-left:3px solid var(--primary);display:flex;gap:12px;align-items:center;">
+            <div class="source-body" style="flex:1;min-width:0;">
+              <div class="source-main" style="font-size:13px;color:var(--text-primary);line-height:1.5;"><strong>Location.</strong> Caribbean Sea, including the Bahamas, Greater Antilles, and South American coasts</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="map-container" style="border-radius:10px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);">
+          <div id="compound-map" style="height:300px;width:100%;"></div>
+        </div>
+      </div>
+      
+      <div class="depth-profile-wrapper" style="display:flex;gap:24px;height:100%;min-height:420px;">
+        <div class="depth-scale" style="width:48px;border-radius:10px;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(13,27,42,0.10);">
+          <div class="depth-zone zone-shallow" style="flex:0.05;display:flex;align-items:center;justify-content:center;font-size:10px;background:#1565c0;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">0–200 m</div>
+          <div class="depth-zone zone-slope" style="flex:0.10;display:flex;align-items:center;justify-content:center;font-size:10px;background:#0d47a1;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">200–1K</div>
+          <div class="depth-zone zone-deep" style="flex:0.35;display:flex;align-items:center;justify-content:center;font-size:10px;background:#071a5e;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">1K–4K</div>
+          <div class="depth-zone zone-hadal" style="flex:0.50;display:flex;align-items:center;justify-content:center;font-size:10px;background:#3b1f7a;color:rgba(255,255,255,0.85);writing-mode:vertical-lr;text-orientation:mixed;letter-spacing:0.15em;font-weight:500;">&gt;4K</div>
+        </div>
+        <div class="depth-markers" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;">
+          <div class="depth-marker-item" style="border-left-color:var(--depth-shallow);padding:14px 18px;background:var(--bg-content);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-secondary);line-height:1.5;border-left:4px solid transparent;box-shadow:0 2px 8px rgba(13,27,42,0.06);">
+            <div class="dm-body">
+              <span class="dm-depth" style="font-weight:700;color:var(--text-primary);font-size:16px;display:block;margin-bottom:3px;">Shallow (30–1200 m)</span>
+              <a class="taxon-link" href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name=Discodermia%20dissoluta" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--primary);"><em>Discodermia dissoluta</em></a>
+              <span class="dm-loc" style="display:block;font-size:12px;color:var(--text-muted);margin-top:3px;">Caribbean Sea, including the Bahamas, Greater Antilles, and South American coasts &mdash; deep-water</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="targets">
+    <div class="section-header">
+      <span class="section-number">03</span>
+      <h2>蛋白靶标 Protein Targets</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="activities-grid">
+      
+      <div class="activity-card">
+        <div class="act-category">Microtubule</div>
+        <div class="act-title">Tubulin</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><a href="https://www.uniprot.org/uniprotkb/Q9BTW9/entry" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:600;">UniProt ID: Q9BTW9</a> &mdash; TBCD</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">K<sub>d</sub> = 0.1800 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/17206139/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17206139</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/17542572/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17542572</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+    <section class="section" id="phenotypes">
+    <div class="section-header">
+      <span class="section-number">04</span>
+      <h2>表型谱 Phenotypic Profiles</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="activities-grid">
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">1A9</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 1.7 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/17542572/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17542572</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">2008</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 1.5 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/12825928/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">12825928</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/16539395/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16539395</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A2780</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 10 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15837302/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15837302</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">A2780/AD</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 580 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/28675836/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">28675836</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A2780/AD10</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 100 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15837302/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15837302</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A549</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human A549 lung carcinoma cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 9.34 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15979874/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15979874</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/21870795/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21870795</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/33038665/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">33038665</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">A549</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human A549 lung carcinoma cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 13.5 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/12502323/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">12502323</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">A549t12</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human A549 lung carcinoma cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 30 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">AsPC1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human AsPC-1 pancreatic cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 98 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/17336522/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17336522</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CCRF-CEM</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human CCRF-CEM T-cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 16 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CCRF-CEM/PTX</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human CCRF-CEM T-cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 92 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CCRF-CEM/VBL</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human CCRF-CEM T-cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 158 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">CCRF-CEM/VP16</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human CCRF-CEM T-cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 52 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">DLD1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human DLD-1 colorectal cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 29 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/17336522/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17336522</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">HT29</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human HT-29 colorectal cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 28 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16539395/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16539395</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">L1210</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Mouse L1210 leukemia cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 9.2 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16539395/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16539395</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MCF-7</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human MCF-7 breast cancer cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 7.98 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15979874/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15979874</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/21870795/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">21870795</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">MCF-7</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human MCF-7 breast cancer cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 2.4 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">MDA-MB-231</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Breast adenocarcinoma</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 2.6 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/12825928/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">12825928</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/16539395/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16539395</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">NCI/ADR</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 240 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/16413186/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16413186</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">NCI/ADR</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 160 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/18081257/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">18081257</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">Other</div>
+        
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 160 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/17336522/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17336522</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">P388</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Mouse P388 leukemia cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 837.0 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/11429994/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">11429994</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">P388</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Mouse P388 leukemia cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 35 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/18081257/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">18081257</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">PANC1</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human PANC-1 pancreatic cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 59 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/17336522/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">17336522</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">PC3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human PC-3 prostate cancer cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">GI<sub>50</sub> = 52 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/12825928/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">12825928</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/16539395/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">16539395</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Anticancer</div>
+        <div class="act-title">SK-OV-3</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Human SK-OV-3 ovarian cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 6.1 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15979874/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15979874</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/33038665/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">33038665</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+      <div class="activity-card">
+        <div class="act-category">Cytotoxicity</div>
+        <div class="act-title">Vero</div>
+        <div class="act-title" style="font-size:14px;font-weight:600;color:var(--text-primary);margin-top:1px;"><span style="color:var(--primary);font-weight:600;">🧫</span> Monkey Vero kidney cells</div>
+        <div class="act-detail" style="font-size:15px;font-weight:700;color:var(--primary);margin:6px 0;">IC<sub>50</sub> = 3e+04 nM (PubMed)</div>
+        <div class="act-ref" style="margin-top:8px;padding-top:6px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);">
+          
+          <span>PubMed: <a href="https://pubmed.ncbi.nlm.nih.gov/15165132/" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:500;">15165132</a></span>
+          
+          
+          
+        </div>
+      </div>
+      
+    </div>
+    
+  </section>
+
+    <section class="section" id="references">
+    <div class="section-header">
+      <span class="section-number">05</span>
+      <h2>参考文献 References</h2>
+      <span class="section-line"></span>
+    </div>
+    
+    <div class="ref-list">
+      
+      <div class="ref-item">
+        <span class="ref-num">1</span>
+        <span class="ref-text">Paterson I, Gardner NM, Poullennec KG, Wright AE. (2008). Synthesis and biological evaluation of 10,11-dihydrodictyostatin, a potent analogue of the marine anticancer agent dictyostatin. Journal of natural products. 71(3):364-9 <a href="https://pubmed.ncbi.nlm.nih.gov/18081257/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 18081257</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">2</span>
+        <span class="ref-text">Campbell RAS, Thevathasan T, Wong DJN, Wilson AM, Lindsay HA, Campbell D, et al. (2024). Critical care unit bed availability and postoperative outcomes: a multinational cohort study. Anaesthesia. 79(11):1165-1179 <a href="https://pubmed.ncbi.nlm.nih.gov/39326458/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 39326458</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">3</span>
+        <span class="ref-text">Palani A, Dugar S, Clader JW, Greenlee WJ, Ruperto V, Duffy RA, et al. (2004). Isopropyl amide derivatives of potent and selective muscarinic M2 receptor antagonists. Bioorganic &amp; medicinal chemistry letters. 14(7):1791-4 <a href="https://pubmed.ncbi.nlm.nih.gov/15026073/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 15026073</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">4</span>
+        <span class="ref-text">Ebihara Y, Kurashima Y, Watanabe Y, Tanaka K, Matsui A, Nakanishi Y, et al. (2022). Outcomes of laparoscopic total gastrectomy in elderly patients: a propensity score matching analysis. Langenbeck&#39;s archives of surgery. 407(4):1461-1469 <a href="https://pubmed.ncbi.nlm.nih.gov/35080645/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 35080645</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">5</span>
+        <span class="ref-text">Ersmark K, Feierberg I, Bjelic S, Hamelink E, Hackett F, Blackman MJ, et al. (2004). Potent inhibitors of the Plasmodium falciparum enzymes plasmepsin I and II devoid of cathepsin D inhibitory activity. Journal of medicinal chemistry. 47(1):110-22 <a href="https://pubmed.ncbi.nlm.nih.gov/14695825/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 14695825</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">6</span>
+        <span class="ref-text">Goudreau N, Brochu C, Cameron DR, Duceppe J, Faucher A, Ferland J, et al. (2004). Potent inhibitors of the hepatitis C virus NS3 protease: design and synthesis of macrocyclic substrate-based beta-strand mimics. The Journal of organic chemistry. 69(19):6185-201 <a href="https://pubmed.ncbi.nlm.nih.gov/15357576/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 15357576</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">7</span>
+        <span class="ref-text">Moran P. (2004). The value of three-dimensional trade marks. Medical device technology. 15(10):17. <a href="https://pubmed.ncbi.nlm.nih.gov/16225278/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 16225278</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">8</span>
+        <span class="ref-text">Summa V, Petrocchi A, Pace P, Matassa VG, De Francesco R, Altamura S, et al. (2004). Discovery of alpha,gamma-diketo acids as potent selective and reversible inhibitors of hepatitis C virus NS5b RNA-dependent RNA polymerase. Journal of medicinal chemistry. 47(1):14-7 <a href="https://pubmed.ncbi.nlm.nih.gov/14695815/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 14695815</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">9</span>
+        <span class="ref-text">Campiani G, Butini S, Fattorusso C, Catalanotti B, Gemma S, Nacci V, et al. (2004). Pyrrolo[1,3]benzothiazepine-based serotonin and dopamine receptor antagonists. Molecular modeling, further structure-activity relationship studies, and identification of novel atypical antipsychotic agents. Journal of medicinal chemistry. 47(1):143-57 <a href="https://pubmed.ncbi.nlm.nih.gov/14695828/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 14695828</a></span>
+      </div>
+      
+      <div class="ref-item">
+        <span class="ref-num">10</span>
+        <span class="ref-text">Dudash J, Zhang X, Zeck RE, Johnson SG, Cox GG, Conway BR, et al. (2004). Glycosylated dihydrochalcones as potent and selective sodium glucose co-transporter 2 (SGLT2) inhibitors. Bioorganic &amp; medicinal chemistry letters. 14(20):5121-5 <a href="https://pubmed.ncbi.nlm.nih.gov/15380212/" target="_blank" style="margin-left:8px;font-weight:600;white-space:nowrap;">PubMed: 15380212</a></span>
+      </div>
+      
+    </div>
+    
+  </section>
+
+ 
+
+</div>
+
+<div class="float-toolbar" style="position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px;">
+  <button class="toolbar-btn" id="themeToggle" aria-label="Toggle dark mode" style="width:42px;height:42px;border-radius:50%;background:var(--bg-content);border:1px solid var(--border);color:var(--text-primary);font-size:18px;cursor:pointer;box-shadow:var(--shadow-md);">🌙</button>
+  <button class="toolbar-btn" onclick="window.print()" aria-label="Print / PDF" style="width:42px;height:42px;border-radius:50%;background:var(--bg-content);border:1px solid var(--border);color:var(--text-primary);font-size:18px;cursor:pointer;box-shadow:var(--shadow-md);">🖨</button>
+</div>
+
+<script>
+// ===== Scroll Progress =====
+const progressFill = document.getElementById('progressFill');
+window.addEventListener('scroll', function() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  progressFill.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+}, { passive: true });
+
+// ===== Active Nav =====
+const sections = document.querySelectorAll('.section, .hero');
+const navLinks = document.querySelectorAll('.side-nav .nav-items a');
+function updateActiveNav() {
+  let current = 'overview';
+  sections.forEach(function(sec) {
+    if (sec.getBoundingClientRect().top <= 250) current = sec.id;
+  });
+  navLinks.forEach(function(link) {
+    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+updateActiveNav();
+
+// ===== Mobile Menu =====
+function toggleMobileMenu() { document.getElementById('mobileDropdown').classList.toggle('open'); }
+function closeMobile() { document.getElementById('mobileDropdown').classList.remove('open'); }
+
+// ===== Dark Mode =====
+(function() {
+  const toggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('deepsea-theme');
+  if (saved === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); if (toggle) toggle.textContent = '☀️'; }
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('deepsea-theme', 'light'); toggle.textContent = '🌙'; }
+      else { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('deepsea-theme', 'dark'); toggle.textContent = '☀️'; }
+    });
+  }
+})();
+
+// ===== Geographic Map =====
+(function() {
+  var container = document.getElementById('compound-map');
+  if (!container) return;
+  var lat = 15;
+  var lng = -75;
+  var zoom = 5;
+  var map = L.map('compound-map', { center: [lat, lng], zoom: zoom, zoomControl: true, attributionControl: false });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+  L.circleMarker([lat, lng], { radius: 12, fillColor: '#1565c0', color: '#fff', weight: 2, fillOpacity: 0.5 }).addTo(map)
+    .bindPopup('<strong>Caribbean Sea, including the Bahamas, Greater Antilles, and South American coasts</strong><br><em>Discodermia dissoluta</em><br>Depth: Shallow (30–1200 m)');
+  // Fit bounds with padding
+  map.fitBounds([[lat-10, lng-15], [lat+10, lng+15]], { padding: [30, 30] });
+})();
+
+// ===== Copy to Clipboard =====
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  e.preventDefault();
+  const text = btn.getAttribute('data-copy');
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  }).catch(function() {
+    btn.textContent = 'Failed';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+  });
+});
+</script>
+</body>
+</html>
