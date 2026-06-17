@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Azaphilone — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#e91e63;--primary-hover:#e91e63cc;--primary-light:rgba(233,30,99,0.08);--bg-page:#f5f0f8;--bg-content:#ffffff;--bg-card:#faf8fc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.65;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s;cursor:pointer}
+.back-link:hover{color:var(--primary)}
+.ct-hero{background:linear-gradient(135deg,#f3e5f5 0%,#fd3277 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.ct-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(233,30,99,0.03) 0%,transparent 70%);pointer-events:none}
+.ct-hero-content{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ct-hero-left{flex:1;min-width:200px}
+.ct-hero-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+.ct-hero-sub{font-size:14px;color:var(--text-muted);margin-bottom:8px}
+.ct-hero-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ct-hero-tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px;background:#e91e6318;color:#e91e63}
+.ct-hero-right{display:flex;gap:10px;flex-wrap:wrap}
+.ct-hero-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:72px}
+.ct-hero-stat-value{font-size:22px;font-weight:700;color:var(--text-primary)}
+.ct-hero-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.detail-section{margin-bottom:28px}
+.detail-section-title{font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:12px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.function-text{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text-secondary);text-decoration:none;transition:all .15s;background:var(--bg-content);white-space:nowrap}
+.ext-link-pill:hover{border-color:#e91e63;color:var(--primary);background:var(--primary-light)}
+.sub-class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sub-class-item{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border:1px solid var(--border-light);border-radius:7px;background:var(--bg-content)}
+.sub-class-name{font-size:13px;color:var(--text-primary);font-weight:500}
+.sub-class-count{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-mono{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-link{color:var(--primary);text-decoration:none;font-size:12px;font-weight:500}
+.cpd-td-link:hover{text-decoration:underline}
+@media(max-width:700px){.sub-class-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot" style="background:#e91e63;opacity:1;"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · Deep-Sea DB</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-inner">
+
+    <a href="../pages/browse-chemotypes.html" class="back-link">← Back to Chemotypes · 返回化学分类</a>
+
+    <div class="ct-hero">
+      <div class="ct-hero-content">
+        <div class="ct-hero-left">
+          <div class="ct-hero-tags">
+            <span class="ct-hero-tag">Azaphilone</span>
+          </div>
+          <h1 class="ct-hero-title">Azaphilone</h1>
+          <p class="ct-hero-sub">1 compounds · 1 sub-classes</p>
+        </div>
+        <div class="ct-hero-right">
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">1</div>
+            <div class="ct-hero-stat-label">Compounds</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">1</div>
+            <div class="ct-hero-stat-label">Sub-classes</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">1</div>
+            <div class="ct-hero-stat-label">With Data</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">External Links · 外部链接</h2>
+      <div class="ext-links-row">
+    <a href="https://pubchem.ncbi.nlm.nih.gov/#query=Azaphilone&input_type=text" target="_blank" rel="noopener" class="ext-link-pill"><span>🔬</span> PubChem ↗</a>
+    <a href="https://en.wikipedia.org/wiki/Azaphilone" target="_blank" rel="noopener" class="ext-link-pill"><span>📖</span> Wikipedia ↗</a>
+    <a href="https://www.ncbi.nlm.nih.gov/pmc/?term=Azaphilone+deep-sea+natural+product" target="_blank" rel="noopener" class="ext-link-pill"><span>📄</span> PubMed ↗</a></div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Overview · 概述</h2>
+      <p class="function-text">Azaphilones are a class of fungal metabolites characterized by a highly oxygenated pyrano-quinone bicyclic core. They exhibit a broad spectrum of biological activities including anti-inflammatory and antimicrobial effects.</p>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Sub-classes · 亚类分布 <span class="section-count">1</span></h2>
+      <div class="sub-class-grid">
+        <div class="sub-class-item"><span class="sub-class-name">Other Alkaloid</span><span class="sub-class-count">1</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Compounds · 化合物清单 <span class="section-count">1</span></h2>
+      <table class="cpd-table">
+        <thead><tr>
+          <th>Name · 名称</th>
+          <th>Formula · 分子式</th>
+          <th>MW · 分子量</th>
+          <th>Source Strain · 来源菌株</th>
+          <th>Depth · 深度</th>
+          <th>Sub-class · 亚类</th>
+          <th>Link</th>
+        </tr></thead>
+        <tbody>
+<tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/11-epichaetomugilin-a.html">11-Epichaetomugilin A</a></td>
+  <td class="cpd-td-mono">C23H27ClO7</td>
+  <td class="cpd-td-mono">450.9</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(3 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Other Alkaloid</td>
+  <td><a href="../1-Compounds/11-epichaetomugilin-a.html" class="cpd-td-link">View →</a></td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
