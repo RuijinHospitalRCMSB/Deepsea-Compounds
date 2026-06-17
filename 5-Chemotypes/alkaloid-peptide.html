@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Alkaloid-Peptide — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4a148c;--primary-hover:#4a148ccc;--primary-light:rgba(74,20,140,0.08);--bg-page:#f5f0f8;--bg-content:#ffffff;--bg-card:#faf8fc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.65;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s;cursor:pointer}
+.back-link:hover{color:var(--primary)}
+.ct-hero{background:linear-gradient(135deg,#f3e5f5 0%,#5e28a0 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.ct-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(74,20,140,0.03) 0%,transparent 70%);pointer-events:none}
+.ct-hero-content{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ct-hero-left{flex:1;min-width:200px}
+.ct-hero-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+.ct-hero-sub{font-size:14px;color:var(--text-muted);margin-bottom:8px}
+.ct-hero-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ct-hero-tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px;background:#4a148c18;color:#4a148c}
+.ct-hero-right{display:flex;gap:10px;flex-wrap:wrap}
+.ct-hero-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:72px}
+.ct-hero-stat-value{font-size:22px;font-weight:700;color:var(--text-primary)}
+.ct-hero-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.detail-section{margin-bottom:28px}
+.detail-section-title{font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:12px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.function-text{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text-secondary);text-decoration:none;transition:all .15s;background:var(--bg-content);white-space:nowrap}
+.ext-link-pill:hover{border-color:#4a148c;color:var(--primary);background:var(--primary-light)}
+.sub-class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sub-class-item{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border:1px solid var(--border-light);border-radius:7px;background:var(--bg-content)}
+.sub-class-name{font-size:13px;color:var(--text-primary);font-weight:500}
+.sub-class-count{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-mono{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-link{color:var(--primary);text-decoration:none;font-size:12px;font-weight:500}
+.cpd-td-link:hover{text-decoration:underline}
+@media(max-width:700px){.sub-class-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot" style="background:#4a148c;opacity:1;"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · Deep-Sea DB</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-inner">
+
+    <a href="../pages/browse-chemotypes.html" class="back-link">← Back to Chemotypes · 返回化学分类</a>
+
+    <div class="ct-hero">
+      <div class="ct-hero-content">
+        <div class="ct-hero-left">
+          <div class="ct-hero-tags">
+            <span class="ct-hero-tag">Alkaloid-Peptide</span>
+          </div>
+          <h1 class="ct-hero-title">Alkaloid-Peptide</h1>
+          <p class="ct-hero-sub">44 compounds · 1 sub-classes</p>
+        </div>
+        <div class="ct-hero-right">
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">44</div>
+            <div class="ct-hero-stat-label">Compounds</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">1</div>
+            <div class="ct-hero-stat-label">Sub-classes</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">44</div>
+            <div class="ct-hero-stat-label">With Data</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">External Links · 外部链接</h2>
+      <div class="ext-links-row">
+    <a href="https://pubchem.ncbi.nlm.nih.gov/#query=Alkaloid-Peptide&input_type=text" target="_blank" rel="noopener" class="ext-link-pill"><span>🔬</span> PubChem ↗</a>
+    <a href="https://en.wikipedia.org/wiki/Alkaloid-Peptide" target="_blank" rel="noopener" class="ext-link-pill"><span>📖</span> Wikipedia ↗</a>
+    <a href="https://www.ncbi.nlm.nih.gov/pmc/?term=Alkaloid-Peptide+deep-sea+natural+product" target="_blank" rel="noopener" class="ext-link-pill"><span>📄</span> PubMed ↗</a></div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Overview · 概述</h2>
+      <p class="function-text">Alkaloid-peptide hybrids are complex natural products that combine alkaloid and peptide structural motifs. These hybrid molecules often display enhanced biological activities compared to their individual components.</p>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Sub-classes · 亚类分布 <span class="section-count">1</span></h2>
+      <div class="sub-class-grid">
+        <div class="sub-class-item"><span class="sub-class-name">Alkaloid-Peptide Hybrid</span><span class="sub-class-count">44</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Compounds · 化合物清单 <span class="section-count">44</span></h2>
+      <table class="cpd-table">
+        <thead><tr>
+          <th>Name · 名称</th>
+          <th>Formula · 分子式</th>
+          <th>MW · 分子量</th>
+          <th>Source Strain · 来源菌株</th>
+          <th>Depth · 深度</th>
+          <th>Sub-class · 亚类</th>
+          <th>Link</th>
+        </tr></thead>
+        <tbody>
+<tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/actinophenanthroline-c.html">Actinophenanthroline C</a></td>
+  <td class="cpd-td-mono">C20H19N3O4</td>
+  <td class="cpd-td-mono">365.1376</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. SY1414</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(8163 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/actinophenanthroline-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/bis-dethio-bis-methylthio-gliotoxin.html">BIS(DETHIO)BIS(METHYLTHIO)GLIOTOXIN</a></td>
+  <td class="cpd-td-mono">C15H20N2O4S2</td>
+  <td class="cpd-td-mono">356.0864</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium sp. JMF034</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1151 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/bis-dethio-bis-methylthio-gliotoxin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/chrysamide-a.html">Chrysamide A</a></td>
+  <td class="cpd-td-mono">C26H26N4O9</td>
+  <td class="cpd-td-mono">538.1700</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/chrysamide-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/chrysamide-b.html">Chrysamide B</a></td>
+  <td class="cpd-td-mono">C26H28N4O8</td>
+  <td class="cpd-td-mono">524.1907</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum SCSIO 41001</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3995 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/chrysamide-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/desotamide-a.html">Desotamide A</a></td>
+  <td class="cpd-td-mono">C35H52N8O7</td>
+  <td class="cpd-td-mono">696.3959</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces sp. strain (NRRL 21611)Streptomyces scopuliridis SCSIO ZJ46</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/desotamide-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/desotamide-b.html">Desotamide B</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">682.3802</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces scopuliridis SCSIO ZJ46</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3536 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/desotamide-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/discobahamin-b.html">Discobahamin B</a></td>
+  <td class="cpd-td-mono">C48H67N9O11</td>
+  <td class="cpd-td-mono">945.4960</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Discodermia sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/discobahamin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/emestrin.html">Emestrin</a></td>
+  <td class="cpd-td-mono">C27H22N2O10S2</td>
+  <td class="cpd-td-mono">598.0716</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus nidulans SD-531</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/emestrin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-a.html">Epicoccin A</a></td>
+  <td class="cpd-td-mono">C18H18N2O6S3</td>
+  <td class="cpd-td-mono">454.0327</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5000–6000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-b.html">Epicoccin B</a></td>
+  <td class="cpd-td-mono">C18H18N2O7S3</td>
+  <td class="cpd-td-mono">470.0276</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-c.html">Epicoccin C</a></td>
+  <td class="cpd-td-mono">C18H18N2O6S4</td>
+  <td class="cpd-td-mono">486.0048</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-d.html">Epicoccin D</a></td>
+  <td class="cpd-td-mono">C18H18N2O6S2</td>
+  <td class="cpd-td-mono">422.0606</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-e.html">Epicoccin E</a></td>
+  <td class="cpd-td-mono">C18H18N2O7S2</td>
+  <td class="cpd-td-mono">438.0555</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(4000–5000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-f.html">Epicoccin F</a></td>
+  <td class="cpd-td-mono">C18H20N2O6S3</td>
+  <td class="cpd-td-mono">456.0483</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-g.html">Epicoccin G</a></td>
+  <td class="cpd-td-mono">C20H26N2O6S2</td>
+  <td class="cpd-td-mono">454.1232</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-h.html">EPICOCCIN H</a></td>
+  <td class="cpd-td-mono">C20H26N2O8S2</td>
+  <td class="cpd-td-mono">486.1131</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-j.html">EPICOCCIN J</a></td>
+  <td class="cpd-td-mono">C20H24N2O6S2</td>
+  <td class="cpd-td-mono">452.1076</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-k.html">EPICOCCIN K</a></td>
+  <td class="cpd-td-mono">C20H30N2O6S2</td>
+  <td class="cpd-td-mono">458.60</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-k.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-l.html">EPICOCCIN L</a></td>
+  <td class="cpd-td-mono">C20H28N2O6S2</td>
+  <td class="cpd-td-mono">456.1389</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-l.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-m.html">EPICOCCIN M</a></td>
+  <td class="cpd-td-mono">C19H22N2O6S3</td>
+  <td class="cpd-td-mono">470.0640</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-n.html">Epicoccin N</a></td>
+  <td class="cpd-td-mono">C19H22N2O7S3</td>
+  <td class="cpd-td-mono">486.0589</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-n.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-o.html">Epicoccin O</a></td>
+  <td class="cpd-td-mono">C19H22N2O6S2</td>
+  <td class="cpd-td-mono">438.0919</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-o.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-p.html">Epicoccin P</a></td>
+  <td class="cpd-td-mono">C19H24N2O6S2</td>
+  <td class="cpd-td-mono">440.1076</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-p.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-q.html">Epicoccin Q</a></td>
+  <td class="cpd-td-mono">C18H18N2O7S3</td>
+  <td class="cpd-td-mono">470.55</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-q.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-r.html">Epicoccin R</a></td>
+  <td class="cpd-td-mono">C18H18N2O6S3</td>
+  <td class="cpd-td-mono">454.0327</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-r.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-s.html">Epicoccin S</a></td>
+  <td class="cpd-td-mono">C20H22N2O7S3</td>
+  <td class="cpd-td-mono">498.0589</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-s.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epicoccin-t.html">EPICOCCIN T</a></td>
+  <td class="cpd-td-mono">C18H22N2O6S2</td>
+  <td class="cpd-td-mono">426.0919</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/epicoccin-t.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-a.html">Eutypellazine A</a></td>
+  <td class="cpd-td-mono">C19H20N2O5S2</td>
+  <td class="cpd-td-mono">420.0814</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-b.html">Eutypellazine B</a></td>
+  <td class="cpd-td-mono">C19H22N2O5S2</td>
+  <td class="cpd-td-mono">422.0970</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-c.html">Eutypellazine C</a></td>
+  <td class="cpd-td-mono">C19H20N2O5S2</td>
+  <td class="cpd-td-mono">420.0814</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-d.html">Eutypellazine D</a></td>
+  <td class="cpd-td-mono">C20H24N2O5S2</td>
+  <td class="cpd-td-mono">436.1127</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-e.html">Eutypellazine E</a></td>
+  <td class="cpd-td-mono">C20H22N2O5S2</td>
+  <td class="cpd-td-mono">434.0970</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-f.html">Eutypellazine F</a></td>
+  <td class="cpd-td-mono">C19H22N2O6S2</td>
+  <td class="cpd-td-mono">438.0919</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-g.html">Eutypellazine G</a></td>
+  <td class="cpd-td-mono">C19H24N2O6S2</td>
+  <td class="cpd-td-mono">440.1076</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-h.html">Eutypellazine H</a></td>
+  <td class="cpd-td-mono">C19H22N2O6S2</td>
+  <td class="cpd-td-mono">438.0919</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-i.html">Eutypellazine I</a></td>
+  <td class="cpd-td-mono">C19H18N2O3S</td>
+  <td class="cpd-td-mono">354.1038</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-i.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-j.html">Eutypellazine J</a></td>
+  <td class="cpd-td-mono">C20H22N2O3S2</td>
+  <td class="cpd-td-mono">402.1072</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-k.html">Eutypellazine K</a></td>
+  <td class="cpd-td-mono">C19H20N2O3S</td>
+  <td class="cpd-td-mono">356.1195</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-k.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-l.html">Eutypellazine L</a></td>
+  <td class="cpd-td-mono">C19H20N2O3S</td>
+  <td class="cpd-td-mono">356.1195</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-l.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypellazine-m.html">Eutypellazine M</a></td>
+  <td class="cpd-td-mono">C19H20N2O4</td>
+  <td class="cpd-td-mono">340.1423</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3514 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/eutypellazine-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/fumitremorgin.html">FUMITREMORGIN</a></td>
+  <td class="cpd-td-mono">C22H25N3O3</td>
+  <td class="cpd-td-mono">379.1896</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Derived Fungus Aspergillus fumigatus SD-406</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/fumitremorgin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/gliotoxin.html">Gliotoxin</a></td>
+  <td class="cpd-td-mono">C13H14N2O4S2</td>
+  <td class="cpd-td-mono">326.0395</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus sp. SCSIO Ind09F01</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(4000–5000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/gliotoxin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/notoamide-m.html">NOTOAMIDE M</a></td>
+  <td class="cpd-td-mono">C26H31N3O5</td>
+  <td class="cpd-td-mono">465.2264</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(0 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/notoamide-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/verruculogen.html">Verruculogen</a></td>
+  <td class="cpd-td-mono">C27H33N3O7</td>
+  <td class="cpd-td-mono">511.2319</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium verruculosumAspergillus fumigatus SD-406</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000–11000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Alkaloid-Peptide Hybrid</td>
+  <td><a href="../1-Compounds/verruculogen.html" class="cpd-td-link">View →</a></td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
