@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC','Segoe UI',-apple-system,sans-serif; background:#040812; color:#eef2f6; min-height:100vh; overflow-x:hidden; }
+
+/* ═══════════════════════════════════════════
+   HERO — Light fades to dark (depth gradient)
+   ═══════════════════════════════════════════ */
+.hero {
+  position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column;
+  background: linear-gradient(180deg,
+    #1a5a9a 0%,#14508a 6%,#0d3870 16%,#0a2250 30%,#071438 48%,#050b20 68%,#030612 100%
+  );
+}
+.light-rays { position:absolute; inset:0; z-index:1; overflow:hidden; pointer-events:none; }
+.ray { position:absolute; top:0; width:4px; height:60%;
+  background:linear-gradient(180deg,rgba(255,235,190,0.40) 0%,rgba(180,210,255,0.18) 12%,rgba(100,180,255,0.06) 30%,transparent 65%);
+  transform-origin:top center; }
+.ray-1 { left:10%; transform:rotate(-4deg); }
+.ray-2 { left:28%; transform:rotate(1.5deg); }
+.ray-3 { left:50%; transform:rotate(-1deg); }
+.ray-4 { left:72%; transform:rotate(3.5deg); }
+.ray-5 { left:88%; transform:rotate(-2.5deg); }
+.tech-grid { position:absolute; inset:0; z-index:1; pointer-events:none;
+  background-image:linear-gradient(rgba(40,130,230,0.04) 1px, transparent 1px),linear-gradient(90deg, rgba(40,130,230,0.04) 1px, transparent 1px);
+  background-size:64px 64px; }
+.glow { position:absolute; border-radius:50%; filter:blur(140px); pointer-events:none; z-index:1; }
+.glow-1 { width:500px; height:500px; background:radial-gradient(circle,rgba(0,130,255,0.08),transparent); top:3%; right:8%; }
+.glow-2 { width:600px; height:600px; background:radial-gradient(circle,rgba(0,180,200,0.05),transparent); bottom:5%; left:3%; }
+.depth-zones { position:absolute; left:32px; top:0; bottom:0; z-index:3; display:flex; flex-direction:column; justify-content:space-between; padding:120px 0 90px; pointer-events:none; }
+.zone-item { display:flex; align-items:center; gap:14px; opacity:0; }
+.zone-line { width:32px; height:2px; flex-shrink:0; }
+.zone-text { font-size:14px; letter-spacing:3px; text-transform:uppercase; font-weight:600; color:rgba(255,255,255,0.85); text-shadow:0 0 12px rgba(0,0,0,0.6); }
+@keyframes zoneIn { 0%{opacity:0;transform:translateX(-16px);} 100%{opacity:1;transform:translateX(0);} }
+.zone-item:nth-child(1){animation:zoneIn 1s 0.3s forwards;}
+.zone-item:nth-child(2){animation:zoneIn 1s 1.2s forwards;}
+.zone-item:nth-child(3){animation:zoneIn 1s 2.1s forwards;}
+.zone-item:nth-child(4){animation:zoneIn 1s 3.0s forwards;}
+.zone-item:nth-child(5){animation:zoneIn 1s 3.9s forwards;}
+
+/* Floating microbes */
+#microbes { position:absolute; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+.microbe { position:absolute; bottom:-80px; opacity:0; animation:floatUp linear infinite; }
+@keyframes floatUp {
+  0%   { transform:translateY(0) rotate(0deg); opacity:0; }
+  8%   { opacity:var(--m-op,0.45); }
+  85%  { opacity:var(--m-op,0.45); }
+  100% { transform:translateY(-115vh) rotate(var(--m-rot,360deg)); opacity:0; }
+}
+
+/* Top bar */
+.top-bar { position:relative; z-index:5; padding:16px 56px; display:flex; justify-content:center; align-items:center;
+  background:linear-gradient(180deg,rgba(4,8,18,0.85) 0%,transparent 100%);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.top-bar-inner { display:flex; align-items:center; gap:40px; }
+.org-logos { display:flex; gap:32px; align-items:center; flex-wrap:wrap; }
+.org { display:flex; align-items:center; gap:12px; }
+.org-icon { width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); }
+.org-name { font-size:11px; line-height:1.35; color:rgba(255,255,255,0.35); }
+.org-name strong { color:rgba(255,255,255,0.7); font-weight:500; }
+.org-divider { width:1px; height:28px; background:rgba(255,255,255,0.06); }
+.top-version { font-size:11px; color:rgba(255,255,255,0.15); letter-spacing:1px; }
+
+/* Hero center */
+.hero-center { position:relative; z-index:4; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px 60px 10px; }
+.hero-content { width:100%; max-width:1100px; margin:0 auto; display:flex; flex-direction:column; align-items:center; }
+.badge { display:inline-flex; align-items:center; gap:8px; padding:5px 18px; border-radius:20px; font-size:11px; font-weight:500; background:rgba(0,150,255,0.08); border:1px solid rgba(0,150,255,0.15); color:#64b5f6; letter-spacing:1.5px; margin-bottom:18px; }
+.badge-dot { width:6px; height:6px; border-radius:50%; background:#64b5f6; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.15;} }
+.hero-icon { font-size:56px; margin-bottom:8px; filter:drop-shadow(0 0 50px rgba(0,150,255,0.3)); }
+.hero-title { font-size:54px; font-weight:700; line-height:1.1; letter-spacing:-0.5px; }
+.hero-title .grad { background:linear-gradient(135deg,#e8eef4 0%,#8cc4f0 35%,#56c8f7 65%,#38d0d8 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.hero-sub { font-size:20px; color:rgba(255,255,255,0.3); margin-top:10px; font-weight:300; letter-spacing:5px; }
+.hero-desc { max-width:640px; margin-top:14px; font-size:14px; color:rgba(255,255,255,0.35); line-height:1.8; }
+.hero-desc strong { color:rgba(255,255,255,0.6); font-weight:500; }
+
+/* Pipeline */
+.pipeline { display:flex; align-items:center; gap:10px; margin-top:22px; padding:12px 28px; border-radius:12px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); backdrop-filter:blur(8px); }
+.p-step { display:flex; flex-direction:column; align-items:center; gap:3px; }
+.p-icon { font-size:20px; }
+.p-label { font-size:9px; color:rgba(255,255,255,0.3); letter-spacing:0.8px; white-space:nowrap; font-weight:500; }
+.p-arrow { color:rgba(255,255,255,0.1); font-size:16px; }
+
+/* Stat row - enhanced visibility */
+.stat-row { display:flex; gap:30px; margin-top:28px; flex-wrap:wrap; justify-content:center; width:100%; }
+.stat-card { display:flex; flex-direction:column; align-items:center; flex:1; min-width:80px; max-width:155px; padding:14px 8px 6px; border-radius:10px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); backdrop-filter:blur(14px); text-align:center; text-decoration:none; transition:all 0.3s; cursor:pointer; position:relative; justify-content:space-between; }
+.stat-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(0,150,255,0.2); transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+.stat-card:active { transform:translateY(0); }
+.stat-num { font-size:26px; font-weight:700; background:linear-gradient(135deg,#64b5f6,#4dd0e1); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.3; margin-bottom:6px; }
+.stat-lbl-en { font-size:11px; color:rgba(255,255,255,0.85); letter-spacing:0.3px; font-weight:500; line-height:1.4; white-space:nowrap; }
+.stat-lbl-cn { font-size:14px; color:rgba(255,255,255,0.6); letter-spacing:0.5px; font-weight:400; margin-top:4px; line-height:1.5; }
+.stat-arrow { display:inline-flex; align-items:center; justify-content:center; margin-top:8px; width:36px; height:30px; border-radius:14px; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.25); font-size:20px; font-weight:700; transition:all 0.3s; line-height:1; flex-shrink:0; }
+.stat-card:hover .stat-arrow { background:rgba(0,150,255,0.2); color:#64b5f6; width:40px; }
+
+
+/* Scroll hint */
+.scroll-hint { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:4; display:flex; flex-direction:column; align-items:center; gap:4px; color:rgba(255,255,255,0.08); font-size:9px; letter-spacing:2px; opacity:0.6; }
+.scroll-line { width:1px; height:28px; background:linear-gradient(180deg,rgba(255,255,255,0.15),transparent); }
+
+/* ═══════════════════════════════════════════
+   CONTENT SECTION
+   ═══════════════════════════════════════════ */
+.content { position:relative; z-index:1; padding:8px 60px 60px; background:#040812; }
+.content-inner { max-width:820px; margin:0 auto; }
+.charts { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.chart-card { padding:18px 22px; border-radius:12px; background:rgba(255,255,255,0.015); border:1px solid rgba(255,255,255,0.03); }
+.chart-card h3 { font-size:13px; color:rgba(255,255,255,0.4); font-weight:400; margin-bottom:14px; letter-spacing:0.3px; }
+.chart-card h3 span { color:#64b5f6; }
+.section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.section-title { font-size:15px; color:rgba(255,255,255,0.45); letter-spacing:0.3px; }
+.section-title span { color:#64b5f6; }
+.section-link { font-size:11px; color:rgba(255,255,255,0.2); transition:color 0.2s; }
+.section-link:hover { color:#64b5f6; }
+
+/* Bar charts */
+.bar-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.bar-label { width:80px; font-size:11px; color:rgba(255,255,255,0.35); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:14px; border-radius:7px; background:rgba(255,255,255,0.02); overflow:hidden; }
+.bar-fill { height:100%; border-radius:7px; transition:width 1.2s ease; opacity:0.75; }
+.bar-value { width:24px; font-size:11px; color:rgba(255,255,255,0.25); font-family:'JetBrains Mono',monospace; text-align:right; }
+
+/* Compound strip */
+.compound-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:30px; }
+.cpd-card { display:flex; flex-direction:column; padding:14px 16px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); transition:all 0.25s; text-decoration:none; }
+.cpd-card:hover { background:rgba(255,255,255,0.04); border-color:rgba(0,150,255,0.12); transform:translateY(-2px); }
+.cpd-card-row { display:flex; gap:10px; align-items:flex-start; }
+.cpd-card-img { width:36px; height:36px; border-radius:5px; overflow:hidden; background:rgba(255,255,255,0.03); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.cpd-card-img img { width:100%; height:100%; object-fit:contain; }
+.cpd-card-img .cfb { font-size:14px; color:rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+.cpd-card-info { flex:1; min-width:0; }
+.cpd-card-name { font-size:13px; font-weight:500; color:rgba(255,255,255,0.7); line-height:1.3; margin-bottom:1px; display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden; }
+.cpd-card-meta { font-size:11px; color:rgba(255,255,255,0.25); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cpd-card-ct { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:500; margin-top:6px; }
+
+/* Responsive */
+@media(max-width:900px){
+  .top-bar{flex-direction:column;padding:12px 20px;}
+  .top-bar-inner{flex-direction:column;gap:8px;}
+  .org-logos{justify-content:center;gap:16px;}
+  .hero-content{max-width:100%;}
+  .hero-title{font-size:36px;}
+  .hero-center{padding:20px 24px 10px;}
+  .stat-card{min-width:85px;max-width:none;padding:10px 8px;}
+  .stat-num{font-size:22px;}
+  .stat-lbl-en{font-size:11px;}.stat-lbl-cn{font-size:9px;}
+  .stat-arrow{width:28px;height:22px;font-size:15px;}
+  .content{padding:16px 20px 40px;}
+  .charts{grid-template-columns:1fr;}
+  .compound-strip{grid-template-columns:repeat(2,1fr);}
+  .depth-zones{left:12px;}
+  .zone-text{font-size:11px;letter-spacing:1.5px;}
+  .zone-line{width:18px;}
+}
+@media(max-width:520px){
+  .hero-title{font-size:26px;}
+  .hero-sub{font-size:14px;letter-spacing:2px;}
+  .pipeline{flex-wrap:wrap;justify-content:center;gap:6px;}
+  .stat-card{padding:8px 8px;min-width:70px;}
+  .stat-num{font-size:20px;}
+  .stat-lbl-en{font-size:11px;}.stat-lbl-cn{font-size:9px;}
+  .stat-card{min-width:72px;padding:8px 6px;}
+  .stat-num{font-size:18px;}
+  .stat-lbl-en{font-size:11px;}.stat-lbl-cn{font-size:10px;}
+  .stat-arrow{width:24px;height:18px;font-size:13px;}
+  .compound-strip{grid-template-columns:1fr;}
+  .depth-zones{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <!-- Sunlight rays -->
+  <div class="light-rays">
+    <div class="ray ray-1"></div>
+    <div class="ray ray-2"></div>
+    <div class="ray ray-3"></div>
+    <div class="ray ray-4"></div>
+    <div class="ray ray-5"></div>
+  </div>
+  <div class="tech-grid"></div>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <!-- Depth zones -->
+  <div class="depth-zones">
+    <div class="zone-item"><div class="zone-line" style="background:rgba(255,255,255,0.5);"></div><div class="zone-text">SUNLIGHT 0–200m</div></div>
+    <div class="zone-item"><div class="zone-line" style="background:rgba(255,255,255,0.4);"></div><div class="zone-text">TWILIGHT 200–1000m</div></div>
+    <div class="zone-item"><div class="zone-line" style="background:rgba(255,255,255,0.3);"></div><div class="zone-text">MIDNIGHT 1000–3000m</div></div>
+    <div class="zone-item"><div class="zone-line" style="background:rgba(255,255,255,0.2);"></div><div class="zone-text">ABYSSAL 3000–6000m</div></div>
+    <div class="zone-item"><div class="zone-line" style="background:rgba(255,255,255,0.15);"></div><div class="zone-text">HADAL 6000m+</div></div>
+  </div>
+
+  <!-- Floating microbes -->
+  <div id="microbes"></div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="top-bar-inner">
+      <div class="org-logos">
+        <div class="org">
+          <div class="org-icon"><svg width="24" height="24" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="rgba(100,181,246,0.35)" stroke-width="1.2"/><path d="M10 20 Q20 5 30 20 Q20 35 10 20Z" fill="rgba(100,181,246,0.06)" stroke="rgba(100,181,246,0.2)" stroke-width="0.6"/><circle cx="20" cy="14" r="2.5" fill="rgba(100,181,246,0.4)"/><circle cx="15" cy="24" r="1.8" fill="rgba(100,181,246,0.25)"/><circle cx="26" cy="22" r="2" fill="rgba(100,181,246,0.3)"/></svg></div>
+          <div class="org-name"><strong>三亚深海化合物资源中心</strong><br>Sanya Deep-Sea Compound Resource Center</div>
+        </div>
+        <div class="org-divider"></div>
+        <div class="org">
+          <div class="org-icon"><svg width="24" height="24" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="none" stroke="rgba(77,208,225,0.35)" stroke-width="1.2"/><path d="M12 20 L18 26 L28 14" stroke="rgba(77,208,225,0.55)" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>
+          <div class="org-name"><strong>瑞金医院医药结构生物学转化研究中心</strong><br>Ruijin Hospital · Center for Structural Biology</div>
+        </div>
+        <div class="org-divider"></div>
+        <div class="org">
+          <div class="org-icon"><svg width="24" height="24" viewBox="0 0 40 40"><path d="M20 5 L20 35 M5 20 L35 20" stroke="rgba(239,83,80,0.3)" stroke-width="1"/><circle cx="20" cy="20" r="14" fill="none" stroke="rgba(239,83,80,0.35)" stroke-width="1.2"/><text x="20" y="24" text-anchor="middle" font-size="13" font-weight="bold" fill="rgba(239,83,80,0.5)">R</text></svg></div>
+          <div class="org-name"><strong>上海交通大学医学院附属瑞金医院</strong><br>Ruijin Hospital, Shanghai Jiao Tong Univ.</div>
+        </div>
+      </div>
+      <div class="top-version">v2.0</div>
+    </div>
+  </div>
+
+  <!-- Hero center -->
+  <div class="hero-center">
+    <div class="hero-content">
+      <div class="badge"><span class="badge-dot"></span> DEEP-SEA NATURAL PRODUCTS DATABASE</div>
+      <div class="hero-icon">🌊</div>
+      <h1 class="hero-title"><span class="grad">Deep-Sea Compound Database</span></h1>
+      <div class="hero-sub">深海 · 深渊 · 化合物 · 数据库</div>
+      <p class="hero-desc" id="heroDesc">A comprehensive collection of <strong>361</strong> natural products isolated from deep-sea and hadal microorganisms — <strong>131</strong> strains across <strong>65</strong> genera · <strong>641</strong> curated references</p>
+
+      <!-- Pipeline -->
+      <div class="pipeline">
+        <div class="p-step"><span class="p-icon">🌊</span><span class="p-label">DEEP-SEA</span></div>
+        <span class="p-arrow">→</span>
+        <div class="p-step"><span class="p-icon">🧫</span><span class="p-label">MICROBE</span></div>
+        <span class="p-arrow">→</span>
+        <div class="p-step"><span class="p-icon">🧬</span><span class="p-label">COMPOUND</span></div>
+        <span class="p-arrow">→</span>
+        <div class="p-step"><span class="p-icon">🎯</span><span class="p-label">TARGET</span></div>
+        <span class="p-arrow">→</span>
+        <div class="p-step"><span class="p-icon">💊</span><span class="p-label">DRUG LEAD</span></div>
+      </div>
+
+      <!-- Stat cards (static fallback for file:// mode, replaced by JS) -->
+      <div class="stat-row" id="statRow">
+        <a href="pages/browse-compounds.html" class="stat-card"><div class="stat-num">361</div><div class="stat-lbl-en">💊 Deep-Sea Compound Database</div><div class="stat-lbl-cn">深海化合物数据库</div><div class="stat-arrow">→</div></a>
+        <a href="pages/browse-strains.html" class="stat-card"><div class="stat-num">131</div><div class="stat-lbl-en">🧫 Deep-sea Strains</div><div class="stat-lbl-cn">深海菌株</div><div class="stat-arrow">→</div></a>
+        <a href="pages/browse-targets.html" class="stat-card"><div class="stat-num">255</div><div class="stat-lbl-en">🎯 Molecular Targets</div><div class="stat-lbl-cn">分子靶标</div><div class="stat-arrow">→</div></a>
+        <a href="pages/browse-phenotypes.html" class="stat-card"><div class="stat-num">347</div><div class="stat-lbl-en">📊 Bioactive Phenotypes</div><div class="stat-lbl-cn">生物表型</div><div class="stat-arrow">→</div></a>
+        <a href="pages/browse-chemotypes.html" class="stat-card"><div class="stat-num">10</div><div class="stat-lbl-en">🧪 Chemical Classes</div><div class="stat-lbl-cn">化学分类</div><div class="stat-arrow">→</div></a>
+        <a href="pages/browse-references.html" class="stat-card"><div class="stat-num">641</div><div class="stat-lbl-en">📚 Curated References</div><div class="stat-lbl-cn">参考文献</div><div class="stat-arrow">→</div></a>
+      </div>
+    </div>
+  </div>
+
+<div class="scroll-hint"><span>SCROLL</span><div class="scroll-line"></div></div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="content-inner">
+    <div class="section-header">
+      <div class="section-title">📊 <span>Chemical Class</span> Distribution · 化学分类</div>
+      <a href="pages/browse-chemotypes.html" class="section-link">View all →</a>
+    </div>
+    <div class="charts">
+      <div class="chart-card">
+        <h3>By Compound Count</h3>
+        <div id="chart-chemotype"></div>
+      </div>
+      <div class="chart-card">
+        <h3>By <span>Depth</span> Zone · 深度</h3>
+        <div id="chart-depth"></div>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:40px;">
+      <div class="section-title">🧪 <span>Latest</span> Compounds · 最新化合物</div>
+      <a href="pages/browse-compounds.html" class="section-link">View all →</a>
+    </div>
+    <div class="compound-strip" id="latestStrip"></div>
+  </div>
+</div>
+
+<!-- Data scripts -->
+<script>
+var COMPOUNDS_DATA = [
+  {"n":"11-Epi-chaetomugilin I","o":"Chaetomium globosum OUPS-T106B-6","f":"C22H27ClO5","w":"406.9 g/mol","t":"Alkaloid","d":"Shallow (200–3000 m)","c":"53358201","p":"11-epi-chaetomugilin-i.html"},
+  {"n":"11-Epichaetomugilin A","o":"Chaetomium globosum","f":"C23H27ClO7","w":"450.9 g/mol","t":"Azaphilone","d":"Shallow (3 m)","c":"46193040","p":"11-epichaetomugilin-a.html"},
+  {"n":"2,2-dioxidothiolutin","o":"Streptomyces","f":"C25H32O8","w":"460.5000 g/mol","t":"Polyketide","d":"Shallow (0–200 m)","c":"15004768","p":"2-2-dioxidothiolutin.html"},
+  {"n":"2-Methoxyl cordyol C","o":"Engyodontium album DFFSCS021","f":"C15H16O4","w":"260.2800 g/mol","t":"Terpenoid","d":"Deep (3739 m)","c":"139585221","p":"2-methoxyl-cordyol-c.html"},
+  {"n":"(2'S)-7-Hydroxy-2-(2-hydroxypropyl)-5-methylchromone","o":"Penicillium sajarovii KMM 4718Aspergillus protuberus KMM 4747","f":"C13H14O4","w":"234.0892 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"5318230","p":"2-s-7-hydroxy-2-2-hydroxypropyl-5-methylchromone.html"},
+  {"n":"(2Z,6E)-10,11,12-trihydroxy-3,7,11-trimethyldodeca-2,6-dienoic acid","o":"Aspergillus sp. SCSIO 41029","f":"C15H26O5","w":"286.1780 g/mol","t":"Terpenoid","d":"Deep (2000–3000 m)","c":"154732266","p":"2z-6e-10-11-12-trihydroxy-3-7-11-trimethyldodeca-2-6-dienoic-acid.html"},
+  {"n":"3,4-Dihydroxy-5-(3-hydroxy-5-methylphenoxy)benzoic acid","o":"Penicillium chrysogenum MCCC 3A00292","f":"C14H12O6","w":"276.2400 g/mol","t":"Polyketide","d":"Deep (3415–3972 m)","c":"139267054","p":"3-4-dihydroxy-5-3-hydroxy-5-methylphenoxy-benzoic-acid.html"},
+  {"n":"3,8-Dihydroxy-4-(2,3-dihydroxy-1-hydroxymethylpropyl)-1-methoxyxanthone","o":"Penicillium chrysogenum MCCC 3A00292","f":"C18H18O8","w":"362.3000 g/mol","t":"Polyketide","d":"Deep (4500 m)","c":"24039298","p":"3-8-dihydroxy-4-2-3-dihydroxy-1-hydroxymethylpropyl-1-methoxyxanthone.html"},
+  {"n":"3β‐acetoxy‐agathic acid","o":"Penicillium thomii YPGA3","f":"C20H30O4","w":"334.4000 g/mol","t":"Terpenoid","d":"Hadal (4500 m)","c":"6436877","p":"3-acetoxy-agathic-acid.html"},
+  {"n":"3-ANHYDRO-6-EPI-OPHIOBOLIN A","o":"Aspergillus californicus SCSIO 3","f":"C25H34O3","w":"382.2508 g/mol","t":"Terpenoid","d":"Deep (3949 m)","c":"155886915","p":"3-anhydro-6-epi-ophiobolin-a.html"},
+  {"n":"3-Hydroxy-5-(3-hydroxy-5-methylphenoxy)benzoic acid","o":"Penicillium chrysogenum MCCC 3A00292","f":"C14H12O5","w":"260.2400 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"139584728","p":"3-hydroxy-5-3-hydroxy-5-methylphenoxy-benzoic-acid.html"},
+  {"n":"4'-Epi-chaetomugilin A","o":"Chaetomium globosum","f":"C23H27ClO7","w":"450.9000 g/mol","t":"Alkaloid","d":"Deep (3415–3972 m)","c":"46193041","p":"4-epi-chaetomugilin-a.html"},
+  {"n":"5'-hydroxy-6'-ene-epicoccin G","o":"Epicoccum nigrum SD-388","f":"C20H26N2O6S2","w":"454.6 g/mol","t":"Terpenoid","d":"Hadal (4500 m)","c":"156581924","p":"5-hydroxy-6-ene-epicoccin-g.html"},
+  {"n":"5-Methoxysterigmatocystin","o":"Aspergillus versicolor CXCTD-06-6a","f":"C19H14O7","w":"354.3 g/mol","t":"Polyketide","d":"Slope (800 m)","c":"5351257","p":"5-methoxysterigmatocystin.html"},
+  {"n":"(5S,6S)-16,17-Dihydroophiobolin H","o":"Aspergillus insuetus SD-512","f":"C25H40O3","w":"388.2977 g/mol","t":"Terpenoid","d":"Deep (1331 m)","c":"156580999","p":"5s-6s-16-17-dihydroophiobolin-h.html"},
+  {"n":"6-Hydroxybenzothiazole","o":"Mariana Trench-associated actinomycete Streptomyces sp. SY2255","f":"C7H5NOS","w":"151.0092 g/mol","t":"Alkaloid","d":"Hadal (6000–11000 m)","c":"151811","p":"6-hydroxybenzothiazole.html"},
+  {"n":"(6R)-16,17,21,21-O-Tetrahydroophiobolin G","o":"Aspergillus insuetus SD-512","f":"C25H38O2","w":"370.5690 g/mol","t":"Terpenoid","d":"Deep (1331 m)","c":"156581001","p":"6r-16-17-21-21-o-tetrahydroophiobolin-g.html"},
+  {"n":"(6R)-16,17-Dihydroophiobolin H","o":"Aspergillus insuetus SD-512","f":"C25H40O3","w":"388.2977 g/mol","t":"Terpenoid","d":"Deep (1331 m)","c":"156580998","p":"6r-16-17-dihydroophiobolin-h.html"},
+  {"n":"6R,7-dihydroxy-3,7-dimethyloctanamide","o":"Penicillium griseofulvum MCCC 3A00225","f":"C10H21NO3","w":"203.1521 g/mol","t":"Terpenoid","d":"Deep (1200 m)","c":"170990499","p":"6r-7-dihydroxy-3-7-dimethyloctanamide.html"},
+  {"n":"7'-demethoxyrostratin C","o":"Epicoccum nigrum SD-388","f":"C19H22N2O7S2","w":"454.5 g/mol","t":"Polyketide-Peptide","d":"Deep (4500 m)","c":"156581927","p":"7-demethoxyrostratin-c.html"},
+  {"n":"7-methoxy-7'-hydroxyepicoccin G","o":"Epicoccum nigrum SD-388","f":"C21H28N2O8S2","w":"500.6 g/mol","t":"Other","d":"Hadal (4500 m)","c":"156581925","p":"7-methoxy-7-hydroxyepicoccin-g.html"},
+  {"n":"(7R,8R)-AGI-B4","o":"Engyodontium album DFFSCS021","f":"C16H14O7","w":"318.2800 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"5472392","p":"7r-8r-agi-b4.html"},
+  {"n":"8'-acetoxyepicoccin D","o":"Epicoccum nigrum SD-388","f":"C20H20N2O7S2","w":"464.5 g/mol","t":"Other","d":"Hadal (4500 m)","c":"156581926","p":"8-acetoxyepicoccin-d.html"},
+  {"n":"Actinophenanthroline C","o":"Streptomyces sp. SY1414","f":"C20H19N3O4","w":"365.1376 g/mol","t":"Alkaloid-Peptide","d":"Hadal (8163 m)","c":"163110135","p":"actinophenanthroline-c.html"},
+  {"n":"Adociaquinone A","o":"Xestospongia (like Xestospongia sp.) and Petrosia alfiani.","f":"C22H17NO6S","w":"423.45 g/mol","t":"Polyketide","d":"Shallow (50–540 m)","c":"10364986","p":"adociaquinone-a.html"},
+  {"n":"Ageliferin","o":"Agelas sp.","f":"C22H24Br2N10O2","w":"618.0450 g/mol","t":"Alkaloid","d":"Slope (500 m)","c":"11169518","p":"ageliferin.html"},
+  {"n":"Altenusin","o":"Alternaria sp. SK6YW3L","f":"C15H14O6","w":"290.0790 g/mol","t":"Polyketide","d":"Deep (2000–11000 m)","c":"6918469","p":"altenusin.html"},
+  {"n":"Anthracimycin B","o":"Streptomyces cyaneofuscatus M-169","f":"C25H40O3","w":"382.2144 g/mol","t":"Polyketide","d":"Deep (1500 m)","c":"156581813","p":"anthracimycin-b.html"},
+  {"n":"Anthracimycin","o":"Streptomyces cyaneofuscatus M-169","f":"C25H32O4","w":"396.2301 g/mol","t":"Polyketide","d":"Deep (1500 m)","c":"102496082","p":"anthracimycin.html"},
+  {"n":"Arugosin C","o":"Aspergillus / Emericella spp.","f":"C25H28O6","w":"424.1886 g/mol","t":"Terpenoid","d":"Shallow (200–3000 m)","c":"191158","p":"arugosin-c.html"},
+  {"n":"asperdemin","o":"Penicillium chrysogenum MCCC 3A00292","f":"C21H28O7","w":"392.4000 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"139583610","p":"asperdemin.html"},
+  {"n":"Aspergillusone B","o":"Engyodontium album DFFSCS021","f":"C16H16O8","w":"336.2900 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"53468883","p":"aspergillusone-b.html"},
+  {"n":"aspermutarubrol","o":"Penicillium chrysogenum MCCC 3A00292","f":"C14H14O5","w":"262.2600 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"100615","p":"aspermutarubrol.html"},
+  {"n":"Aspermytin A","o":"Aspergillus sp.","f":"C16H26O3","w":"266.1882 g/mol","t":"Terpenoid","d":"Shallow (200–3000 m)","c":"9993091","p":"aspermytin-a.html"},
+  {"n":"Aspyrone","o":"sponge-derived fungus strain 01F313","f":"C9H12O4","w":"184.0736 g/mol","t":"Polyketide","d":"Deep (2000–11000 m)","c":"284691","p":"aspyrone.html"},
+  {"n":"Bafilomycin A2","o":"Streptomyces sp. SY1414","f":"C36H60O9","w":"636.4237 g/mol","t":"Polyketide","d":"Hadal (6000–11000 m)","c":"10416655","p":"bafilomycin-a2.html"},
+  {"n":"Bafilomycin D","o":"Streptomyces sp. SY1414","f":"C35H56O8","w":"604.3975 g/mol","t":"Polyketide","d":"Hadal (6000–11000 m)","c":"74105500","p":"bafilomycin-d.html"},
+  {"n":"Bathymodiolamide A","o":"*Bathymodiolus thermophilus * (mussel)","f":"C49H89NO7","w":"803.6639 g/mol","t":"Alkaloid","d":"Deep (1733 m)","c":"75971532","p":"bathymodiolamide-a.html"},
+  {"n":"Bathymodiolamide B","o":"*Bathymodiolus thermophilus * (mussel)","f":"C42H77NO7","w":"707.5700 g/mol","t":"Alkaloid","d":"Deep (1733 m)","c":"75971582","p":"bathymodiolamide-b.html"},
+  {"n":"Batzelline A","o":"Batzella sp.","f":"C12H11ClN2O2S","w":"282.75 g/mol","t":"Phenylpropanoid","d":"Shallow (150–200 m)","c":"180158","p":"batzelline-a.html"},
+  {"n":"Berninamycin J","o":"Streptomyces sp. SCSIO 11878","f":"C51H53N15O15S","w":"1148.1400 g/mol","t":"Alkaloid","d":"Deep (1396 m)","c":"169492245","p":"berninamycin-j.html"},
+  {"n":"BIS(DETHIO)BIS(METHYLTHIO)GLIOTOXIN","o":"Penicillium sp. JMF034","f":"C15H20N2O4S2","w":"356.0864 g/mol","t":"Alkaloid-Peptide","d":"Deep (1151 m)","c":"5114266","p":"bis-dethio-bis-methylthio-gliotoxin.html"},
+  {"n":"Bisorbicillchaetone A","o":"Penicillium sp. SCSIO06868","f":"C29H30O10","w":"538.5 g/mol","t":"Polyketide","d":"Hadal (4762 m)","c":"170989765","p":"bisorbicillchaetone-a.html"},
+  {"n":"Bisorbicillchaetone B","o":"Penicillium sp. SCSIO06868","f":"C29H28O10","w":"536.5 g/mol","t":"Polyketide","d":"Hadal (4762 m)","c":"170989766","p":"bisorbicillchaetone-b.html"},
+  {"n":"Bisorbicillchaetone C","o":"Penicillium sp. SCSIO06868","f":"C28H26O10","w":"522.5 g/mol","t":"Polyketide","d":"Hadal (4762 m)","c":"170989767","p":"bisorbicillchaetone-c.html"},
+  {"n":"Bisucaberin B","o":"Penicillium sp. SCSIOW21","f":"C18H34N4O7","w":"418.2427 g/mol","t":"Peptide","d":"Deep (3040 m)","c":"16654922","p":"bisucaberin-b.html"},
+  {"n":"Bisucaberin","o":"Alteromonas haloplanktis SB-1123","f":"C18H32N4O6","w":"400.5000 g/mol","t":"","d":"Deep (1000 m)","c":"133971","p":"bisucaberin.html"},
+  {"n":"Brasilane B","o":"Aspergillus sp.","f":"C15H26O2","w":"238.1933 g/mol","t":"Terpenoid","d":"Deep (3000–4000 m)","c":"163064395","p":"brasilane-b.html"},
+  {"n":"Brefeldin A","o":"Fusarium sp. ZEN-48","f":"C16H24O4","w":"280.1675 g/mol","t":"Polyketide","d":"Deep (1245 m)","c":"5287620","p":"brefeldin-a.html"},
+  {"n":"Brevione F","o":"Penicillium sp.","f":"C27H32O5","w":"436.2250 g/mol","t":"Terpenoid","d":"Hadal (5115 m)","c":"44139745","p":"brevione-f.html"},
+  {"n":"Brevione G","o":"Penicillium sp.","f":"C27H32O5","w":"436.2250 g/mol","t":"Terpenoid","d":"Hadal (5115 m)","c":"44139897","p":"brevione-g.html"},
+  {"n":"Brevione H","o":"Penicillium sp.","f":"C27H30O7","w":"466.1992 g/mol","t":"Terpenoid","d":"Hadal (5115 m)","c":"44139746","p":"brevione-h.html"},
+  {"n":"Caboxamycin","o":"Streptomyces sp. NTK 937","f":"C14H9NO4","w":"255.23 g/mol","t":"Polyketide","d":"Deep (3814 m)","c":"135957253","p":"caboxamycin.html"},
+  {"n":"Chaetoketoic A","o":"Chaetomium globosum SD-347","f":"C9H12O4","w":"184.0736 g/mol","t":"Polyketide","d":"Deep (2476 m)","p":"chaetoketoic-a.html"},
+  {"n":"Chaetoketoic B","o":"Chaetomium globosum SD-347","f":"C9H12O4","w":"184.0736 g/mol","t":"Polyketide","d":"Deep (2476 m)","p":"chaetoketoic-b.html"},
+  {"n":"Chaetomugilin A","o":"Chaetomium globosum OUPS-T106B-6","f":"C23H27ClO7","w":"450.1445 g/mol","t":"Polyketide","d":"Shallow (3 m)","c":"74335111","p":"chaetomugilin-a.html"},
+  {"n":"Chaetomugilin C","o":"Chaetomium globosum OUPS-T106B-6","f":"C23H25ClO6","w":"432.9 g/mol","t":"Polyketide","d":"Shallow (3 m)","c":"24857888","p":"chaetomugilin-c.html"},
+  {"n":"Chaetomugilin O","o":"Chaetomium globosum","f":"C23H25ClO5","w":"416.1391 g/mol","t":"Polyketide","d":"Shallow (200–3000 m)","c":"74974614","p":"chaetomugilin-o.html"},
+  {"n":"Chaetosemin A","o":"Chaetomium seminudum","f":"C15H16O7S","w":"340.0617 g/mol","t":"Polyketide","d":"Terrestrial","c":"93233146","p":"chaetosemin-a.html"},
+  {"n":"Chaetosemin B","o":"Chaetomium globosum SD-347","f":"C15H16O7S","w":"340.0617 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"93233145","p":"chaetosemin-b.html"},
+  {"n":"Chaetosemin C","o":"Chaetomium seminudum","f":"C23H26O7","w":"414.1679 g/mol","t":"Polyketide","d":"","p":"chaetosemin-c.html"},
+  {"n":"Chaetosemin D","o":"Chaetomium globosum SD-347","f":"C14H16O4","w":"248.1049 g/mol","t":"Polyketide","d":"Deep (2476 m)","p":"chaetosemin-d.html"},
+  {"n":"Chaetosemin E","o":"Chaetomium globosum SD-347","f":"C18H22O10","w":"398.1213 g/mol","t":"Polyketide","d":"Deep (2476 m)","p":"chaetosemin-e.html"},
+  {"n":"Chaetoviridin A","o":"Chaetomium globosum HDN151398","f":"C23H25ClO6","w":"432.9 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"6450533","p":"chaetoviridin-a.html"},
+  {"n":"Chaetoviridin E","o":"Chaetomium globosum HDN151398","f":"C25H40O3","w":"414.1234 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"25108108","p":"chaetoviridin-e.html"},
+  {"n":"Chrysamide A","o":"Penicillium chrysogenum MCCC 3A00292","f":"C26H26N4O9","w":"538.1700 g/mol","t":"Alkaloid-Peptide","d":"Shallow (200–4500 m)","c":"132515916","p":"chrysamide-a.html"},
+  {"n":"Chrysamide B","o":"Penicillium chrysogenum SCSIO 41001","f":"C26H28N4O8","w":"524.1907 g/mol","t":"Alkaloid-Peptide","d":"Deep (3995 m)","c":"163187789","p":"chrysamide-b.html"},
+  {"n":"Chrysamide C","o":"Penicillium chrysogenum SCSIO41001","f":"C26H26N4O10","w":"554.1649 g/mol","t":"Polyketide-Peptide","d":"Slope (200 m)","c":"163193921","p":"chrysamide-c.html"},
+  {"n":"Chrysine A","o":"Penicillium chrysogenum SCSIO 41001","f":"C18H16Cl2O8","w":"431.2240 g/mol","t":"Polyketide","d":"Deep (3386 m)","c":"146684274","p":"chrysine-a.html"},
+  {"n":"Citrinin","o":"Penicillium citrinum W17","f":"C13H14O5","w":"250.0841 g/mol","t":"Polyketide","d":"Hadal (5000–6000 m)","c":"54682830","p":"citrinin.html"},
+  {"n":"CJ-16,196","o":"Phomopsis tersa FS441","f":"C19H21NO4","w":"327.4000 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"139586603","p":"cj-16-196.html"},
+  {"n":"Cladosporone A","o":"Cladosporium halotolerans FS702","f":"C20H16O6","w":"352.3 g/mol","t":"Alkaloid","d":"Deep (2372 m)","c":"122208089","p":"cladosporone-a.html"},
+  {"n":"Cochliodone A","o":"Chaetomium sp. NA-S01-R1","f":"C34H38O12","w":"638.7 g/mol","t":"Polyketide","d":"Hadal (4050 m)","c":"102516358","p":"cochliodone-a.html"},
+  {"n":"Conidiogenone B","o":"Penicillium sp.","f":"C20H30O","w":"286.2297 g/mol","t":"Terpenoid","d":"Hadal (5000 m)","c":"25223216","p":"conidiogenone-b.html"},
+  {"n":"Contignasterol","o":"Petrosia contignata","f":"C29H48O7","w":"508.3400 g/mol","t":"Terpenoid","d":"Shallow (27-37 m)","c":"164397","p":"contignasterol.html"},
+  {"n":"Cordyol C","o":"Engyodontium album DFFSCS021","f":"C14H14O4","w":"246.2600 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"16204067","p":"cordyol-c.html"},
+  {"n":"Cottoquinazoline H","o":"Aspergillus versicolor","f":"C25H23N5O4","w":"457.1750 g/mol","t":"Alkaloid","d":"Deep (3614 m)","p":"cottoquinazoline-h.html"},
+  {"n":"Crambescidin 800","o":"Crambe sp.","f":"C45H80N6O6","w":"800.6139 g/mol","t":"Terpenoid","d":"Slope (452 m)","c":"53325673","p":"crambescidin-800.html"},
+  {"n":"Crannenol B","o":"Acanella arbuscula","f":"C17H26O2","w":"262.1933 g/mol","t":"Terpenoid","d":"Deep (2000–11000 m)","c":"171119963","p":"crannenol-b.html"},
+  {"n":"Crannenol C","o":"Acanella arbuscula","f":"C17H26O3","w":"278.1882 g/mol","t":"Terpenoid","d":"Deep (2000–11000 m)","c":"171119964","p":"crannenol-c.html"},
+  {"n":"cyclopenol","o":"Penicillium chrysogenum MCCC 3A00292","f":"C17H14N2O4","w":"310.3000 g/mol","t":"Polyketide-Peptide","d":"Deep (2076 m)","c":"16681741","p":"cyclopenol.html"},
+  {"n":"Cyclotheonamide A","o":"Entotheonella factor","f":"C36H45N9O8","w":"731.3391 g/mol","t":"","d":"Shallow (10–10000 m)","c":"5287991","p":"cyclotheonamide-a.html"},
+  {"n":"CYCLOTHEONAMIDE E3","o":"Theonella sp.","f":"C40H60N10O9","w":"824.4545 g/mol","t":"Polyketide-Peptide","d":"Shallow (200 m)","c":"12041284","p":"cyclotheonamide-e3.html"},
+  {"n":"Decadienal","o":"Pelagic Sargassum","f":"C10H16O","w":"152.1201 g/mol","t":"Terpenoid","d":"Shallow (2 m)","c":"16899","p":"decadienal.html"},
+  {"n":"Decumbenone A","o":"Penicillium chrysogenum MCCC 3A00292","f":"C25H40O3","w":"280.1675 g/mol","t":"Terpenoid","d":"Deep (2076 m)","c":"139586691","p":"decumbenone-a.html"},
+  {"n":"Decumbenone B","o":"Penicillium chrysogenum MCCC 3A00292","f":"C16H26O4","w":"282.3700 g/mol","t":"Terpenoid","d":"Deep (2076 m)","c":"139584220","p":"decumbenone-b.html"},
+  {"n":"Dehydroaustinol","o":"Aspergillus ustus","f":"C25H28O8","w":"456.5000 g/mol","t":"Polyketide","d":"Slope (860–2000 m)","c":"56955928","p":"dehydroaustinol.html"},
+  {"n":"Delitschiapyrone A","o":"Delitschia sp. FL1581","f":"C24H26O9","w":"458.5000 g/mol","t":"Alkaloid","d":"Shallow (0–1000 m)","c":"139044387","p":"delitschiapyrone-a.html"},
+  {"n":"Deoxynyboquinone","o":"Pseudonocardia antitumoralis SCSIO 01299","f":"C15H12N2O4","w":"284.0797 g/mol","t":"Alkaloid","d":"Deep (3258 m)","c":"295934","p":"deoxynyboquinone.html"},
+  {"n":"Dercitin","o":"Dercitus sp.","f":"C21H20N4S","w":"360.1409 g/mol","t":"Alkaloid","d":"Shallow (100–200 m)","c":"130774","p":"dercitin.html"},
+  {"n":"Dermacozine A","o":"Dermacoccus abyssi MT1.1T","f":"C25H40O3","w":"282.1117 g/mol","t":"Peptide","d":"Hadal (10898 m)","c":"46223672","p":"dermacozine-a.html"},
+  {"n":"Dermacozine B","o":"Dermacoccus abyssi MT1.1T","f":"C22H18N4O3","w":"386.1379 g/mol","t":"Polyketide-Peptide","d":"Hadal (10898 m)","c":"46223915","p":"dermacozine-b.html"},
+  {"n":"Dermacozine D","o":"Dermacoccus abyssi MT1.1/MT1.2","f":"C24H19N3O5","w":"429.4000 g/mol","t":"Polyketide","d":"Hadal (10898 m)","c":"46223917","p":"dermacozine-d.html"},
+  {"n":"Dermacozine E","o":"Dermacoccus abyssi MT1.1/MT1.2","f":"C23H16N4O3","w":"396.4000 g/mol","t":"Alkaloid","d":"Hadal (10898 m)","c":"46223918","p":"dermacozine-e.html"},
+  {"n":"Dermacozine F","o":"Dermacoccus abyssi MT1.1/MT1.2","f":"C23H15N3O4","w":"397.4000 g/mol","t":"Polyketide","d":"Hadal (10898 m)","c":"46223919","p":"dermacozine-f.html"},
+  {"n":"Dermacozine G","o":"Dermacoccus abyssi MT1.1/MT1.2","f":"C23H15N3O5","w":"413.4000 g/mol","t":"Polyketide","d":"Hadal (10898 m)","c":"135873297","p":"dermacozine-g.html"},
+  {"n":"Dermacozine H","o":"Dermacoccus abyssi MT1.1T","f":"C16H13N3O4","w":"311.29 g/mol","t":"Polyketide","d":"Hadal (10898 m)","c":"76310270","p":"dermacozine-h.html"},
+  {"n":"Dermacozine I","o":"Dermacoccus abyssi MT1.1T","f":"C22H18N4O3","w":"386.4000 g/mol","t":"Polyketide-Peptide","d":"Hadal (10898 m)","c":"76324847","p":"dermacozine-i.html"},
+  {"n":"Dermacozine J","o":"Dermacoccus abyssi MT1.1T","f":"C27H25N5O6S","w":"547.6000 g/mol","t":"Polyketide-Peptide","d":"Hadal (10898 m)","c":"76317496","p":"dermacozine-j.html"},
+  {"n":"Dermacozine M","o":"Dermacoccus abyssi MT1.1T","f":"C30H20N4O4","w":"500.1485 g/mol","t":"Alkaloid","d":"Hadal (10898 m)","c":"156581936","p":"dermacozine-m.html"},
+  {"n":"Desotamide A","o":"Streptomyces sp. strain (NRRL 21611)Streptomyces scopuliridis SCSIO ZJ46","f":"C35H52N8O7","w":"696.3959 g/mol","t":"Alkaloid-Peptide","d":"Slope (1000 m)","c":"78173037","p":"desotamide-a.html"},
+  {"n":"Desotamide B","o":"Streptomyces scopuliridis SCSIO ZJ46","f":"C25H40O3","w":"682.3802 g/mol","t":"Alkaloid-Peptide","d":"Deep (3536 m)","c":"102584784","p":"desotamide-b.html"},
+  {"n":"Diaporindene E","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.5 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"170989403","p":"diaporindene-e.html"},
+  {"n":"Diaporindene F","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.5 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"170989404","p":"diaporindene-f.html"},
+  {"n":"Diaporindene G","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.5 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"170989405","p":"diaporindene-g.html"},
+  {"n":"Diaporindene H","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.5 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"170989406","p":"diaporindene-h.html"},
+  {"n":"Diaporindene I","o":"Phomopsis lithocarpus FS508","f":"C27H32O8","w":"484.5 g/mol","t":"Polyketide","d":"Deep (3606 m)","c":"170989407","p":"diaporindene-i.html"},
+  {"n":"Diaporphasine E","o":"Lachnum sp. IW157","f":"C21H25NO4","w":"355.1784 g/mol","t":"Alkaloid","d":"","p":"diaporphasine-e.html"},
+  {"n":"Diaporphasine F","o":"Lachnum sp. IW157","f":"C21H26O5","w":"358.1780 g/mol","t":"Polyketide","d":"Non-Marine","p":"diaporphasine-f.html"},
+  {"n":"Diazepinomicin (Eco-4601)","o":"Micromonospora sp. DPJ12 / RV115","f":"C28H34N2O4","w":"462.2519 g/mol","t":"Polyketide","d":"Hadal (4448 m)","c":"9868980","p":"diazepinomicin-eco-4601.html"},
+  {"n":"Dichloroorcinol","o":"Penicillium chrysogenum SCSIO 41001","f":"C7H5NO","w":"119.1230 g/mol","t":"Alkaloid","d":"Deep (3386 m)","c":"116142","p":"dichloroorcinol.html"},
+  {"n":"DIHYDRODEOXYBROMOTOPSENTIN","o":"Spongosorites","f":"C20H15BrN4O","w":"406.0429 g/mol","t":"Alkaloid","d":"Slope (1000 m)","c":"44593000","p":"dihydrodeoxybromotopsentin.html"},
+  {"n":"Diorcinol","o":"Aspergillus sydowii SYX6Penicillium chrysogenum MCCC 3A00292Penicillium sp. SCSIO 06871","f":"C14H14O3","w":"230.0943 g/mol","t":"Polyketide","d":"Slope (1000–11000 m)","c":"23396613","p":"diorcinol.html"},
+  {"n":"Discobahamin B","o":"Discodermia sp.","f":"C48H67N9O11","w":"945.4960 g/mol","t":"Alkaloid-Peptide","d":"Slope (1000 m)","c":"74052540","p":"discobahamin-b.html"},
+  {"n":"(+)-Discodermolide","o":"Discodermia dissoluta","f":"C33H55NO8","w":"593.3928 g/mol","t":"Terpenoid","d":"Shallow (30–1200 m)","c":"643668","p":"discodermolide.html"},
+  {"n":"Discorhabdin U","o":"Batzella sp.","f":"C20H16BrN3O2S","w":"441.0147 g/mol","t":"Terpenoid","d":"Slope (569–3000 m)","c":"11189936","p":"discorhabdin-u.html"},
+  {"n":"DISCORHABDIN W","o":"","f":"C38H23Br2F3N6O6S2","w":"940.6 g/mol","t":"Alkaloid","d":"Slope (569 m)","c":"136117846","p":"discorhabdin-w.html"},
+  {"n":"Dragmacidin A","o":"Dragmacidon","f":"C21H20Br2N4","w":"488.2000 g/mol","t":"Alkaloid","d":"Shallow (40 m)","c":"11260315","p":"dragmacidin-a.html"},
+  {"n":"Emerixanthone A","o":"Emericella sp. SCSIO 05240","f":"C25H27ClO6","w":"458.1496 g/mol","t":"Terpenoid","d":"Deep (3258 m)","c":"56673327","p":"emerixanthone-a.html"},
+  {"n":"Emerixanthone B","o":"Emericella sp. SCSIO 05240","f":"C25H40O3","w":"422.1729 g/mol","t":"Terpenoid","d":"Deep (3258 m)","c":"139584133","p":"emerixanthone-b.html"},
+  {"n":"Emerixanthone C","o":"Emericella sp. SCSIO 05240","f":"C25H40O3","w":"468.2148 g/mol","t":"Terpenoid","d":"Deep (3258 m)","c":"139587653","p":"emerixanthone-c.html"},
+  {"n":"Emerixanthone D","o":"Emericella sp. SCSIO 05240","f":"C27H30O8","w":"482.5 g/mol","t":"Polyketide","d":"Deep (3258 m)","c":"56659495","p":"emerixanthone-d.html"},
+  {"n":"Emestrin","o":"Aspergillus nidulans SD-531","f":"C27H22N2O10S2","w":"598.0716 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"11758256","p":"emestrin.html"},
+  {"n":"Engyodontiumin A","o":"Engyodontium album Ea588","f":"C12H15ClO4","w":"258.7000 g/mol","t":"Alkaloid","d":"Deep (3542 m)","c":"76286945","p":"engyodontiumin-a.html"},
+  {"n":"Engyodontiumone A","o":"Engyodontium album DFFSCS021","f":"C17H14O7","w":"330.0740 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139583265","p":"engyodontiumone-a.html"},
+  {"n":"Engyodontiumone B","o":"Engyodontium album DFFSCS021","f":"C16H11ClO6","w":"334.0244 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139587351","p":"engyodontiumone-b.html"},
+  {"n":"Engyodontiumone C","o":"Engyodontium album DFFSCS021","f":"C16H16O7","w":"320.0896 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139586117","p":"engyodontiumone-c.html"},
+  {"n":"Engyodontiumone D","o":"Engyodontium album DFFSCS021","f":"C16H16O7","w":"320.0896 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139585273","p":"engyodontiumone-d.html"},
+  {"n":"Engyodontiumone E","o":"Engyodontium album DFFSCS021","f":"C16H16O7","w":"320.0896 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139586950","p":"engyodontiumone-e.html"},
+  {"n":"Engyodontiumone F","o":"Engyodontium album DFFSCS021","f":"C16H16O8","w":"336.0845 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139586178","p":"engyodontiumone-f.html"},
+  {"n":"Engyodontiumone G","o":"Engyodontium album DFFSCS021","f":"C16H16O8","w":"336.0845 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"139586738","p":"engyodontiumone-g.html"},
+  {"n":"Engyodontiumone H","o":"Engyodontium album Ea588","f":"C16H14O7","w":"318.28 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"25762441","p":"engyodontiumone-h.html"},
+  {"n":"Engyodontiumone I","o":"Engyodontium album DFFSCS021","f":"C15H20O4","w":"264.1362 g/mol","t":"","d":"Deep (3739 m)","c":"139586970","p":"engyodontiumone-i.html"},
+  {"n":"Engyodontiumone J","o":"Engyodontium album DFFSCS021","f":"C15H20O4","w":"264.3200 g/mol","t":"Terpenoid","d":"Deep (3739 m)","c":"139584383","p":"engyodontiumone-j.html"},
+  {"n":"Epi-aszonalenin A","o":"Aspergillus fumigatus SCSIO 41012","f":"C25H40O3","w":"415.5000 g/mol","t":"Polyketide-Peptide","d":"Deep (3614 m)","c":"102254364","p":"epi-aszonalenin-a.html"},
+  {"n":"Epicoccin A","o":"Eutypella sp. MCCC 3A00281","f":"C18H18N2O6S3","w":"454.0327 g/mol","t":"Alkaloid-Peptide","d":"Hadal (5000–6000 m)","c":"74075861","p":"epicoccin-a.html"},
+  {"n":"Epicoccin B","o":"Epicoccum nigrum","f":"C18H18N2O7S3","w":"470.0276 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56681494","p":"epicoccin-b.html"},
+  {"n":"Epicoccin C","o":"Epicoccum nigrum","f":"C18H18N2O6S4","w":"486.0048 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"74075862","p":"epicoccin-c.html"},
+  {"n":"Epicoccin D","o":"Epicoccum nigrum","f":"C18H18N2O6S2","w":"422.0606 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"74075863","p":"epicoccin-d.html"},
+  {"n":"Epicoccin E","o":"Epicoccum nigrum SD-388","f":"C18H18N2O7S2","w":"438.0555 g/mol","t":"Alkaloid-Peptide","d":"Deep (4000–5000 m)","c":"56674523","p":"epicoccin-e.html"},
+  {"n":"Epicoccin F","o":"Epicoccum nigrum","f":"C18H20N2O6S3","w":"456.0483 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"75082733","p":"epicoccin-f.html"},
+  {"n":"Epicoccin G","o":"Epicoccum nigrum SD-388","f":"C20H26N2O6S2","w":"454.1232 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"75082734","p":"epicoccin-g.html"},
+  {"n":"EPICOCCIN H","o":"Epicoccum nigrum","f":"C20H26N2O8S2","w":"486.1131 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"75082779","p":"epicoccin-h.html"},
+  {"n":"EPICOCCIN J","o":"Epicoccum nigrum SD-388","f":"C20H24N2O6S2","w":"452.1076 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"4520527","p":"epicoccin-j.html"},
+  {"n":"EPICOCCIN K","o":"Epicoccum nigrum","f":"C20H30N2O6S2","w":"458.60","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56664187","p":"epicoccin-k.html"},
+  {"n":"EPICOCCIN L","o":"Epicoccum nigrum","f":"C20H28N2O6S2","w":"456.1389 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56681230","p":"epicoccin-l.html"},
+  {"n":"EPICOCCIN M","o":"Epicoccum nigrum","f":"C19H22N2O6S3","w":"470.0640 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56664171","p":"epicoccin-m.html"},
+  {"n":"Epicoccin N","o":"Epicoccum nigrum","f":"C19H22N2O7S3","w":"486.0589 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56679861","p":"epicoccin-n.html"},
+  {"n":"Epicoccin O","o":"Epicoccum nigrum","f":"C19H22N2O6S2","w":"438.0919 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"75239137","p":"epicoccin-o.html"},
+  {"n":"Epicoccin P","o":"Epicoccum nigrum","f":"C19H24N2O6S2","w":"440.1076 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"75239184","p":"epicoccin-p.html"},
+  {"n":"Epicoccin Q","o":"Epicoccum nigrum SD-388","f":"C18H18N2O7S3","w":"470.55","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"46873161","p":"epicoccin-q.html"},
+  {"n":"Epicoccin R","o":"Epicoccum nigrum SD-388","f":"C18H18N2O6S3","w":"454.0327 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56681399","p":"epicoccin-r.html"},
+  {"n":"Epicoccin S","o":"Epicoccum nigrum SD-388","f":"C20H22N2O7S3","w":"498.0589 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56669539","p":"epicoccin-s.html"},
+  {"n":"EPICOCCIN T","o":"Epicoccum nigrum","f":"C18H22N2O6S2","w":"426.0919 g/mol","t":"Alkaloid-Peptide","d":"Hadal (4500 m)","c":"56664189","p":"epicoccin-t.html"},
+  {"n":"Epinardin D","o":"Epicoccum nigrum","f":"C19H19Br2N3O3","w":"494.9793 g/mol","t":"Terpenoid","d":"Shallow (115–200 m)","c":"162949671","p":"epinardin-d.html"},
+  {"n":"Eutypellazine A","o":"Eutypella sp. MCCC 3A00281","f":"C19H20N2O5S2","w":"420.0814 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909516","p":"eutypellazine-a.html"},
+  {"n":"Eutypellazine B","o":"Eutypella sp. MCCC 3A00281","f":"C19H22N2O5S2","w":"422.0970 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909517","p":"eutypellazine-b.html"},
+  {"n":"Eutypellazine C","o":"Eutypella sp. MCCC 3A00281","f":"C19H20N2O5S2","w":"420.0814 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909518","p":"eutypellazine-c.html"},
+  {"n":"Eutypellazine D","o":"Eutypella sp. MCCC 3A00281","f":"C20H24N2O5S2","w":"436.1127 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909079","p":"eutypellazine-d.html"},
+  {"n":"Eutypellazine E","o":"Eutypella sp. MCCC 3A00281","f":"C20H22N2O5S2","w":"434.0970 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909080","p":"eutypellazine-e.html"},
+  {"n":"Eutypellazine F","o":"Eutypella sp. MCCC 3A00281","f":"C19H22N2O6S2","w":"438.0919 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909081","p":"eutypellazine-f.html"},
+  {"n":"Eutypellazine G","o":"Eutypella sp. MCCC 3A00281","f":"C19H24N2O6S2","w":"440.1076 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909082","p":"eutypellazine-g.html"},
+  {"n":"Eutypellazine H","o":"Eutypella sp. MCCC 3A00281","f":"C19H22N2O6S2","w":"438.0919 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"156581551","p":"eutypellazine-h.html"},
+  {"n":"Eutypellazine I","o":"Eutypella sp. MCCC 3A00281","f":"C19H18N2O3S","w":"354.1038 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909084","p":"eutypellazine-i.html"},
+  {"n":"Eutypellazine J","o":"Eutypella sp. MCCC 3A00281","f":"C20H22N2O3S2","w":"402.1072 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909553","p":"eutypellazine-j.html"},
+  {"n":"Eutypellazine K","o":"Eutypella sp. MCCC 3A00281","f":"C19H20N2O3S","w":"356.1195 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909554","p":"eutypellazine-k.html"},
+  {"n":"Eutypellazine L","o":"Eutypella sp. MCCC 3A00281","f":"C19H20N2O3S","w":"356.1195 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909555","p":"eutypellazine-l.html"},
+  {"n":"Eutypellazine M","o":"Eutypella sp. MCCC 3A00281","f":"C19H20N2O4","w":"340.1423 g/mol","t":"Alkaloid-Peptide","d":"Deep (3514 m)","c":"129909556","p":"eutypellazine-m.html"},
+  {"n":"Eutypeterpene A","o":"Eutypella sp. MCCC 3A00281","f":"C16H22O5","w":"294.34 g/mol","t":"Polyketide","d":"Hadal (5610 m)","c":"170988915","p":"eutypeterpene-a.html"},
+  {"n":"Eutypeterpene B","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O4","w":"268.35 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988916","p":"eutypeterpene-b.html"},
+  {"n":"Eutypeterpene C","o":"Eutypella sp. MCCC 3A00281","f":"C15H22O4","w":"266.33 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988917","p":"eutypeterpene-c.html"},
+  {"n":"Eutypeterpene D","o":"Eutypella sp. MCCC 3A00281","f":"C15H22O3","w":"250.33 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988918","p":"eutypeterpene-d.html"},
+  {"n":"Eutypeterpene E","o":"Eutypella sp. MCCC 3A00281","f":"C15H22O3","w":"250.33 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988919","p":"eutypeterpene-e.html"},
+  {"n":"Eutypeterpene F","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O3","w":"252.35 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988920","p":"eutypeterpene-f.html"},
+  {"n":"Eutypeterpene G","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O2","w":"236.35 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988921","p":"eutypeterpene-g.html"},
+  {"n":"Eutypeterpene H","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O2","w":"236.35 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988905","p":"eutypeterpene-h.html"},
+  {"n":"Eutypeterpene I","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O2","w":"236.3550 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988906","p":"eutypeterpene-i.html"},
+  {"n":"Eutypeterpene J","o":"Eutypella sp. MCCC 3A00281","f":"C15H26O3","w":"254.3700 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988907","p":"eutypeterpene-j.html"},
+  {"n":"Eutypeterpene K","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O3","w":"252.3540 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988908","p":"eutypeterpene-k.html"},
+  {"n":"Eutypeterpene L","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O3","w":"252.3540 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988909","p":"eutypeterpene-l.html"},
+  {"n":"Eutypeterpene M","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O2","w":"236.3550 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988910","p":"eutypeterpene-m.html"},
+  {"n":"Eutypeterpene N","o":"Eutypella sp. MCCC 3A00281","f":"C15H26O2","w":"238.3710 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988911","p":"eutypeterpene-n.html"},
+  {"n":"Eutypeterpene O","o":"Eutypella sp. MCCC 3A00281","f":"C15H24O2","w":"236.3550 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988912","p":"eutypeterpene-o.html"},
+  {"n":"Eutypeterpene P","o":"Eutypella sp. MCCC 3A00281","f":"C15H26O2","w":"238.3710 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988913","p":"eutypeterpene-p.html"},
+  {"n":"Eutypeterpene Q","o":"Eutypella sp. MCCC 3A00281","f":"C15H26O2","w":"238.3710 g/mol","t":"Terpenoid","d":"Hadal (5610 m)","c":"170988914","p":"eutypeterpene-q.html"},
+  {"n":"Farnesylemefuranone D","o":"Aspergillus insuetus SD-512","f":"C24H32O5","w":"400.2250 g/mol","t":"Polyketide","d":"Deep (1331 m)","c":"156580997","p":"farnesylemefuranone-d.html"},
+  {"n":"Farnesylemefuranone F","o":"Aspergillus insuetus SD-512","f":"C26H36O7","w":"460.6 g/mol","t":"Polyketide","d":"Deep (1331 m)","c":"156581002","p":"farnesylemefuranone-f.html"},
+  {"n":"Fischerin A","o":"Aspergillus fischeri FS452","f":"C14H18O7","w":"298.2900 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989479","p":"fischerin-a.html"},
+  {"n":"Fischerin B","o":"Aspergillus fischeri FS452","f":"C14H18O7","w":"298.2900 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989479","p":"fischerin-b.html"},
+  {"n":"Fumagillin","o":"Aspergillus fumigatus","f":"C26H34O7","w":"458.2305 g/mol","t":"Terpenoid","d":"Slope (1000–11000 m)","c":"3430","p":"fumagillin.html"},
+  {"n":"Fumigatoside E","o":"Aspergillus fumigatus SCSIO 41012","f":"C21H16N4O3","w":"372.1222 g/mol","t":"Alkaloid","d":"Deep (3614 m)","c":"146684188","p":"fumigatoside-e.html"},
+  {"n":"Fumiquinazoline C","o":"Aspergillus fumigatus SCSIO 41012","f":"C25H40O3","w":"443.1594 g/mol","t":"Polyketide-Peptide","d":"Deep (3614 m)","c":"11339719","p":"fumiquinazoline-c.html"},
+  {"n":"Fumiquinazoline G","o":"Aspergillus fumigatus SCSIO 41012","f":"C21H18N4O2","w":"358.4 g/mol","t":"Alkaloid","d":"Deep (3614 m)","c":"10247811","p":"fumiquinazoline-g.html"},
+  {"n":"FUMITREMORGIN","o":"Derived Fungus Aspergillus fumigatus SD-406","f":"C22H25N3O3","w":"379.1896 g/mol","t":"Alkaloid-Peptide","d":"Deep (2500 m)","c":"14105029","p":"fumitremorgin.html"},
+  {"n":"Gelliusine A","o":"Gellius","f":"C30H30Br2N6O","w":"648.0848 g/mol","t":"Alkaloid","d":"Slope (300–400 m)","c":"157833","p":"gelliusine-a.html"},
+  {"n":"Gliotoxin","o":"Aspergillus sp. SCSIO Ind09F01","f":"C13H14N2O4S2","w":"326.0395 g/mol","t":"Alkaloid-Peptide","d":"Deep (4000–5000 m)","c":"3477","p":"gliotoxin.html"},
+  {"n":"Griseofulvin","o":"Penicillium griseofulvum MCCC 3A00225","f":"C17H17ClO6","w":"352.0714 g/mol","t":"Terpenoid","d":"Deep (1420 m)","c":"3512","p":"griseofulvin.html"},
+  {"n":"Harzianol J","o":"Trichoderma sp. SCSIOW21","f":"C20H30O2","w":"302.2246 g/mol","t":"Terpenoid","d":"Deep (2134 m)","c":"156582619","p":"harzianol-j.html"},
+  {"n":"Harzianol M","o":"Trichoderma sp. SCSIOW21","f":"C20H30O4","w":"334.2144 g/mol","t":"Terpenoid","d":"Deep (2000 m)","c":"170990457","p":"harzianol-m.html"},
+  {"n":"Harzianol N","o":"Trichoderma sp. SCSIOW21","f":"C19H26O4","w":"318.1831 g/mol","t":"Terpenoid","d":"Deep (2000 m)","c":"170990459","p":"harzianol-n.html"},
+  {"n":"Harzianol O","o":"Trichoderma sp. SCSIOW21","f":"C20H30O3","w":"318.2195 g/mol","t":"Terpenoid","d":"Deep (2000 m)","c":"170990458","p":"harzianol-o.html"},
+  {"n":"Hawatide A","o":"Paraconiothyrium hawaiiense FS482","f":"C18H26O5","w":"322.4000 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990009","p":"hawatide-a.html"},
+  {"n":"Hawatide B","o":"Paraconiothyrium hawaiiense FS482","f":"C16H26O3","w":"266.3800 g/mol","t":"Terpenoid","d":"Hadal (4461 m)","c":"170990009","p":"hawatide-b.html"},
+  {"n":"Hawatide C","o":"Paraconiothyrium hawaiiense FS482","f":"C17H24O5","w":"308.3700 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990009","p":"hawatide-c.html"},
+  {"n":"Hawatide D","o":"Paraconiothyrium hawaiiense FS482","f":"C17H22O5","w":"306.3600 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990009","p":"hawatide-d.html"},
+  {"n":"Hawatide E","o":"Paraconiothyrium hawaiiense FS482","f":"C15H16O6","w":"292.2870 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990012","p":"hawatide-e.html"},
+  {"n":"Hawatide F","o":"Paraconiothyrium hawaiiense FS482","f":"C14H14O6","w":"278.2600 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990013","p":"hawatide-f.html"},
+  {"n":"Hawatide G","o":"Paraconiothyrium hawaiiense FS482","f":"C13H12O5","w":"248.2340 g/mol","t":"Polyketide","d":"Hadal (4461 m)","c":"170990014","p":"hawatide-g.html"},
+  {"n":"Helvolic acid","o":"Aspergillus fumigatus SCSIO 41012","f":"C25H40O3","w":"568.3036 g/mol","t":"Polyketide","d":"Deep (3614 m)","c":"3002143","p":"helvolic-acid.html"},
+  {"n":"Hydroxypropan-2',3'-diol orsellinate","o":"Penicillium solitum MCCC 3A00215","f":"C11H14O6","w":"242.0790 g/mol","t":"Polyketide","d":"Deep (3034 m)","c":"78088469","p":"hydroxypropan-2-3-diol-orsellinate.html"},
+  {"n":"Hydroxysydonic acid","o":"Engyodontium album DFFSCS021","f":"C15H22O5","w":"282.3300 g/mol","t":"Terpenoid","d":"Deep (3739 m)","c":"16745403","p":"hydroxysydonic-acid.html"},
+  {"n":"Ilamycin A","o":"Streptomyces atratus SCSIO ZH16treptomyces cyaneofuscatus M-169","f":"C54H75N9O12","w":"1041.5535 g/mol","t":"Polyketide-Peptide","d":"Slope (1000–2000 m)","c":"168311480","p":"ilamycin-a.html"},
+  {"n":"Isobisvertinol","o":"Penicillium griseofulvum MCCC 3A00181","f":"C28H34O8","w":"498.2254 g/mol","t":"Terpenoid","d":"Deep (2000 m)","c":"16105144","p":"isobisvertinol.html"},
+  {"n":"Jorumycin","o":"Jorunna funebris","f":"C27H30N2O9","w":"526.5000 g/mol","t":"Polyketide","d":"Shallow (200 m)","c":"9849761","p":"jorumycin.html"},
+  {"n":"Kosinostatin","o":"Micromonospora sp. 28ISP2-46T","f":"C33H32N2O10","w":"616.2057 g/mol","t":"Polyketide","d":"Deep (971 m)","c":"101163404","p":"kosinostatin.html"},
+  {"n":"Leptosphaerone C","o":"Leptosphaerulina chartarum MCCC 3A00935","f":"C8H12O3","w":"156.1810 g/mol","t":"Alkaloid","d":"Hadal (5842 m)","c":"24824760","p":"leptosphaerone-c.html"},
+  {"n":"Lithocaldehyde A","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.1937 g/mol","t":"Polyketide","d":"Deep (3606 m)","c":"156583027","p":"lithocaldehyde-a.html"},
+  {"n":"Lithocaldehyde B","o":"Phomopsis lithocarpus FS508","f":"C25H28O5","w":"408.1937 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"156583028","p":"lithocaldehyde-b.html"},
+  {"n":"Lithocarin A","o":"Phomopsis lithocarpus FS508","f":"C25H40O3","w":"430.2719 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590729","p":"lithocarin-a.html"},
+  {"n":"Lithocarlactam A","o":"Phomopsis lithocarpus FS508","f":"C20H23NO6","w":"373.4050 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"170989495","p":"lithocarlactam-a.html"},
+  {"n":"Lithocarol A","o":"Phomopsis lithocarpus FS508","f":"C27H34O7","w":"470.2305 g/mol","t":"Polyketide","d":"Deep (3606 m)","c":"156582019","p":"lithocarol-a.html"},
+  {"n":"Lithocarpin A","o":"Phomopsis lithocarpus FS508","f":"C25H40O3","w":"780.1871 g/mol","t":"Polyketide","d":"Deep (3606 m)","c":"168304308","p":"lithocarpin-a.html"},
+  {"n":"Lithocarpin C","o":"Phomopsis lithocarpus FS508","f":"C37H42O11","w":"662.7000 g/mol","t":"Polyketide","d":"Deep (3606 m)","c":"168304307","p":"lithocarpin-c.html"},
+  {"n":"Lithocarpinol A","o":"Phomopsis lithocarpus FS508","f":"C25H40O3","w":"424.1886 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"146683575","p":"lithocarpinol-a.html"},
+  {"n":"Lobophorin F","o":"Streptomyces sp. SCSIO 01127","f":"C54H78N2O17","w":"1027.2 g/mol","t":"Polyketide","d":"Deep (1350 m)","c":"139584897","p":"lobophorin-f.html"},
+  {"n":"Longidiacid A","o":"Diaporthe longicolla FS429","f":"C24H36O6","w":"420.5460 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"156581987","p":"longidiacid-a.html"},
+  {"n":"Lynamicin A","o":"Actinomyces nPS12745Streptomyces sp. SCSIO 03032","f":"C22H15Cl2N3O2","w":"423.0541 g/mol","t":"Alkaloid","d":"Deep (3000–4000 m)","c":"11304789","p":"lynamicin-a.html"},
+  {"n":"Maclafungin","o":"Actinoalloteichus sp. SHA6","f":"C46H80O12","w":"824.5650 g/mol","t":"Polyketide","d":"Deep (3587 m)","c":"6475687","p":"maclafungin.html"},
+  {"n":"Macrolactin A","o":"marine-derived Bacillus species, most notably Bacillus subtilis","f":"C24H34O5","w":"402.2406 g/mol","t":"Polyketide","d":"Shallow (42–4200 m)","c":"10949443","p":"macrolactin-a.html"},
+  {"n":"Makaluvamine A","o":"Zyzzya fuliginosa","f":"C11H11N3O","w":"201.2200 g/mol","t":"Phenylpropanoid","d":"Shallow (40–348 m)","c":"4002","p":"makaluvamine-a.html"},
+  {"n":"MAKALUVAMINE F","o":"Zyzzya fuliginosa","f":"C18H14BrN3O2S","w":"414.9990 g/mol","t":"Alkaloid","d":"Shallow (40–348 m)","c":"135407624","p":"makaluvamine-f.html"},
+  {"n":"MAKALUVAMINE G","o":"Zyzzya fuliginosa","f":"C22H20F3N3O4","w":"447.1406 g/mol","t":"Polyketide","d":"Shallow (40–348 m)","c":"161565309","p":"makaluvamine-g.html"},
+  {"n":"MAKALUVAMINE H","o":"Zyzzya sp.","f":"C14H14F3N3O3","w":"329.0987 g/mol","t":"Polyketide","d":"Shallow (3–200 m)","c":"10520373","p":"makaluvamine-h.html"},
+  {"n":"MAKALUVAMINE I","o":"Zyzzya fuliginosa","f":"C12H10F3N3O3","w":"","t":"Alkaloid","d":"Shallow (40–348 m)","c":"135492426","p":"makaluvamine-i.html"},
+  {"n":"MAKALUVAMINE K","o":"Aaptos sp.","f":"C19H19N3O2","w":"321.1477 g/mol","t":"Alkaloid","d":"Slope (200–400 m)","c":"464127","p":"makaluvamine-k.html"},
+  {"n":"MAKALUVAMINE N","o":"Zyzzya sp.","f":"C10H10BrN3O","w":"267.0007 g/mol","t":"Alkaloid","d":"Shallow (3–200 m)","c":"44566665","p":"makaluvamine-n.html"},
+  {"n":"MAKALUVAMINE P","o":"Zyzzya fuliginosa","f":"C20H22ClN3O2","w":"371.1401 g/mol","t":"Alkaloid","d":"Shallow (40–348 m)","c":"45266447","p":"makaluvamine-p.html"},
+  {"n":"Manoalide","o":"Luffariella variabilis","f":"C25H36O5","w":"416.2563 g/mol","t":"Polyketide","d":"Shallow (16–220 m)","c":"6437368","p":"manoalide.html"},
+  {"n":"Marfuraquinocin A","o":"Streptomyces niveus SCSIO 3406","f":"C27H34O5","w":"438.2406 g/mol","t":"Terpenoid","d":"Deep (3536 m)","c":"139584225","p":"marfuraquinocin-a.html"},
+  {"n":"Marthiapeptide A","o":"Marinactinospora thermotolerans SCSIO 00652","f":"C25H40O3","w":"665.1371 g/mol","t":"Polyketide-Peptide","d":"Deep (3865 m)","c":"71459810","p":"marthiapeptide-a.html"},
+  {"n":"Meleagrin","o":"Emericella dentata Nq45","f":"C23H23N5O4","w":"433.1750 g/mol","t":"Polyketide-Peptide","d":"Slope (995 m)","c":"23728435","p":"meleagrin.html"},
+  {"n":"Meridine","o":"Corticium sp. / marine sponge source","f":"C18H9N3O2","w":"299.0695 g/mol","t":"Alkaloid","d":"Shallow (200–3000 m)","c":"72473","p":"meridine.html"},
+  {"n":"Methyl (2S)-hydroxy-3-methylbutanoyl-L-leucinate","o":"Penicillium griseofulvum MCCC 3A00225","f":"C12H23NO4","w":"245.1627 g/mol","t":"Terpenoid","d":"Deep (3034 m)","c":"170990495","p":"methyl-2s-hydroxy-3-methylbutanoyl-l-leucinate.html"},
+  {"n":"Methyl 3,7,9-trihydroxydecanoate","o":"Penicillium griseofulvum MCCC 3A00225","f":"C11H22O5","w":"234.1467 g/mol","t":"Polyketide","d":"Deep (1200 m)","c":"170990500","p":"methyl-3-7-9-trihydroxydecanoate.html"},
+  {"n":"N-(3,7-Dimethyl-2,6-octadienyl)-2-aza-2-deoxychaetoviridin A","o":"Chaetomium globosum MP4-S01-7","f":"C33H42ClNO5","w":"567.2752 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"156012778","p":"n-3-7-dimethyl-2-6-octadienyl-2-aza-2-deoxychaetoviridin-a.html"},
+  {"n":"N-(3-methyl-2-butenyl)-2-aza-2-deoxychaetoviridin A","o":"Chaetomium globosum MP4-S01-7","f":"C28H34ClNO5","w":"499.2126 g/mol","t":"Polyketide","d":"Deep (4000–5000 m)","c":"147583302","p":"n-3-methyl-2-butenyl-2-aza-2-deoxychaetoviridin-a.html"},
+  {"n":"N-(3-methyl-2-butenyl)-2-aza-2-deoxychaetoviridin E","o":"Chaetomium globosum MP4-S01-7","f":"C28H32ClNO4","w":"481.2020 g/mol","t":"Polyketide","d":"Deep (4000–5000 m)","c":"153118935","p":"n-3-methyl-2-butenyl-2-aza-2-deoxychaetoviridin-e.html"},
+  {"n":"N-Glutarylchaetoviridin A","o":"Chaetomium globosum HDN151398","f":"C25H40O3","w":"603.2235 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"146682950","p":"n-glutarylchaetoviridin-a.html"},
+  {"n":"N-Glutarylchaetoviridin B","o":"Chaetomium globosum","f":"C28H30ClNO8","w":"544.0 g/mol","t":"Polyketide","d":"Deep (2000 m)","c":"146682951","p":"n-glutarylchaetoviridin-b.html"},
+  {"n":"N-Glutarylchaetoviridin C","o":"Chaetomium globosum HDN151398","f":"C30H34ClNO8","w":"571.1973 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"146682952","p":"n-glutarylchaetoviridin-c.html"},
+  {"n":"N-METHYL NORTOPSENTIN B","o":"Spongosorites ruetzleri","f":"C22H19BrN4","w":"418.0793 g/mol","t":"Alkaloid","d":"Shallow (73–325 m)","c":"46907257","p":"n-methyl-nortopsentin-b.html"},
+  {"n":"Neoabyssomicin D","o":"Streptomyces koyangensis SCSIO 5802","f":"C19H22O6","w":"346.1416 g/mol","t":"Polyketide","d":"Deep (3536 m)","c":"162815621","p":"neoabyssomicin-d.html"},
+  {"n":"Neoabyssomicin E","o":"Streptomyces koyangensis SCSIO 5802","f":"C25H30O9","w":"474.1890 g/mol","t":"Polyketide","d":"Deep (3536 m)","c":"139590102","p":"neoabyssomicin-e.html"},
+  {"n":"Neoabyssomicin F","o":"Streptomyces koyangensis SCSIO 5802","f":"C38H46O12S","w":"726.2710 g/mol","t":"Polyketide","d":"Slope (1000 m)","c":"139590104","p":"neoabyssomicin-f.html"},
+  {"n":"Neocucurbin A","o":"Neocucurbitaria unguis-hominis FS685","f":"C20H30O5","w":"350.4 g/mol","t":"Terpenoid","d":"Deep (3698 m)","c":"170990711","p":"neocucurbin-a.html"},
+  {"n":"Neopeltolide","o":"Neopeltidae sp.","f":"C31H46N2O9","w":"590.7000 g/mol","t":"Polyketide","d":"Slope (442 m)","c":"16115403","p":"neopeltolide.html"},
+  {"n":"Norlichexanthone","o":"Penicillium solitum MCCC 3A00215","f":"C14H10O5","w":"258.0528 g/mol","t":"Polyketide","d":"Deep (3000–4000 m)","c":"5281657","p":"norlichexanthone.html"},
+  {"n":"Nortopsentin B","o":"*Spongosorites ruetzleri *","f":"C19H13BrN4","w":"376.0324 g/mol","t":"Alkaloid","d":"Shallow (73–210 m)","c":"456387","p":"nortopsentin-b.html"},
+  {"n":"Nortopsentin C","o":"Spongosorites ruetzleri","f":"C19H13BrN4","w":"376.0324 g/mol","t":"Alkaloid","d":"Shallow (200–3000 m)","c":"456386","p":"nortopsentin-c.html"},
+  {"n":"NOTOAMIDE M","o":"Aspergillus sp.","f":"C26H31N3O5","w":"465.2264 g/mol","t":"Alkaloid-Peptide","d":"Shallow (0 m)","c":"78144474","p":"notoamide-m.html"},
+  {"n":"Nyuzenamide A","o":"Streptomyces sp. N11-34","f":"C66H81N11O20","w":"1348.4310 g/mol","t":"Alkaloid","d":"Slope (311 m)","c":"170989961","p":"nyuzenamide-a.html"},
+  {"n":"Ochuscin A","o":"Ochroconis sp. FS449","f":"C16H16O7","w":"320.2900 g/mol","t":"Polyketide","d":"Hadal (4602 m)","c":"156582890","p":"ochuscin-a.html"},
+  {"n":"Ochuscin B","o":"Ochroconis sp. FS449","f":"C16H16O7","w":"320.2900 g/mol","t":"Polyketide","d":"Hadal (4602 m)","c":"156582890","p":"ochuscin-b.html"},
+  {"n":"Ochuscin C","o":"Ochroconis sp. FS449","f":"C19H21NO7","w":"375.3770 g/mol","t":"Polyketide","d":"Hadal (4602 m)","c":"156582894","p":"ochuscin-c.html"},
+  {"n":"Ochuscin D","o":"Ochroconis sp. FS449","f":"C21H25NO8","w":"419.4300 g/mol","t":"Polyketide","d":"Hadal (4602 m)","c":"156582892","p":"ochuscin-d.html"},
+  {"n":"Ochuscin E","o":"Ochroconis sp. FS449","f":"C22H27NO8","w":"433.4570 g/mol","t":"Polyketide","d":"Hadal (4602 m)","c":"156582889","p":"ochuscin-e.html"},
+  {"n":"Ochuscin F","o":"Ochroconis sp. FS449","f":"C20H28O7","w":"380.4370 g/mol","t":"Terpenoid","d":"Hadal (4602 m)","c":"156582891","p":"ochuscin-f.html"},
+  {"n":"Ochuscin G","o":"Ochroconis sp. FS449","f":"C20H28O8","w":"396.4360 g/mol","t":"Terpenoid","d":"Hadal (4602 m)","c":"141458651","p":"ochuscin-g.html"},
+  {"n":"Oxisterigmatocystin A","o":"Aspergillus versicolor CXCTD-06-6a","f":"C20H18O8","w":"386.4 g/mol","t":"Polyketide","d":"Slope (800 m)","c":"101802788","p":"oxisterigmatocystin-a.html"},
+  {"n":"Oxisterigmatocystin B","o":"Aspergillus versicolor CXCTD-06-6a","f":"C20H18O8","w":"386.4 g/mol","t":"Polyketide","d":"Slope (800 m)","c":"101802790","p":"oxisterigmatocystin-b.html"},
+  {"n":"Oxisterigmatocystin C","o":"Aspergillus versicolor CXCTD-06-6a","f":"C19H16O7","w":"356.3 g/mol","t":"Polyketide","d":"Slope (800 m)","c":"101802789","p":"oxisterigmatocystin-c.html"},
+  {"n":"Patulin","o":"Penicillium expansum / Penicillium spp.","f":"C7H6O4","w":"154.0266 g/mol","t":"Polyketide","d":"Slope (1000–11000 m)","c":"4696","p":"patulin.html"},
+  {"n":"Paxilline","o":"Penicillium paxilli Bainier","f":"C27H33NO4","w":"435.2410 g/mol","t":"Alkaloid","d":"Deep (2000–4000 m)","c":"4697","p":"paxilline.html"},
+  {"n":"Pelorol","o":"Dactylospongia","f":"C23H32O4","w":"372.2301 g/mol","t":"Polyketide","d":"Slope (200 m)","c":"10067895","p":"pelorol.html"},
+  {"n":"Penicacid E","o":"Penicillium parvum HDN17-478","f":"C18H22O7","w":"350.3670 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"170989036","p":"penicacid-e.html"},
+  {"n":"Penicacid F","o":"Penicillium parvum HDN17-478","f":"C19H22O8","w":"378.3770 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"170989037","p":"penicacid-f.html"},
+  {"n":"Penicacid G","o":"Penicillium parvum HDN17-478","f":"C18H22O7","w":"350.3670 g/mol","t":"Polyketide","d":"Deep (2476 m)","c":"170989038","p":"penicacid-g.html"},
+  {"n":"Penicilactone A","o":"Penicillium chrysogenum MCCC 3A00292","f":"C25H40O3","w":"212.1049 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"146683020","p":"penicilactone-a.html"},
+  {"n":"Peniciversiol A","o":"Penicillium chrysogenum MCCC 3A00292","f":"C25H40O3","w":"276.1362 g/mol","t":"Terpenoid","d":"Deep (2076 m)","c":"146683116","p":"peniciversiol-a.html"},
+  {"n":"Peniciversiol B","o":"Penicillium chrysogenum MCCC 3A00292","f":"C16H22O4","w":"278.1518 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"146683117","p":"peniciversiol-b.html"},
+  {"n":"Peniciversiol C","o":"Penicillium chrysogenum MCCC 3A00292","f":"C25H40O3","w":"278.1518 g/mol","t":"Terpenoid","d":"Deep (2076 m)","c":"146683118","p":"peniciversiol-c.html"},
+  {"n":"Penicyclone A","o":"Penicillium sp. F23-2","f":"C12H16O5","w":"240.0998 g/mol","t":"Polyketide","d":"Hadal (5080 m)","c":"127041680","p":"penicyclone-a.html"},
+  {"n":"Penithochromone A","o":"Penicillium thomii YPGA3","f":"C16H18O6","w":"306.1103 g/mol","t":"Polyketide","d":"Deep (4000–5000 m)","c":"156580891","p":"penithochromone-a.html"},
+  {"n":"Penithochromone B","o":"Penicillium thomii YPGA3","f":"C17H20O6","w":"320.3410 g/mol","t":"Polyketide","d":"Deep (4500 m)","c":"156580892","p":"penithochromone-b.html"},
+  {"n":"Penithochromone C","o":"Penicillium thomii YPGA3","f":"C17H20O6","w":"320.3410 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580893","p":"penithochromone-c.html"},
+  {"n":"Penithochromone D","o":"Penicillium thomii YPGA3","f":"C18H22O6","w":"334.3680 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580894","p":"penithochromone-d.html"},
+  {"n":"Penithochromone E","o":"Penicillium thomii YPGA3","f":"C18H22O6","w":"334.3680 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580895","p":"penithochromone-e.html"},
+  {"n":"Penithochromone F","o":"Penicillium thomii YPGA3","f":"C19H24O6","w":"348.3950 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580896","p":"penithochromone-f.html"},
+  {"n":"Penithochromone G","o":"Penicillium thomii YPGA3","f":"C18H20O6","w":"332.3520 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580897","p":"penithochromone-g.html"},
+  {"n":"Penithochromone H","o":"Penicillium thomii YPGA3","f":"C16H18O6","w":"306.3140 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580886","p":"penithochromone-h.html"},
+  {"n":"Penithochromone I","o":"Penicillium thomii YPGA3","f":"C17H20O6","w":"320.3410 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580887","p":"penithochromone-i.html"},
+  {"n":"Penithochromone J","o":"Penicillium thomii YPGA3","f":"C15H16O6","w":"292.2870 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580888","p":"penithochromone-j.html"},
+  {"n":"Penithochromone K","o":"Penicillium thomii YPGA3","f":"C15H16O6","w":"292.2870 g/mol","t":"Polyketide","d":"Hadal (4500 m)","c":"156580889","p":"penithochromone-k.html"},
+  {"n":"Pestalotiopen A","o":"Pestalotiopsis sp. SCSIO 41312","f":"C27H33ClO10","w":"552.1762 g/mol","t":"Polyketide","d":"Deep (3582 m)","c":"73212393","p":"pestalotiopen-a.html"},
+  {"n":"Pestalotiopen B","o":"Pestalotiopsis sp. SCSIO 41312","f":"C34H45ClO13","w":"696.2549 g/mol","t":"Polyketide","d":"Deep (3582 m)","c":"73212311","p":"pestalotiopen-b.html"},
+  {"n":"Photeroid A","o":"Phomopsis tersa FS441","f":"C23H32O3","w":"356.5 g/mol","t":"Terpenoid","d":"Deep (3000 m)","c":"156583017","p":"photeroid-a.html"},
+  {"n":"Photeroid B","o":"Phomopsis tersa FS441","f":"C23H30O2","w":"338.5000 g/mol","t":"Terpenoid","d":"Deep (3000 m)","c":"156583018","p":"photeroid-b.html"},
+  {"n":"Piericidin A1","o":"Streptomyces sp. SCSIO 03032","f":"C25H37NO4","w":"415.2723 g/mol","t":"Alkaloid","d":"Slope (1000 m)","c":"4285633","p":"piericidin-a1.html"},
+  {"n":"Pinazaphilone B","o":"Talaromyces minioluteus CS-113","f":"C21H20O9","w":"416.3820 g/mol","t":"Alkaloid","d":"Slope (1000–3000 m)","c":"139584952","p":"pinazaphilone-b.html"},
+  {"n":"Pinselin","o":"Engyodontium album DFFSCS021","f":"C16H12O6","w":"300.2600 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"5377796","p":"pinselin.html"},
+  {"n":"Poecillastrin A","o":"Poecillastra","f":"C79H131N3O20","w":"1441.9326 g/mol","t":"Polyketide-Peptide","d":"Shallow (200 m)","c":"4866","p":"poecillastrin-a.html"},
+  {"n":"Poecillastrin B","o":"Poecillastra sp.","f":"C79H131N3O20","w":"1441.9326 g/mol","t":"Polyketide-Peptide","d":"Shallow (200 m)","c":"162968433","p":"poecillastrin-b.html"},
+  {"n":"Poecillastrin C","o":"Poecillastra sp.","f":"C78H129N3O20","w":"1427.9169 g/mol","t":"Polyketide-Peptide","d":"Slope (200 m)","c":"162818783","p":"poecillastrin-c.html"},
+  {"n":"Pseudonocardian A","o":"Pseudonocardia sp. SCSIO 01299","f":"C18H18N2O5","w":"342.1216 g/mol","t":"Alkaloid","d":"Deep (3258 m)","c":"102194908","p":"pseudonocardian-a.html"},
+  {"n":"Pseudonocardian B","o":"Pseudonocardia sp. SCSIO 01299","f":"C19H20N2O5","w":"356.1372 g/mol","t":"Alkaloid","d":"Deep (3258 m)","c":"139584414","p":"pseudonocardian-b.html"},
+  {"n":"Pseudonocardian C","o":"Pseudonocardia sp. SCSIO 01299","f":"C21H24N2O8","w":"432.1533 g/mol","t":"Alkaloid","d":"Deep (3258 m)","c":"139585027","p":"pseudonocardian-c.html"},
+  {"n":"Radicicol (Monorden)","o":"Nectria radicicola","f":"C18H17ClO6","w":"364.0714 g/mol","t":"Polyketide","d":"Slope (1000–11000 m)","c":"5033","p":"radicicol-monorden.html"},
+  {"n":"radiclonic acid","o":"Penicillium chrysogenum MCCC 3A00292","f":"C23H40O5","w":"396.2876 g/mol","t":"Terpenoid","d":"Deep (2076 m)","c":"45359249","p":"radiclonic-acid.html"},
+  {"n":"Roquefortine","o":"Penicillium granulatum MCCC 3A00475","f":"C22H23N5O2","w":"389.4590 g/mol","t":"Alkaloid","d":"Deep (2284 m)","c":"21608802","p":"roquefortine.html"},
+  {"n":"Rostratin C","o":"Epicoccum nigrum SD-388","f":"C20H24N2O8S2","w":"484.5 g/mol","t":"Polyketide-Peptide","d":"Hadal (4500 m)","c":"11248709","p":"rostratin-c.html"},
+  {"n":"Salinosporamide C","o":"Salinispora tropica CNB-392","f":"C14H18ClNO3","w":"283.0975 g/mol","t":"Terpenoid","d":"Slope (1000 m)","c":"72810763","p":"salinosporamide-c.html"},
+  {"n":"Scrobiculoside A","o":"Pachastrella scrobiculosa","f":"C39H62O13","w":"738.9 g/mol","t":"Terpenoid","d":"Shallow (0–200 m)","c":"177517921","p":"scrobiculoside-a.html"},
+  {"n":"Scrobiculoside B","o":"Eurytrema scrobiculare","f":"C40H66O13","w":"754.4503 g/mol","t":"Polyketide","d":"Slope (1000–2000 m)","c":"177583666","p":"scrobiculoside-b.html"},
+  {"n":"Seco-chaetomugilin A","o":"Chaetomium globosum OUPS-T106B-6","f":"C24H31ClO8","w":"119.0371 g/mol","t":"Alkaloid","d":"Deep (3415–3972 m)","c":"139588040","p":"seco-chaetomugilin-a.html"},
+  {"n":"Seco-chaetomugilin D","o":"Chaetomium globosum OUPS-T106B-6","f":"C24H31ClO7","w":"466.9 g/mol","t":"Polyketide","d":"Shallow (3 m)","c":"139586595","p":"seco-chaetomugilin-d.html"},
+  {"n":"Sesterchaetin A","o":"Chaetomium globosum SD-347","f":"C25H42O3","w":"390.3134 g/mol","t":"Terpenoid","d":"Deep (2476 m)","p":"sesterchaetin-a.html"},
+  {"n":"Sesterchaetin B","o":"Chaetomium globosum SD-347","f":"C25H42O3","w":"390.3134 g/mol","t":"Terpenoid","d":"Deep (2476 m)","p":"sesterchaetin-b.html"},
+  {"n":"Shamixanthone","o":"Emericella sp. SCSIO 05240","f":"C25H26O5","w":"406.5 g/mol","t":"Terpenoid","d":"Deep (3258 m)","c":"15596091","p":"shamixanthone.html"},
+  {"n":"Sollasin E","o":"Poecillastra sollasi","f":"C18H28O2","w":"276.2089 g/mol","t":"Terpenoid","d":"Slope (375 m)","c":"85078948","p":"sollasin-e.html"},
+  {"n":"Sorbicillactone A","o":"Aplysina sp.","f":"C21H23NO8","w":"417.1424 g/mol","t":"Polyketide","d":"Slope (235 m)","c":"5279576","p":"sorbicillactone-a.html"},
+  {"n":"Spirograterpene A","o":"Penicillium granulatum MCCC 3A00475","f":"C20H30O3","w":"318.4570 g/mol","t":"Alkaloid","d":"Deep (2284 m)","c":"139589750","p":"spirograterpene-a.html"},
+  {"n":"Spiroindimicin A","o":"Streptomyces sp. SCSIO 03032","f":"C24H15Cl2N3O4","w":"479.0440 g/mol","t":"Alkaloid","d":"Deep (3412 m)","c":"71511185","p":"spiroindimicin-a.html"},
+  {"n":"Spiroindimicin B","o":"Streptomyces sp. SCSIO 03032","f":"C23H17Cl2N3O2","w":"437.0698 g/mol","t":"Alkaloid","d":"Deep (3412 m)","c":"60166298","p":"spiroindimicin-b.html"},
+  {"n":"Spiroindimicin C","o":"Streptomyces sp. SCSIO 03032","f":"C22H15Cl2N3O2","w":"423.0541 g/mol","t":"Alkaloid","d":"Deep (3412 m)","c":"60166299","p":"spiroindimicin-c.html"},
+  {"n":"Spiroindimicin D","o":"Streptomyces sp. SCSIO 03032","f":"C25H19Cl2N3O4","w":"495.0753 g/mol","t":"Alkaloid","d":"Deep (3412 m)","c":"60166300","p":"spiroindimicin-d.html"},
+  {"n":"Spiromastixone A","o":"Spiromastix sp. MCCC 3A00308","f":"C25H40O3","w":"328.1311 g/mol","t":"Polyketide","d":"Deep (2869 m)","c":"90670406","p":"spiromastixone-a.html"},
+  {"n":"Stachybotrysin A","o":"Stachybotrys chartarum FS705","f":"C26H34O4","w":"414.5000 g/mol","t":"Alkaloid","d":"Hadal (4187 m)","c":"132487909","p":"stachybotrysin-a.html"},
+  {"n":"Sterigmatocystin","o":"Aspergillus versicolor CXCTD-06-6a","f":"C18H12O6","w":"324.3 g/mol","t":"Alkaloid","d":"Slope (800 m)","c":"5280389","p":"sterigmatocystin.html"},
+  {"n":"Sydowinin A","o":"Engyodontium album DFFSCS021","f":"C16H12O6","w":"300.2600 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"23872092","p":"sydowinin-a.html"},
+  {"n":"Sydowinin B","o":"Engyodontium album DFFSCS021","f":"C16H12O7","w":"316.2600 g/mol","t":"Polyketide","d":"Deep (3739 m)","c":"45359153","p":"sydowinin-b.html"},
+  {"n":"Talamin A","o":"Talaromyces minioluteus CS-138","f":"C12H12O5","w":"236.0685 g/mol","t":"Polyketide","d":"Deep (1500–2000 m)","c":"168438743","p":"talamin-a.html"},
+  {"n":"Talamin B","o":"Talaromyces minioluteus CS-138","f":"C13H14O5","w":"250.0841 g/mol","t":"Polyketide","d":"Deep (1500 m)","c":"170990068","p":"talamin-b.html"},
+  {"n":"Talamin C","o":"Talaromyces minioluteus CS-138","f":"C12H12O6","w":"252.0634 g/mol","t":"Polyketide","d":"Deep (1500–2000 m)","c":"170990069","p":"talamin-c.html"},
+  {"n":"Talamin D","o":"Talaromyces minioluteus CS-138","f":"C12H12O5","w":"236.0685 g/mol","t":"Polyketide","d":"Deep (1500–2000 m)","c":"170990070","p":"talamin-d.html"},
+  {"n":"Talaperoxide B","o":"Talaromyces flavus","f":"C16H24O5","w":"296.3630 g/mol","t":"Terpenoid","d":"Deep (3471 m)","c":"54583336","p":"talaperoxide-b.html"},
+  {"n":"Talarominine A","o":"Talaromyces minioluteus CS-138","f":"C21H22O6","w":"370.1416 g/mol","t":"Polyketide","d":"Deep (1500 m)","c":"170990067","p":"talarominine-a.html"},
+  {"n":"Talaromycone A","o":"Talaromyces sp. HDN1820200","f":"C15H18O6","w":"294.1103 g/mol","t":"Polyketide","d":"Deep (3000–3500 m)","c":"170989164","p":"talaromycone-a.html"},
+  {"n":"Talaromycone B","o":"Talaromyces sp. HDN1820200","f":"C16H14O8","w":"334.0689 g/mol","t":"Polyketide","d":"Deep (3000–3500 m)","p":"talaromycone-b.html"},
+  {"n":"Tenellone A","o":"Phomopsis lithocarpus FS508","f":"C25H30O7","w":"442.5000 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"44583991","p":"tenellone-a.html"},
+  {"n":"Tenellone D","o":"Phomopsis lithocarpus FS508","f":"C25H40O3","w":"408.1937 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590730","p":"tenellone-d.html"},
+  {"n":"Tenellone E","o":"Phomopsis lithocarpus FS508","f":"C25H28O6","w":"424.1886 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590731","p":"tenellone-e.html"},
+  {"n":"Tenellone F","o":"Phomopsis lithocarpus FS508","f":"C25H28O6","w":"424.1886 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590732","p":"tenellone-f.html"},
+  {"n":"Tenellone G","o":"Phomopsis lithocarpus FS508","f":"C25H28O6","w":"424.1886 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590733","p":"tenellone-g.html"},
+  {"n":"Tenellone H","o":"Phomopsis lithocarpus FS508","f":"C20H20O5","w":"340.4000 g/mol","t":"Terpenoid","d":"Deep (3606 m)","c":"139590734","p":"tenellone-h.html"},
+  {"n":"Terrein","o":"Penicillium sp. 20135；Aspergillus terreus RA2905","f":"C8H10O3","w":"154.0630 g/mol","t":"Polyketide","d":"Shallow (200–3000 m)","c":"324799","p":"terrein.html"},
+  {"n":"Tersaphilone A","o":"Phomopsis tersa FS441","f":"C19H21ClO6","w":"380.8200 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989985","p":"tersaphilone-a.html"},
+  {"n":"Tersaphilone B","o":"Phomopsis tersa FS441","f":"C19H21ClO6","w":"380.8200 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989985","p":"tersaphilone-b.html"},
+  {"n":"Tersaphilone C","o":"Phomopsis tersa FS441","f":"C25H29ClO7","w":"476.9000 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989987","p":"tersaphilone-c.html"},
+  {"n":"Tersaphilone D","o":"Phomopsis tersa FS441","f":"C25H29ClO8","w":"492.9500 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989987","p":"tersaphilone-d.html"},
+  {"n":"Tersaphilone E","o":"Phomopsis tersa FS441","f":"C25H29ClO8","w":"492.9500 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"170989987","p":"tersaphilone-e.html"},
+  {"n":"Tersone A","o":"Phomopsis tersa FS441","f":"C19H19NO3","w":"309.1365 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"146682998","p":"tersone-a.html"},
+  {"n":"(±)-Tersone B","o":"Phomopsis tersa FS441","f":"C19H19NO3","w":"309.4000 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"146683000","p":"tersone-b.html"},
+  {"n":"(±)-Tersone C","o":"Phomopsis tersa FS441","f":"C19H19NO3","w":"309.1365 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"146683001","p":"tersone-c.html"},
+  {"n":"(±)-Tersone D","o":"Phomopsis tersa FS441","f":"C19H19NO2","w":"293.1416 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"146683003","p":"tersone-d.html"},
+  {"n":"(±)-Tersone E","o":"Phomopsis tersa FS441","f":"C19H19NO2","w":"293.4000 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"71556150","p":"tersone-e.html"},
+  {"n":"Tersone F","o":"Phomopsis tersa FS441","f":"C19H21NO5","w":"343.4000 g/mol","t":"Polyketide","d":"Deep (3000 m)","c":"146682996","p":"tersone-f.html"},
+  {"n":"Tersone G","o":"Phomopsis tersa FS441","f":"C14H11NO2","w":"225.2400 g/mol","t":"Alkaloid","d":"Deep (3000 m)","c":"146682997","p":"tersone-g.html"},
+  {"n":"Trieffusol A","o":"Trichobotrys effuse FS524","f":"C23H26O8","w":"430.1628 g/mol","t":"Polyketide","d":"Deep (1428 m)","c":"156581932","p":"trieffusol-a.html"},
+  {"n":"Verruculogen","o":"Penicillium verruculosumAspergillus fumigatus SD-406","f":"C27H33N3O7","w":"511.2319 g/mol","t":"Alkaloid-Peptide","d":"Slope (1000–11000 m)","c":"104862","p":"verruculogen.html"},
+  {"n":"Violaceol-II","o":"Penicillium chrysogenum MCCC 3A00292","f":"C14H14O5","w":"262.2600 g/mol","t":"Polyketide","d":"Deep (2076 m)","c":"16196968","p":"violaceol-ii.html"},
+  {"n":"Viridicatin","o":"Aspergillus carneus HQ889708Penicillium solitum MCCC 3A00215","f":"C15H11NO2","w":"237.0790 g/mol","t":"Alkaloid","d":"Deep (3034 m)","c":"67206","p":"viridicatin.html"},
+];
+</script>
+<script>
+/* ══════════════════════════════════════════════════════
+   Deep-Sea Compound Database — Homepage (Dark Theme)
+   ══════════════════════════════════════════════════════ */
+
+(function(){ 'use strict';
+
+// ── Microbes ──
+var shapes = [
+  '<svg viewBox="0 0 40 24"><ellipse cx="18" cy="14" rx="14" ry="7" fill="currentColor" opacity="0.55"/><ellipse cx="6" cy="14" rx="6" ry="5" fill="currentColor" opacity="0.6"/><circle cx="4" cy="12" r="1.2" fill="rgba(255,255,255,0.25)"/><path d="M28 10 Q38 6 37 3" stroke="currentColor" stroke-width="1" fill="none" opacity="0.5"/><circle cx="37" cy="3" r="2.5" fill="rgba(255,235,100,0.35)" stroke="rgba(255,235,100,0.15)" stroke-width="0.5"/><path d="M30 15 Q34 17 32 19" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/><path d="M30 17 Q34 19 32 21" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.2"/></svg>',
+  '<svg viewBox="0 0 36 40"><path d="M8 14 Q8 4 18 4 Q28 4 28 14" stroke="currentColor" stroke-width="2.5" fill="currentColor" opacity="0.3"/><path d="M6 14 Q18 18 30 14" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/><path d="M10 14 Q10 26 8 34" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.2"/><path d="M15 14 Q15 28 14 36" stroke="currentColor" stroke-width="1" fill="none" opacity="0.25"/><path d="M20 14 Q21 24 19 32" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.2"/><path d="M26 14 Q26 26 28 34" stroke="currentColor" stroke-width="1.1" fill="none" opacity="0.18"/></svg>',
+  '<svg viewBox="0 0 30 50"><ellipse cx="15" cy="16" rx="8" ry="14" fill="currentColor" opacity="0.45"/><path d="M15 2 Q15 0 20 2 Q25 5 22 10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/><path d="M15 2 Q15 0 10 2 Q5 5 8 10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4"/><path d="M10 26 Q6 34 4 40 Q3 44 5 46" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.2"/><path d="M13 28 Q11 36 10 42 Q9 46 12 48" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.18"/><path d="M15 29 Q15 38 15 44 Q15 48 14 50" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.22"/><path d="M18 28 Q20 36 21 42 Q22 46 19 48" stroke="currentColor" stroke-width="1.3" fill="none" opacity="0.18"/><path d="M20 26 Q24 34 26 40 Q27 44 25 46" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.2"/></svg>',
+  '<svg viewBox="0 0 36 22"><path d="M4 12 Q10 2 22 4 Q30 5 34 10" stroke="currentColor" stroke-width="2.5" fill="none" opacity="0.45"/><path d="M4 12 Q10 14 16 13 Q24 12 34 10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.25"/><path d="M34 10 Q36 8 34 6" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M2 10 Q0 6 4 4" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.3"/><path d="M4 12 Q2 16 6 18" stroke="currentColor" stroke-width="1.2" fill="none" opacity="0.25"/><circle cx="12" cy="6" r="1" fill="rgba(255,255,255,0.15)"/><circle cx="18" cy="5.5" r="0.8" fill="rgba(255,255,255,0.12)"/><circle cx="24" cy="6.5" r="0.8" fill="rgba(255,255,255,0.12)"/></svg>',
+  '<svg viewBox="0 0 38 38"><circle cx="19" cy="19" r="5" fill="currentColor" opacity="0.6"/><path d="M19 14 Q20 8 17 4 Q15 1 18 0" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35" stroke-linecap="round"/><path d="M24 15 Q29 10 30 5 Q31 2 28 1" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35" stroke-linecap="round"/><path d="M24 24 Q30 28 34 28 Q37 28 37 25" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35" stroke-linecap="round"/><path d="M14 24 Q9 29 5 29 Q2 29 2 26" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35" stroke-linecap="round"/><path d="M14 14 Q10 9 8 5 Q7 2 10 1" stroke="currentColor" stroke-width="2" fill="none" opacity="0.35" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 24 48"><rect x="9" y="8" width="6" height="38" rx="3" fill="currentColor" opacity="0.2"/><path d="M12 8 Q18 6 20 10 Q22 14 16 14" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/><path d="M12 8 Q6 6 4 10 Q2 14 8 14" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/><path d="M16 14 Q18 18 14 18 Q10 18 8 14" fill="rgba(255,100,60,0.25)" opacity="0.35"/><rect x="11" y="0" width="2" height="8" rx="1" fill="currentColor" opacity="0.3"/></svg>',
+  '<svg viewBox="0 0 48 14"><path d="M4 8 Q14 3 30 4 Q40 4 46 7" stroke="currentColor" stroke-width="2.5" fill="none" opacity="0.5"/><path d="M4 8 Q14 10 30 9 Q40 9 46 7" stroke="currentColor" stroke-width="1.8" fill="none" opacity="0.22"/><circle cx="8" cy="6" r="1.5" fill="rgba(255,255,255,0.2)"/><circle cx="14" cy="5.5" r="1" fill="rgba(255,235,100,0.25)"/><circle cx="20" cy="5" r="1" fill="rgba(255,235,100,0.2)"/><circle cx="26" cy="5.5" r="1" fill="rgba(255,235,100,0.2)"/><circle cx="32" cy="6" r="1" fill="rgba(255,235,100,0.2)"/><circle cx="38" cy="6.5" r="1" fill="rgba(255,235,100,0.2)"/><path d="M46 7 Q48 7 48 5" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/></svg>',
+  '<svg viewBox="0 0 30 36"><ellipse cx="15" cy="18" rx="11" ry="16" fill="currentColor" opacity="0.18"/><ellipse cx="15" cy="18" rx="8" ry="12" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.2"/><path d="M6 16 Q8 14 10 16" stroke="rgba(100,200,255,0.25)" stroke-width="0.8" fill="none"/><path d="M6 20 Q8 18 10 20" stroke="rgba(100,200,255,0.25)" stroke-width="0.8" fill="none"/><path d="M20 16 Q22 14 24 16" stroke="rgba(100,200,255,0.25)" stroke-width="0.8" fill="none"/><path d="M20 20 Q22 18 24 20" stroke="rgba(100,200,255,0.25)" stroke-width="0.8" fill="none"/><path d="M15 2 Q15 0 14 4" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.2"/><path d="M15 34 Q15 36 16 32" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.2"/></svg>'
+];
+var colors = ['#4fc3f7','#26c6da','#64b5f6','#4dd0e1','#81d4fa','#29b6f6','#00acc1'];
+var mc = document.getElementById('microbes');
+for(var i=0;i<55;i++){
+  var e=document.createElement('div');
+  e.className='microbe';
+  var sz=14+Math.random()*32;
+  e.style.width=sz+'px';
+  e.style.height=sz*0.75+'px';
+  e.style.left=(3+Math.random()*94)+'%';
+  e.style.setProperty('--m-op',(0.12+Math.random()*0.4));
+  e.style.setProperty('--m-rot',(80+Math.random()*500)+'deg');
+  e.style.animationDuration=(16+Math.random()*35)+'s';
+  e.style.animationDelay=Math.random()*25+'s';
+  e.style.color=colors[Math.floor(Math.random()*colors.length)];
+  e.innerHTML=shapes[Math.floor(Math.random()*shapes.length)];
+  mc.appendChild(e);
+}
+
+// ── Helpers ──
+function esc(t){ if(!t)return''; var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+function imgUrl(cid){ return cid?'https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid='+cid+'&t=s':''; }
+
+// ── Inventory data ──
+var INV = {"total_compounds":361,"total_phenotype_entries":347,"total_target_entries":255,"unique_strains":131,"unique_chemotypes":10,"unique_references":641};
+
+// Chemotype summary (lightweight, no need to fetch full chemotypes.json)
+var CT_SUMMARY = [
+  {n:'Polyketide',c:146},{n:'Terpenoid',c:86},{n:'Alkaloid',c:59},
+  {n:'Alkaloid-Peptide',c:44},{n:'Polyketide-Peptide',c:16},{n:'Unclassified',c:3},
+  {n:'Other',c:2},{n:'Phenylpropanoid',c:2},{n:'Peptide',c:2},{n:'Azaphilone',c:1}
+];
+var CT_COLORS = {
+  'Polyketide':'#5c8fc4','Terpenoid':'#c47a6a','Alkaloid':'#6a9e7a',
+  'Alkaloid-Peptide':'#8a6a9e','Polyketide-Peptide':'#5a8a82',
+  'Peptide':'#a68abe','Phenylpropanoid':'#c9a84c','Azaphilone':'#4dd0e1',
+  'Other':'#6a7a8a'
+};
+
+// ── Classify depth ──
+function classifyDepth(d){
+  if(!d)return'';
+  if(d.indexOf('Hadal')!==-1)return'Hadal';
+  if(d.indexOf('Deep')!==-1)return'Deep';
+  if(d.indexOf('Slope')!==-1)return'Slope';
+  if(d.indexOf('Shallow')!==-1)return'Shallow';
+  return'';
+}
+var DEPTH_COLORS = {'Shallow':'#5a82aa','Slope':'#3a5078','Deep':'#28385a','Hadal':'#382a5a'};
+var DEPTH_ORDER = ['Shallow','Slope','Deep','Hadal'];
+
+// ── Render stat cards ──
+function renderStats(){
+  var stats = [
+    {n:INV.total_compounds, en:'💊 Deep-Sea Compound Database', cn:'深海化合物数据库', link:'pages/browse-compounds.html'},
+    {n:INV.unique_strains, en:'🧫 Deep-sea Strains', cn:'深海菌株', link:'pages/browse-strains.html'},
+    {n:INV.total_target_entries, en:'🎯 Molecular Targets', cn:'分子靶标', link:'pages/browse-targets.html'},
+    {n:INV.total_phenotype_entries, en:'📊 Bioactive Phenotypes', cn:'生物表型', link:'pages/browse-phenotypes.html'},
+    {n:INV.unique_chemotypes, en:'🧪 Chemical Classes', cn:'化学分类', link:'pages/browse-chemotypes.html'},
+    {n:INV.unique_references, en:'📚 Curated References', cn:'参考文献', link:'pages/browse-references.html'}
+  ];
+  var h='';
+  stats.forEach(function(s){
+    h+='<a href="'+s.link+'" class="stat-card"><div class="stat-num">'+s.n+'</div><div class="stat-lbl-en">'+s.en+'</div><div class="stat-lbl-cn">'+s.cn+'</div><div class="stat-arrow">→</div></a>';
+  });
+  document.getElementById('statRow').innerHTML=h;
+
+  // Update hero description with real numbers
+  var desc=document.getElementById('heroDesc');
+  if(desc) desc.innerHTML='A comprehensive collection of <strong>'+INV.total_compounds+'</strong> natural products isolated from deep-sea and hadal microorganisms — <strong>'+INV.unique_strains+'</strong> strains across <strong>65</strong> genera · <strong>'+INV.unique_references+'</strong> curated references';
+}
+
+// ── Render bars ──
+function renderBars(id,data,nameKey,valueKey,colorMap){
+  var el=document.getElementById(id);if(!el)return;
+  var mx=Math.max.apply(null,data.map(function(d){return d[valueKey];}));
+  var h='';
+  data.forEach(function(d){
+    var p=mx>0?(d[valueKey]/mx)*100:0;
+    var c=colorMap[d[nameKey]]||'#6a7a8a';
+    h+='<div class="bar-row"><span class="bar-label">'+esc(d[nameKey])+'</span><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div><span class="bar-value">'+d[valueKey]+'</span></div>';
+  });
+  el.innerHTML=h;
+}
+
+// ── Render depth bars ──
+function renderDepthBars(id,compounds){
+  var el=document.getElementById(id);if(!el)return;
+  var dc={Shallow:0,Slope:0,Deep:0,Hadal:0};
+  compounds.forEach(function(c){
+    var z=classifyDepth(c.d||c.depth||'');
+    if(dc[z]!==undefined) dc[z]++; else dc['Deep']++;
+  });
+  var mx=Math.max.apply(null,DEPTH_ORDER.map(function(k){return dc[k];}));
+  var h='';
+  DEPTH_ORDER.forEach(function(k){
+    var v=dc[k]||0;
+    var p=mx>0?(v/mx)*100:0;
+    h+='<div class="bar-row"><span class="bar-label">'+k+'</span><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+(DEPTH_COLORS[k]||'#6a7a8a')+'"></div></div><span class="bar-value">'+v+'</span></div>';
+  });
+  el.innerHTML=h;
+}
+
+// ── Render latest compounds ──
+function renderLatest(compounds){
+  var el=document.getElementById('latestStrip');if(!el)return;
+  var latest=compounds.slice(-4).reverse();
+  var h='';
+  latest.forEach(function(c){
+    var name=c.n||c.name||'';
+    var formula=c.f||c.formula||'';
+    var mw=c.w||c.mw||'';
+    var ct=c.t||c.chemotype||'Unclassified';
+    var cid=c.c||c.cid||'';
+    var file=c.p||c.file||'';
+    var ctColor=CT_COLORS[ct]||'#6a7a8a';
+    var img=imgUrl(cid);
+    var meta=formula+(mw?' · MW '+(mw+'').replace(' g/mol','').replace(' g·mol−1',''):'');
+    h+='<a href="1-Compounds/'+esc(file)+'" class="cpd-card">';
+    h+='  <div class="cpd-card-row">';
+    if(img){
+      h+='    <div class="cpd-card-img"><img src="'+img+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.cfb\').style.display=\'flex\'"><span class="cfb" style="display:none">?</span></div>';
+    } else {
+      h+='    <div class="cpd-card-img"><span class="cfb">?</span></div>';
+    }
+    h+='    <div class="cpd-card-info">';
+    h+='      <div class="cpd-card-name">'+esc(name)+'</div>';
+    h+='      <div class="cpd-card-meta">'+esc(meta)+'</div>';
+    h+='    </div>';
+    h+='  </div>';
+    h+='  <span class="cpd-card-ct" style="background:'+ctColor+'20;color:'+ctColor+'">'+esc(ct)+'</span>';
+    h+='</a>';
+  });
+  el.innerHTML=h;
+}
+
+// ── Load data ──
+function loadData(){
+  renderStats();
+
+  // Use COMPOUNDS_DATA from compounds_inline.js (file:// mode)
+  if(typeof COMPOUNDS_DATA !== 'undefined' && COMPOUNDS_DATA.length){
+    renderBars('chart-chemotype',CT_SUMMARY,'n','c',CT_COLORS);
+    renderDepthBars('chart-depth',COMPOUNDS_DATA);
+    renderLatest(COMPOUNDS_DATA);
+    return;
+  }
+
+  // Fallback: fetch via HTTP
+  Promise.all([
+    fetch('assets/data/compounds.json').then(function(r){return r.json();}),
+    fetch('assets/data/chemotypes.json').then(function(r){return r.json();})
+  ]).then(function(results){
+    var compounds=results[0];
+    var chemotypes=results[1];
+    var ctSimple=chemotypes.map(function(d){return {n:d.name||d.chemotype||'Other',c:d.compound_count||0};});
+    renderBars('chart-chemotype',ctSimple,'n','c',CT_COLORS);
+    renderDepthBars('chart-depth',compounds);
+    renderLatest(compounds);
+  }).catch(function(err){
+    console.warn('Data load failed, showing stats only',err);
+  });
+}
+
+// ── Init ──
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',loadData);
+}else{
+  loadData();
+}
+
+})();
+</script>
+</body></html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
