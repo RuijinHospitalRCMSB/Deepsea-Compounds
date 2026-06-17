@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MptpB (M. tuberculosis PTPase B) — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#0077b6;--primary-hover:#005f8c;--primary-light:rgba(0,119,182,0.08);--bg-page:#f0f4f8;--bg-content:#fff;--bg-card:#f8fafc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--chip-success:#e8f5e9;--chip-success-text:#2e7d32;--chip-clinical:#e3f2fd;--chip-clinical-text:#1565c0;--chip-preclin:#fff3e0;--chip-preclin-text:#e65100;--chip-withdrawn:#fce4ec;--chip-withdrawn-text:#c62828;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif}
+body{background:var(--bg-page);font-family:var(--font-sans);color:var(--text-primary);line-height:1.65;min-height:100vh;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.side-nav .nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.side-nav .nav-header .back-link{font-size:12px;color:var(--text-muted);text-decoration:none;display:block;margin-bottom:12px;transition:color .2s}
+.side-nav .nav-header .back-link:hover{color:var(--primary)}
+.side-nav .nav-header .nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.side-nav .nav-header .nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.3}
+.side-nav .nav-items{list-style:none;padding:0;margin:0;flex:1}
+.side-nav .nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.side-nav .nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.side-nav .nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:rgba(21,101,192,0.06);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:0.35;flex-shrink:0}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s}
+.back-link:hover{color:var(--primary)}
+.target-hero{background:linear-gradient(135deg,#fce4ec 0%,#f3e5f5 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:20px;position:relative;overflow:hidden}
+.target-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(229,57,53,0.03) 0%,transparent 70%),radial-gradient(ellipse 300px 200px at 80% 20%,rgba(142,36,170,0.02) 0%,transparent 70%);pointer-events:none}
+.hero-body{display:flex;gap:0;min-height:130px;position:relative;z-index:1}
+.hero-left{flex:1;padding:28px 32px;display:flex;flex-direction:column;justify-content:center}
+.hero-right{width:400px;flex-shrink:0;padding:20px 10px 20px 14px;display:flex;align-items:center}
+.hero-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+.hero-stat{background:rgba(255,255,255,0.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.5);border-radius:6px;padding:8px 6px;text-align:center;min-width:0}
+.hero-stat-label{font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;white-space:nowrap}
+.hero-stat-value{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3;word-break:break-all;max-width:100%}
+.hero-stat-value a{color:var(--primary);text-decoration:none}
+.hero-stat-value a:hover{text-decoration:underline}
+.hero-stat-sub{font-size:10px;color:var(--text-muted);margin-top:1px}
+.target-hero-tags{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.target-hero-cat{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px}
+.target-hero-gene{display:inline-block;padding:3px 10px;border-radius:5px;background:rgba(13,27,42,0.06);color:var(--text-secondary);font-family:var(--font-mono);font-size:12px;font-weight:500}
+.target-hero-title{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--text-primary);margin:0;line-height:1.25}
+.detail-section{margin-bottom:28px}
+.detail-section-title{font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:12px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;background:var(--bg-content);border:1px solid var(--border);color:var(--text-secondary);transition:all .15s}
+.ext-link-pill:hover{border-color:var(--primary);color:var(--primary);box-shadow:var(--shadow-sm)}
+.ext-link-icon{font-size:16px}
+.func-card{background:var(--bg-content);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px}
+.func-text{font-size:14px;line-height:1.7;color:var(--text-secondary);white-space:pre-wrap}
+.func-source{margin-top:10px;font-size:12px}
+.func-source a{color:var(--primary);text-decoration:none}
+.func-source a:hover{text-decoration:underline}
+.disease-grid{display:flex;gap:8px;flex-wrap:wrap}
+.disease-chip{display:inline-flex;align-items:center;padding:5px 12px;border-radius:6px;background:rgba(229,57,53,0.06);border:1px solid rgba(229,57,53,0.15);color:#c62828;font-size:13px;font-weight:500}
+.disease-section-sub{font-size:13px;font-weight:600;color:var(--text-primary);margin:14px 0 8px}
+.drug-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600}
+.drug-status.approved{background:var(--chip-success);color:var(--chip-success-text)}
+.drug-status.clinical{background:var(--chip-clinical);color:var(--chip-clinical-text)}
+.drug-status.preclinical{background:var(--chip-preclin);color:var(--chip-preclin-text)}
+.drug-status.withdrawn{background:var(--chip-withdrawn);color:var(--chip-withdrawn-text)}
+.drug-list{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.drug-chip{display:inline-flex;padding:3px 10px;border-radius:5px;background:var(--bg-card);border:1px solid var(--border);font-size:12px;color:var(--text-secondary)}
+.disease-source{margin-top:10px;font-size:12px}
+.disease-source a{color:var(--primary);text-decoration:none}
+.disease-source a:hover{text-decoration:underline}
+.kegg-row{display:flex;gap:6px;flex-wrap:wrap}
+.kegg-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;background:rgba(0,119,182,0.06);border:1px solid rgba(0,119,182,0.12);color:var(--primary);font-size:13px;font-weight:500;text-decoration:none;transition:all .15s}
+.kegg-pill:hover{background:rgba(0,119,182,0.12);box-shadow:var(--shadow-sm)}
+.filter-tabs{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--bg-content)}
+.filter-tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;border:none;background:transparent;transition:all .12s;border-right:1px solid var(--border-light)}
+.filter-tab:last-child{border-right:none}
+.filter-tab:hover{background:var(--bg-card);color:var(--text-primary)}
+.filter-tab.active{background:var(--primary);color:#fff;font-weight:600}
+.filter-tab .filter-count{font-size:11px;opacity:.7;margin-left:4px}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s;cursor:pointer}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-img{width:42px;text-align:center}
+.cpd-td-img img{width:32px;height:32px;border-radius:4px;object-fit:contain;background:#f8fafc;display:block;margin:0 auto}
+.cpd-td-img .fallback{font-size:16px;color:var(--text-muted);opacity:.4}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-sub{font-size:10px;color:var(--text-muted);margin-top:2px;line-height:1.2}
+.cpd-td-formula{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-mw{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);white-space:nowrap}
+.cpd-td-activity{color:var(--primary);font-weight:600;font-family:var(--font-mono);font-size:12px;white-space:nowrap}
+.cpd-td-pmid{color:var(--primary);text-decoration:none;font-weight:500;font-size:12px;white-space:nowrap}
+.cpd-td-chemotype{font-size:12px;font-weight:500;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.cpd-td-potency{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--text-primary);white-space:nowrap}
+.cpd-td-chembl{font-size:12px;color:var(--text-secondary)}
+.sortable-th{cursor:pointer;user-select:none}
+.sortable-th:hover{color:var(--primary)}
+.sort-arrow{font-size:9px;margin-left:3px;opacity:.5}
+.sortable-th:hover .sort-arrow{opacity:1}
+.sort-active .sort-arrow{opacity:1}
+.potency-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.potency-badge.high{background:rgba(229,57,53,0.12);color:#e53935}
+.potency-badge.mid{background:rgba(251,140,0,0.12);color:#e65100}
+.potency-badge.low{background:rgba(100,100,100,0.1);color:#546e7a}
+@media(max-width:900px){.side-nav{display:none}.main-content{margin-left:0}.page-inner{padding:16px 12px 40px}}
+@media(max-width:700px){.hero-body{flex-direction:column}.hero-right{width:100%;padding:0 16px 16px}.hero-stats-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.target-hero-title{font-size:20px}}
+</style>
+</head>
+<body>
+<nav class="side-nav">
+<div class="nav-header">
+<a href="../pages/browse-targets.html" class="back-link">← Database</a>
+<div class="nav-title">Target Detail</div>
+<div class="nav-sub">MptpB (M. tuberculosis PTPase B)</div>
+</div>
+<ul class="nav-items">
+<li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+<li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+<li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+<li><a href="../pages/browse-targets.html" class="active"><span class="nav-dot"></span> Targets · 靶标</a></li>
+<li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+<li><a href="../pages/browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+</ul>
+</nav>
+<div class="main-content">
+<div class="page-inner">
+
+<a href="../pages/browse-targets.html" class="back-link">← Targets · 返回靶标总览</a><div class="target-hero"><div class="hero-body"><div class="hero-left"><div class="target-hero-tags"><span class="target-hero-cat" style="background:#78909c18;color:#78909c">Other</span></div><h1 class="target-hero-title">MptpB (M. tuberculosis PTPase B)</h1></div><div class="hero-right"><div class="hero-stats-grid"><div class="hero-stat"><div class="hero-stat-label">UniProt</div><div class="hero-stat-value"><a href="https://www.uniprot.org/uniprotkb/I6WXK4/entry" target="_blank" rel="noopener">I6WXK4 ↗</a></div></div><div class="hero-stat"><div class="hero-stat-label">Category</div><div class="hero-stat-value" style="color:#78909c;font-size:13px;">Other</div></div><div class="hero-stat"><div class="hero-stat-label">Gene</div><div class="hero-stat-value" style="color:var(--text-muted);font-size:12px;">—</div></div><div class="hero-stat"><div class="hero-stat-label">Compounds</div><div class="hero-stat-value">1</div><div class="hero-stat-sub">active</div></div></div></div></div></div><div class="detail-section"><h2 class="detail-section-title">🔗 External Links · 外部数据库</h2><div class="ext-links-row"><a href="https://www.uniprot.org/uniprotkb/I6WXK4/entry" target="_blank" rel="noopener" class="ext-link-pill"><span class="ext-link-icon">📚</span> UniProt ↗</a><a href="https://go.drugbank.com/uniprot/I6WXK4" target="_blank" rel="noopener" class="ext-link-pill"><span class="ext-link-icon">💊</span> DrugBank ↗</a><a href="https://pubmed.ncbi.nlm.nih.gov/?term=MptpB%20%28M.%20tuberculosis%20PTPase%20B%29+inhibitor" target="_blank" rel="noopener" class="ext-link-pill"><span class="ext-link-icon">📄</span> PubMed ↗</a></div></div><div class="detail-section"><h2 class="detail-section-title">🧪 Active Compounds · 活性化合物 <span class="section-count">1</span></h2><div class="filter-tabs" id="filter-tabs"><button class="filter-tab active" data-filter="all" onclick="filterPotency('all')">All <span class="filter-count">(1)</span></button><button class="filter-tab" data-filter="high" onclick="filterPotency('high')">≤1 nM <span class="filter-count">(0)</span></button><button class="filter-tab" data-filter="mid" onclick="filterPotency('mid')">1–100 nM <span class="filter-count">(0)</span></button><button class="filter-tab" data-filter="low" onclick="filterPotency('low')">>100 nM <span class="filter-count">(0)</span></button></div><table class="cpd-table" id="cpd-sort-table"><thead><tr><th style="width:36px">Str</th><th class="sortable-th" data-sort="name">Compound · 化合物 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="formula">Formula · 分子式 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="mw" style="width:80px">MW · 分子量 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="activity">Activity · 活性 <span class="sort-arrow"></span></th><th>Reference · 参考文献</th><th class="sortable-th" data-sort="chemotype">Chemotype · 化学分类 <span class="sort-arrow"></span></th><th class="sortable-th" data-sort="potency" style="width:70px">Potency <span class="sort-arrow"></span></th></tr></thead><tbody id="cpd-list"><tr data-potency="none" onclick="window.location='../1-Compounds/longidiacid-a.html'"><td class="cpd-td-img"><img src="https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid=156581987&t=s" alt="" loading="lazy"></td><td><a href="../1-Compounds/longidiacid-a.html" class="cpd-td-name">Longidiacid A</a><div class="cpd-td-sub">35.4% inhibition at 50 μM</div></td><td><span class="cpd-td-formula">C24H36O6</span></td><td><span class="cpd-td-mw">420.5460</span></td><td><span class="cpd-td-activity">35.4% inhibition at 50 μM</span></td><td><a href="https://pubmed.ncbi.nlm.nih.gov/32824125/" target="_blank" class="cpd-td-pmid" onclick="event.stopPropagation()">PMID: 32824125 ↗</a><br><a href="https://www.ebi.ac.uk/chembl/compound_report_card/CHEMBL451894/" target="_blank" class="cpd-td-pmid cpd-td-chembl" onclick="event.stopPropagation()" title="CHEMBL451894">ChEMBL ↗</a></td><td><span class="cpd-td-chemotype" style="background:#2e7d3218;color:#2e7d32">Alkaloid</span></td><td class="cpd-td-potency"><span style="color:var(--text-muted);font-size:12px;">—</span></td></tr></tbody></table></div><script>
+function filterPotency(filter){
+  document.querySelectorAll('.filter-tab').forEach(function(t){t.classList.remove('active');});
+  var tab=document.querySelector('.filter-tab[data-filter="'+filter+'"]');
+  if(tab)tab.classList.add('active');
+  var rows=document.querySelectorAll('#cpd-list tr');
+  rows.forEach(function(r){
+    var p=r.getAttribute('data-potency')||'none';
+    if(filter==='all'){r.style.display='';}
+    else if(p===filter){r.style.display='';}
+    else{r.style.display='none';}
+  });
+}
+(function(){
+  var sortState={field:"name",dir:1};
+  var tbody=document.getElementById("cpd-list");
+  if(!tbody)return;
+  var rows=Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+  var cellIdx={name:1,formula:2,mw:3,activity:4,chemotype:6,potency:7};
+  var potRank={high:1,mid:2,low:3,none:4};
+  function getVal(row,field){
+    var idx=cellIdx[field]||1,c=row.cells[idx];
+    if(!c)return"";
+    var v=c.textContent.trim().toLowerCase();
+    if(field==="mw"){var n=parseFloat(v);return isNaN(n)?0:n;}
+    if(field==="activity"){var m=v.match(/[\d.]+/);return m?parseFloat(m[0]):999999;}
+    if(field==="potency"){return potRank[v]||4;}
+    return v;
+  }
+  function sortTable(field,dir){
+    rows.sort(function(a,b){
+      var va=getVal(a,field),vb=getVal(b,field);
+      return va>vb?dir:va<vb?-dir:0;
+    });
+    rows.forEach(function(r){tbody.appendChild(r);});
+  }
+  document.getElementById("cpd-sort-table").addEventListener("click",function(e){
+    var th=e.target.closest(".sortable-th");
+    if(!th)return;
+    var field=th.dataset.sort;
+    if(sortState.field===field)sortState.dir=-sortState.dir;
+    else{sortState.field=field;sortState.dir=1;}
+    document.querySelectorAll(".sortable-th").forEach(function(t){
+      t.classList.remove("sort-active");
+      var a=t.querySelector(".sort-arrow");if(a)a.textContent="";
+    });
+    th.classList.add("sort-active");
+    var arrow=th.querySelector(".sort-arrow");
+    if(arrow)arrow.textContent=sortState.dir===1?"▲":"▼";
+    sortTable(field,sortState.dir);
+  });
+  sortTable("name",1);
+})();
+</script>
+</div>
+</div>
+</body>
+</html>
