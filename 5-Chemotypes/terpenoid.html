@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Terpenoid — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#d4532a;--primary-hover:#d4532acc;--primary-light:rgba(212,83,42,0.08);--bg-page:#f5f0f8;--bg-content:#ffffff;--bg-card:#faf8fc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.65;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted);text-decoration:none;margin-bottom:16px;transition:color .15s;cursor:pointer}
+.back-link:hover{color:var(--primary)}
+.ct-hero{background:linear-gradient(135deg,#f3e5f5 0%,#e8673e 40%,#f0f4f8 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.ct-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(212,83,42,0.03) 0%,transparent 70%);pointer-events:none}
+.ct-hero-content{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.ct-hero-left{flex:1;min-width:200px}
+.ct-hero-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+.ct-hero-sub{font-size:14px;color:var(--text-muted);margin-bottom:8px}
+.ct-hero-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ct-hero-tag{display:inline-block;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.3px;background:#d4532a18;color:#d4532a}
+.ct-hero-right{display:flex;gap:10px;flex-wrap:wrap}
+.ct-hero-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:72px}
+.ct-hero-stat-value{font-size:22px;font-weight:700;color:var(--text-primary)}
+.ct-hero-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.detail-section{margin-bottom:28px}
+.detail-section-title{font-size:15px;font-weight:700;color:var(--text-primary);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:8px}
+.section-count{font-size:12px;background:var(--primary-light);color:var(--primary);padding:1px 8px;border-radius:6px;font-weight:600}
+.function-text{font-size:14px;line-height:1.7;color:var(--text-secondary);margin:0}
+.ext-links-row{display:flex;gap:6px;flex-wrap:wrap}
+.ext-link-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text-secondary);text-decoration:none;transition:all .15s;background:var(--bg-content);white-space:nowrap}
+.ext-link-pill:hover{border-color:#d4532a;color:var(--primary);background:var(--primary-light)}
+.sub-class-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sub-class-item{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border:1px solid var(--border-light);border-radius:7px;background:var(--bg-content)}
+.sub-class-name{font-size:13px;color:var(--text-primary);font-weight:500}
+.sub-class-count{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+.cpd-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg-content);border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-light)}
+.cpd-table thead{background:var(--bg-card);border-bottom:1px solid var(--border)}
+.cpd-table th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.cpd-table td{padding:9px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.cpd-table tbody tr{transition:background .12s}
+.cpd-table tbody tr:hover{background:var(--primary-light)}
+.cpd-table tbody tr:last-child td{border-bottom:none}
+.cpd-td-name{font-weight:600;color:var(--text-primary);text-decoration:none}
+.cpd-td-name:hover{color:var(--primary)}
+.cpd-td-mono{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary)}
+.cpd-td-link{color:var(--primary);text-decoration:none;font-size:12px;font-weight:500}
+.cpd-td-link:hover{text-decoration:underline}
+@media(max-width:700px){.sub-class-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="../pages/browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="../pages/browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="../pages/browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="../pages/browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="../pages/browse-chemotypes.html"><span class="nav-dot" style="background:#d4532a;opacity:1;"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="../pages/browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · Deep-Sea DB</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-inner">
+
+    <a href="../pages/browse-chemotypes.html" class="back-link">← Back to Chemotypes · 返回化学分类</a>
+
+    <div class="ct-hero">
+      <div class="ct-hero-content">
+        <div class="ct-hero-left">
+          <div class="ct-hero-tags">
+            <span class="ct-hero-tag">Terpenoid</span>
+          </div>
+          <h1 class="ct-hero-title">Terpenoid</h1>
+          <p class="ct-hero-sub">86 compounds · 10 sub-classes</p>
+        </div>
+        <div class="ct-hero-right">
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">86</div>
+            <div class="ct-hero-stat-label">Compounds</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">10</div>
+            <div class="ct-hero-stat-label">Sub-classes</div>
+          </div>
+          <div class="ct-hero-stat">
+            <div class="ct-hero-stat-value">86</div>
+            <div class="ct-hero-stat-label">With Data</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">External Links · 外部链接</h2>
+      <div class="ext-links-row">
+    <a href="https://pubchem.ncbi.nlm.nih.gov/#query=Terpenoid&input_type=text" target="_blank" rel="noopener" class="ext-link-pill"><span>🔬</span> PubChem ↗</a>
+    <a href="https://en.wikipedia.org/wiki/Terpenoid" target="_blank" rel="noopener" class="ext-link-pill"><span>📖</span> Wikipedia ↗</a>
+    <a href="https://www.ncbi.nlm.nih.gov/pmc/?term=Terpenoid+deep-sea+natural+product" target="_blank" rel="noopener" class="ext-link-pill"><span>📄</span> PubMed ↗</a></div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Overview · 概述</h2>
+      <p class="function-text">Terpenoids (isoprenoids) are derived from five-carbon isoprene units and represent the largest and most diverse class of natural products. Marine terpenoids often possess unique cyclic skeletons and potent biological activities.</p>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Sub-classes · 亚类分布 <span class="section-count">10</span></h2>
+      <div class="sub-class-grid">
+        <div class="sub-class-item"><span class="sub-class-name">Diterpene</span><span class="sub-class-count">46</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Sesquiterpene</span><span class="sub-class-count">23</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Sesterterpene</span><span class="sub-class-count">8</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Monoterpene</span><span class="sub-class-count">2</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Triterpene</span><span class="sub-class-count">2</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Meroterpenoid</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Diterpenoid</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Steroid</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Norsesquiterpene</span><span class="sub-class-count">1</span></div>
+        <div class="sub-class-item"><span class="sub-class-name">Benzophenone</span><span class="sub-class-count">1</span></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h2 class="detail-section-title">Compounds · 化合物清单 <span class="section-count">86</span></h2>
+      <table class="cpd-table">
+        <thead><tr>
+          <th>Name · 名称</th>
+          <th>Formula · 分子式</th>
+          <th>MW · 分子量</th>
+          <th>Source Strain · 来源菌株</th>
+          <th>Depth · 深度</th>
+          <th>Sub-class · 亚类</th>
+          <th>Link</th>
+        </tr></thead>
+        <tbody>
+<tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/2-methoxyl-cordyol-c.html">2-Methoxyl cordyol C</a></td>
+  <td class="cpd-td-mono">C15H16O4</td>
+  <td class="cpd-td-mono">260.2800</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Engyodontium album DFFSCS021</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3739 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/2-methoxyl-cordyol-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/2z-6e-10-11-12-trihydroxy-3-7-11-trimethyldodeca-2-6-dienoic-acid.html">(2Z,6E)-10,11,12-trihydroxy-3,7,11-trimethyldodeca-2,6-dienoic acid</a></td>
+  <td class="cpd-td-mono">C15H26O5</td>
+  <td class="cpd-td-mono">286.1780</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus sp. SCSIO 41029</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/2z-6e-10-11-12-trihydroxy-3-7-11-trimethyldodeca-2-6-dienoic-acid.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/3-acetoxy-agathic-acid.html">3β‐acetoxy‐agathic acid</a></td>
+  <td class="cpd-td-mono">C20H30O4</td>
+  <td class="cpd-td-mono">334.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium thomii YPGA3</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/3-acetoxy-agathic-acid.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/3-anhydro-6-epi-ophiobolin-a.html">3-ANHYDRO-6-EPI-OPHIOBOLIN A</a></td>
+  <td class="cpd-td-mono">C25H34O3</td>
+  <td class="cpd-td-mono">382.2508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus californicus SCSIO 3</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3949 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/3-anhydro-6-epi-ophiobolin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/5-hydroxy-6-ene-epicoccin-g.html">5&#39;-hydroxy-6&#39;-ene-epicoccin G</a></td>
+  <td class="cpd-td-mono">C20H26N2O6S2</td>
+  <td class="cpd-td-mono">454.6</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum SD-388</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4500 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/5-hydroxy-6-ene-epicoccin-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/5s-6s-16-17-dihydroophiobolin-h.html">(5S,6S)-16,17-Dihydroophiobolin H</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">388.2977</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus insuetus SD-512</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1331 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/5s-6s-16-17-dihydroophiobolin-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/6r-16-17-21-21-o-tetrahydroophiobolin-g.html">(6R)-16,17,21,21-O-Tetrahydroophiobolin G</a></td>
+  <td class="cpd-td-mono">C25H38O2</td>
+  <td class="cpd-td-mono">370.5690</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus insuetus SD-512</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1331 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/6r-16-17-21-21-o-tetrahydroophiobolin-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/6r-16-17-dihydroophiobolin-h.html">(6R)-16,17-Dihydroophiobolin H</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">388.2977</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus insuetus SD-512</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1331 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/6r-16-17-dihydroophiobolin-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/6r-7-dihydroxy-3-7-dimethyloctanamide.html">6R,7-dihydroxy-3,7-dimethyloctanamide</a></td>
+  <td class="cpd-td-mono">C10H21NO3</td>
+  <td class="cpd-td-mono">203.1521</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium griseofulvum MCCC 3A00225</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Monoterpene</td>
+  <td><a href="../1-Compounds/6r-7-dihydroxy-3-7-dimethyloctanamide.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/arugosin-c.html">Arugosin C</a></td>
+  <td class="cpd-td-mono">C25H28O6</td>
+  <td class="cpd-td-mono">424.1886</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus / Emericella spp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/arugosin-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/aspermytin-a.html">Aspermytin A</a></td>
+  <td class="cpd-td-mono">C16H26O3</td>
+  <td class="cpd-td-mono">266.1882</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(200–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/aspermytin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/brasilane-b.html">Brasilane B</a></td>
+  <td class="cpd-td-mono">C15H26O2</td>
+  <td class="cpd-td-mono">238.1933</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000–4000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/brasilane-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/brevione-f.html">Brevione F</a></td>
+  <td class="cpd-td-mono">C27H32O5</td>
+  <td class="cpd-td-mono">436.2250</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5115 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/brevione-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/brevione-g.html">Brevione G</a></td>
+  <td class="cpd-td-mono">C27H32O5</td>
+  <td class="cpd-td-mono">436.2250</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5115 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/brevione-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/brevione-h.html">Brevione H</a></td>
+  <td class="cpd-td-mono">C27H30O7</td>
+  <td class="cpd-td-mono">466.1992</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5115 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/brevione-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/conidiogenone-b.html">Conidiogenone B</a></td>
+  <td class="cpd-td-mono">C20H30O</td>
+  <td class="cpd-td-mono">286.2297</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/conidiogenone-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/contignasterol.html">Contignasterol</a></td>
+  <td class="cpd-td-mono">C29H48O7</td>
+  <td class="cpd-td-mono">508.3400</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Petrosia contignata</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(27-37 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/contignasterol.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/crambescidin-800.html">Crambescidin 800</a></td>
+  <td class="cpd-td-mono">C45H80N6O6</td>
+  <td class="cpd-td-mono">800.6139</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Crambe sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(452 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Triterpene</td>
+  <td><a href="../1-Compounds/crambescidin-800.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/crannenol-b.html">Crannenol B</a></td>
+  <td class="cpd-td-mono">C17H26O2</td>
+  <td class="cpd-td-mono">262.1933</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Acanella arbuscula</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000–11000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/crannenol-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/crannenol-c.html">Crannenol C</a></td>
+  <td class="cpd-td-mono">C17H26O3</td>
+  <td class="cpd-td-mono">278.1882</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Acanella arbuscula</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000–11000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/crannenol-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/decadienal.html">Decadienal</a></td>
+  <td class="cpd-td-mono">C10H16O</td>
+  <td class="cpd-td-mono">152.1201</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pelagic Sargassum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(2 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Monoterpene</td>
+  <td><a href="../1-Compounds/decadienal.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/decumbenone-a.html">Decumbenone A</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">280.1675</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2076 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/decumbenone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/decumbenone-b.html">Decumbenone B</a></td>
+  <td class="cpd-td-mono">C16H26O4</td>
+  <td class="cpd-td-mono">282.3700</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2076 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/decumbenone-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/diaporindene-e.html">Diaporindene E</a></td>
+  <td class="cpd-td-mono">C25H28O5</td>
+  <td class="cpd-td-mono">408.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/diaporindene-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/diaporindene-f.html">Diaporindene F</a></td>
+  <td class="cpd-td-mono">C25H28O5</td>
+  <td class="cpd-td-mono">408.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/diaporindene-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/diaporindene-g.html">Diaporindene G</a></td>
+  <td class="cpd-td-mono">C25H28O5</td>
+  <td class="cpd-td-mono">408.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/diaporindene-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/diaporindene-h.html">Diaporindene H</a></td>
+  <td class="cpd-td-mono">C25H28O5</td>
+  <td class="cpd-td-mono">408.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/diaporindene-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/discodermolide.html">(+)-Discodermolide</a></td>
+  <td class="cpd-td-mono">C33H55NO8</td>
+  <td class="cpd-td-mono">593.3928</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Discodermia dissoluta</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(30–1200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Triterpene</td>
+  <td><a href="../1-Compounds/discodermolide.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/discorhabdin-u.html">Discorhabdin U</a></td>
+  <td class="cpd-td-mono">C20H16BrN3O2S</td>
+  <td class="cpd-td-mono">441.0147</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Batzella sp.</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(569–3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/discorhabdin-u.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/emerixanthone-a.html">Emerixanthone A</a></td>
+  <td class="cpd-td-mono">C25H27ClO6</td>
+  <td class="cpd-td-mono">458.1496</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Emericella sp. SCSIO 05240</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/emerixanthone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/emerixanthone-b.html">Emerixanthone B</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">422.1729</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Emericella sp. SCSIO 05240</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/emerixanthone-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/emerixanthone-c.html">Emerixanthone C</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">468.2148</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Emericella sp. SCSIO 05240</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/emerixanthone-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/engyodontiumone-j.html">Engyodontiumone J</a></td>
+  <td class="cpd-td-mono">C15H20O4</td>
+  <td class="cpd-td-mono">264.3200</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Engyodontium album DFFSCS021</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3739 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/engyodontiumone-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/epinardin-d.html">Epinardin D</a></td>
+  <td class="cpd-td-mono">C19H19Br2N3O3</td>
+  <td class="cpd-td-mono">494.9793</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Epicoccum nigrum</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(115–200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/epinardin-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-b.html">Eutypeterpene B</a></td>
+  <td class="cpd-td-mono">C15H24O4</td>
+  <td class="cpd-td-mono">268.35</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-c.html">Eutypeterpene C</a></td>
+  <td class="cpd-td-mono">C15H22O4</td>
+  <td class="cpd-td-mono">266.33</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-d.html">Eutypeterpene D</a></td>
+  <td class="cpd-td-mono">C15H22O3</td>
+  <td class="cpd-td-mono">250.33</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-e.html">Eutypeterpene E</a></td>
+  <td class="cpd-td-mono">C15H22O3</td>
+  <td class="cpd-td-mono">250.33</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-f.html">Eutypeterpene F</a></td>
+  <td class="cpd-td-mono">C15H24O3</td>
+  <td class="cpd-td-mono">252.35</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-g.html">Eutypeterpene G</a></td>
+  <td class="cpd-td-mono">C15H24O2</td>
+  <td class="cpd-td-mono">236.35</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-h.html">Eutypeterpene H</a></td>
+  <td class="cpd-td-mono">C15H24O2</td>
+  <td class="cpd-td-mono">236.35</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-h.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-i.html">Eutypeterpene I</a></td>
+  <td class="cpd-td-mono">C15H24O2</td>
+  <td class="cpd-td-mono">236.3550</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-i.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-j.html">Eutypeterpene J</a></td>
+  <td class="cpd-td-mono">C15H26O3</td>
+  <td class="cpd-td-mono">254.3700</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-k.html">Eutypeterpene K</a></td>
+  <td class="cpd-td-mono">C15H24O3</td>
+  <td class="cpd-td-mono">252.3540</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-k.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-l.html">Eutypeterpene L</a></td>
+  <td class="cpd-td-mono">C15H24O3</td>
+  <td class="cpd-td-mono">252.3540</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-l.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-m.html">Eutypeterpene M</a></td>
+  <td class="cpd-td-mono">C15H24O2</td>
+  <td class="cpd-td-mono">236.3550</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-n.html">Eutypeterpene N</a></td>
+  <td class="cpd-td-mono">C15H26O2</td>
+  <td class="cpd-td-mono">238.3710</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-n.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-o.html">Eutypeterpene O</a></td>
+  <td class="cpd-td-mono">C15H24O2</td>
+  <td class="cpd-td-mono">236.3550</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-o.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-p.html">Eutypeterpene P</a></td>
+  <td class="cpd-td-mono">C15H26O2</td>
+  <td class="cpd-td-mono">238.3710</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-p.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/eutypeterpene-q.html">Eutypeterpene Q</a></td>
+  <td class="cpd-td-mono">C15H26O2</td>
+  <td class="cpd-td-mono">238.3710</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Eutypella sp. MCCC 3A00281</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(5610 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/eutypeterpene-q.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/fumagillin.html">Fumagillin</a></td>
+  <td class="cpd-td-mono">C26H34O7</td>
+  <td class="cpd-td-mono">458.2305</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Aspergillus fumigatus</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000–11000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/fumagillin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/griseofulvin.html">Griseofulvin</a></td>
+  <td class="cpd-td-mono">C17H17ClO6</td>
+  <td class="cpd-td-mono">352.0714</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium griseofulvum MCCC 3A00225</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(1420 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/griseofulvin.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/harzianol-j.html">Harzianol J</a></td>
+  <td class="cpd-td-mono">C20H30O2</td>
+  <td class="cpd-td-mono">302.2246</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Trichoderma sp. SCSIOW21</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2134 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/harzianol-j.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/harzianol-m.html">Harzianol M</a></td>
+  <td class="cpd-td-mono">C20H30O4</td>
+  <td class="cpd-td-mono">334.2144</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Trichoderma sp. SCSIOW21</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/harzianol-m.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/harzianol-n.html">Harzianol N</a></td>
+  <td class="cpd-td-mono">C19H26O4</td>
+  <td class="cpd-td-mono">318.1831</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Trichoderma sp. SCSIOW21</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/harzianol-n.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/harzianol-o.html">Harzianol O</a></td>
+  <td class="cpd-td-mono">C20H30O3</td>
+  <td class="cpd-td-mono">318.2195</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Trichoderma sp. SCSIOW21</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/harzianol-o.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/hawatide-b.html">Hawatide B</a></td>
+  <td class="cpd-td-mono">C16H26O3</td>
+  <td class="cpd-td-mono">266.3800</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Paraconiothyrium hawaiiense FS482</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4461 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/hawatide-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/hydroxysydonic-acid.html">Hydroxysydonic acid</a></td>
+  <td class="cpd-td-mono">C15H22O5</td>
+  <td class="cpd-td-mono">282.3300</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Engyodontium album DFFSCS021</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3739 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/hydroxysydonic-acid.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/isobisvertinol.html">Isobisvertinol</a></td>
+  <td class="cpd-td-mono">C28H34O8</td>
+  <td class="cpd-td-mono">498.2254</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium griseofulvum MCCC 3A00181</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/isobisvertinol.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/lithocaldehyde-b.html">Lithocaldehyde B</a></td>
+  <td class="cpd-td-mono">C25H28O5</td>
+  <td class="cpd-td-mono">408.1937</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/lithocaldehyde-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/lithocarin-a.html">Lithocarin A</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">430.2719</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesterterpene</td>
+  <td><a href="../1-Compounds/lithocarin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/lithocarlactam-a.html">Lithocarlactam A</a></td>
+  <td class="cpd-td-mono">C20H23NO6</td>
+  <td class="cpd-td-mono">373.4050</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/lithocarlactam-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/lithocarpinol-a.html">Lithocarpinol A</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">424.1886</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/lithocarpinol-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/marfuraquinocin-a.html">Marfuraquinocin A</a></td>
+  <td class="cpd-td-mono">C27H34O5</td>
+  <td class="cpd-td-mono">438.2406</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Streptomyces niveus SCSIO 3406</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3536 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Meroterpenoid</td>
+  <td><a href="../1-Compounds/marfuraquinocin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/methyl-2s-hydroxy-3-methylbutanoyl-l-leucinate.html">Methyl (2S)-hydroxy-3-methylbutanoyl-L-leucinate</a></td>
+  <td class="cpd-td-mono">C12H23NO4</td>
+  <td class="cpd-td-mono">245.1627</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium griseofulvum MCCC 3A00225</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3034 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/methyl-2s-hydroxy-3-methylbutanoyl-l-leucinate.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/neocucurbin-a.html">Neocucurbin A</a></td>
+  <td class="cpd-td-mono">C20H30O5</td>
+  <td class="cpd-td-mono">350.4</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Neocucurbitaria unguis-hominis FS685</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3698 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpenoid</td>
+  <td><a href="../1-Compounds/neocucurbin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/ochuscin-f.html">Ochuscin F</a></td>
+  <td class="cpd-td-mono">C20H28O7</td>
+  <td class="cpd-td-mono">380.4370</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Ochroconis sp. FS449</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4602 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/ochuscin-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/ochuscin-g.html">Ochuscin G</a></td>
+  <td class="cpd-td-mono">C20H28O8</td>
+  <td class="cpd-td-mono">396.4360</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Ochroconis sp. FS449</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Hadal &lt;br&gt;(4602 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/ochuscin-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/peniciversiol-a.html">Peniciversiol A</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">276.1362</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2076 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/peniciversiol-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/peniciversiol-c.html">Peniciversiol C</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">278.1518</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2076 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/peniciversiol-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/photeroid-a.html">Photeroid A</a></td>
+  <td class="cpd-td-mono">C23H32O3</td>
+  <td class="cpd-td-mono">356.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/photeroid-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/photeroid-b.html">Photeroid B</a></td>
+  <td class="cpd-td-mono">C23H30O2</td>
+  <td class="cpd-td-mono">338.5000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis tersa FS441</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/photeroid-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/radiclonic-acid.html">radiclonic acid</a></td>
+  <td class="cpd-td-mono">C23H40O5</td>
+  <td class="cpd-td-mono">396.2876</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Penicillium chrysogenum MCCC 3A00292</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2076 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/radiclonic-acid.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/salinosporamide-c.html">Salinosporamide C</a></td>
+  <td class="cpd-td-mono">C14H18ClNO3</td>
+  <td class="cpd-td-mono">283.0975</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Salinispora tropica CNB-392</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(1000 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Sesquiterpene</td>
+  <td><a href="../1-Compounds/salinosporamide-c.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/scrobiculoside-a.html">Scrobiculoside A</a></td>
+  <td class="cpd-td-mono">C39H62O13</td>
+  <td class="cpd-td-mono">738.9</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Pachastrella scrobiculosa</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Shallow &lt;br&gt;(0–200 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Steroid</td>
+  <td><a href="../1-Compounds/scrobiculoside-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/sesterchaetin-a.html">Sesterchaetin A</a></td>
+  <td class="cpd-td-mono">C25H42O3</td>
+  <td class="cpd-td-mono">390.3134</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum SD-347</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2476 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/sesterchaetin-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/sesterchaetin-b.html">Sesterchaetin B</a></td>
+  <td class="cpd-td-mono">C25H42O3</td>
+  <td class="cpd-td-mono">390.3134</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Chaetomium globosum SD-347</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(2476 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/sesterchaetin-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/shamixanthone.html">Shamixanthone</a></td>
+  <td class="cpd-td-mono">C25H26O5</td>
+  <td class="cpd-td-mono">406.5</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Emericella sp. SCSIO 05240</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3258 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/shamixanthone.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/sollasin-e.html">Sollasin E</a></td>
+  <td class="cpd-td-mono">C18H28O2</td>
+  <td class="cpd-td-mono">276.2089</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Poecillastra sollasi</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Slope &lt;br&gt;(375 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/sollasin-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/talaperoxide-b.html">Talaperoxide B</a></td>
+  <td class="cpd-td-mono">C16H24O5</td>
+  <td class="cpd-td-mono">296.3630</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Talaromyces flavus</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3471 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Norsesquiterpene</td>
+  <td><a href="../1-Compounds/talaperoxide-b.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-a.html">Tenellone A</a></td>
+  <td class="cpd-td-mono">C25H30O7</td>
+  <td class="cpd-td-mono">442.5000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/tenellone-a.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-d.html">Tenellone D</a></td>
+  <td class="cpd-td-mono">C25H40O3</td>
+  <td class="cpd-td-mono">408.1937</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/tenellone-d.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-e.html">Tenellone E</a></td>
+  <td class="cpd-td-mono">C25H28O6</td>
+  <td class="cpd-td-mono">424.1886</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/tenellone-e.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-f.html">Tenellone F</a></td>
+  <td class="cpd-td-mono">C25H28O6</td>
+  <td class="cpd-td-mono">424.1886</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/tenellone-f.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-g.html">Tenellone G</a></td>
+  <td class="cpd-td-mono">C25H28O6</td>
+  <td class="cpd-td-mono">424.1886</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Diterpene</td>
+  <td><a href="../1-Compounds/tenellone-g.html" class="cpd-td-link">View →</a></td>
+</tr><tr>
+  <td class="cpd-td-name"><a href="../1-Compounds/tenellone-h.html">Tenellone H</a></td>
+  <td class="cpd-td-mono">C20H20O5</td>
+  <td class="cpd-td-mono">340.4000</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Phomopsis lithocarpus FS508</td>
+  <td style="font-size:12px;color:var(--text-secondary)">Deep &lt;br&gt;(3606 m)</td>
+  <td style="font-size:12px;color:var(--text-muted)">Benzophenone</td>
+  <td><a href="../1-Compounds/tenellone-h.html" class="cpd-td-link">View →</a></td>
+</tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
