@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>References — Deep-Sea Compound Database</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#0077b6;--primary-hover:#005f8c;--primary-light:rgba(0,119,182,0.08);
+  --bg-page:#f5f0f8;--bg-content:#ffffff;--bg-card:#faf8fc;
+  --border:#dde4ec;--border-light:#e8edf4;
+  --text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;
+  --shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);
+  --radius-sm:6px;--radius-md:8px;--radius-lg:12px;
+  --font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Playfair Display',serif
+}
+body{font-family:var(--font-sans);background:var(--bg-page);color:var(--text-primary);line-height:1.65;min-height:100vh;-webkit-font-smoothing:antialiased;display:flex}
+.side-nav{position:fixed;top:0;left:0;width:200px;height:100vh;background:var(--bg-content);border-right:1px solid var(--border);padding:28px 0;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.nav-header{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-primary);line-height:1.3}
+.nav-title em{color:var(--primary);font-style:normal}
+.nav-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.nav-items{list-style:none;padding:0;margin:0;flex:1}
+.nav-items li a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:all .15s;border-left:2px solid transparent}
+.nav-items li a:hover{color:var(--text-primary);background:var(--bg-card)}
+.nav-items li a.active{color:var(--primary);border-left-color:var(--primary);background:var(--primary-light);font-weight:500}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.35;flex-shrink:0}
+.nav-footer{padding:12px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);margin-top:auto;text-align:center}
+.main-content{margin-left:200px;flex:1;min-width:0;background:var(--bg-page);min-height:100vh}
+.page-inner{max-width:1100px;padding:20px 28px 60px}
+.ref-header{background:linear-gradient(135deg,#e8eaf6 0%,#f3e5f5 40%,#e0f2f1 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;margin-bottom:20px;position:relative;overflow:hidden}
+.ref-header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 400px 200px at 15% 30%,rgba(63,81,181,0.03) 0%,transparent 70%),radial-gradient(ellipse 300px 200px at 80% 20%,rgba(0,150,136,0.02) 0%,transparent 70%);pointer-events:none}
+.ref-header-inner{position:relative;z-index:1;padding:24px 28px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.ref-header-left{flex:1;min-width:200px}
+.ref-header-title{font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--text-primary);margin:0 0 4px}
+.ref-header-sub{font-size:14px;color:var(--text-muted)}
+.ref-header-stats{display:flex;gap:10px;flex-wrap:wrap}
+.ref-header-stat{background:rgba(255,255,255,.7);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.5);border-radius:var(--radius-md);padding:10px 16px;text-align:center;min-width:72px}
+.ref-header-stat-value{font-size:22px;font-weight:700;color:var(--text-primary)}
+.ref-header-stat-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.ref-header-trend{padding:0 28px 16px;position:relative;z-index:1}
+.trend-bar-container{display:flex;align-items:flex-end;gap:2px;height:50px}
+.trend-bar{flex:1;min-width:3px;border-radius:2px 2px 0 0;transition:opacity .2s;cursor:pointer}
+.trend-bar:hover{opacity:.8}
+.trend-legend{display:flex;gap:12px;font-size:11px;color:var(--text-muted);margin-top:6px;flex-wrap:wrap}
+.year-jump{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:20px}
+.year-jump a{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:5px;font-size:12px;font-weight:500;color:var(--text-secondary);text-decoration:none;transition:all .12s;background:var(--bg-content)}
+.year-jump a:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.ref-year-section{margin-bottom:24px}
+.ref-year-heading{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-primary);padding:0 0 8px;border-bottom:2px solid var(--border);margin:0 0 12px;display:flex;align-items:center;gap:10px}
+.ref-year-count{font-size:13px;background:var(--primary-light);color:var(--primary);padding:1px 10px;border-radius:6px;font-weight:600;font-family:var(--font-sans)}
+.ref-list{list-style:none;padding:0;margin:0}
+.ref-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light);transition:background .1s}
+.ref-item:hover{background:var(--bg-card);margin:0 -10px;padding:8px 10px;border-radius:var(--radius-sm)}
+.ref-num{font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-muted);min-width:36px;text-align:right;flex-shrink:0;padding-top:2px}
+.ref-text{flex:1;font-size:13px;color:var(--text-secondary);line-height:1.6}
+.ref-links{display:inline;white-space:nowrap;margin-left:4px}
+.ref-link-pmid{display:inline-block;padding:1px 7px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:500;color:var(--primary);text-decoration:none;transition:all .12s;font-family:var(--font-mono)}
+.ref-link-pmid:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.ref-link-doi{display:inline-block;padding:1px 7px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:500;color:#2e7d32;text-decoration:none;transition:all .12s;font-family:var(--font-mono)}
+.ref-link-doi:hover{background:#2e7d32;color:#fff;border-color:#2e7d32}
+</style>
+</head>
+<body>
+
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="browse-references.html" class="active"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · 641 references</div>
+</nav>
+
+
+<div class="main-content">
+  <div class="page-inner">
+
+    <div class="ref-header">
+      <div class="ref-header-inner">
+        <div class="ref-header-left">
+          <h1 class="ref-header-title">References · 参考文献</h1>
+          <p class="ref-header-sub">All references cited in the Deep-Sea Compound Database</p>
+        </div>
+        <div class="ref-header-stats">
+          <div class="ref-header-stat">
+            <div class="ref-header-stat-value">641</div>
+            <div class="ref-header-stat-label">Refs</div>
+          </div>
+          <div class="ref-header-stat">
+            <div class="ref-header-stat-value">44</div>
+            <div class="ref-header-stat-label">Years</div>
+          </div>
+          <div class="ref-header-stat">
+            <div class="ref-header-stat-value">571</div>
+            <div class="ref-header-stat-label">With PMID</div>
+          </div>
+          <div class="ref-header-stat">
+            <div class="ref-header-stat-value">82</div>
+            <div class="ref-header-stat-label">With DOI</div>
+          </div>
+        </div>
+      </div>
+      <div class="ref-header-trend" id="trend-chart"></div>
+    </div>
+
+    <div class="year-jump" id="year-jump"></div>
+
+    <div id="refs-container"></div>
+
+  </div>
+</div>
+
+
+<script>
+(function(){
+  'use strict';
+
+  var REFS_DATA = [
+{y:2026,t:'Alam T et al. (2026). Bioactive metabolites of UV-resistant Streptomyces alkaliterrae CH-8 and their antioxidant and antibiofilm potential. Sci Rep',p:'42162192',d:''},
+{y:2026,t:'Barter IK et al. (2026). ClpC1-targeting peptide natural products differentially dysregulate the proteome of Mycobacterium tuberculosis. Nat Commun 17(1):1725',p:'41611701',d:''},
+{y:2026,t:'Cai G, Wang Z, Tong W, Qin H, Li P, Qin Y, et al. (2026). Lightweight, Strong, and Resilient 3D Graphene Metamaterial via a Multi-flow Assembly. Advanced materials (Deerfield Beach, Fla.). :e73453',p:'42163532',d:''},
+{y:2026,t:'Deepak P, Wong S, Parian AM, Sun M, Nazarey P, Cazzetta S, et al. (2026). Impact of Crohn\'s perianal fistulas on healthcare resource utilization: a US chart review study. Journal of medical economics. 29(1):1431-1444',p:'42267525',d:''},
+{y:2026,t:'Gao Q, Dai X, Ye J, Li L, Yu C, Jiang Y, et al. (2026). Interfacial Proton-Relay Microenvironment Enables Self-Driven Singlet Oxygen Generation under Neutral Conditions.. Adv Sci (Weinh). :e76027',p:'42267528',d:''},
+{y:2026,t:'Geng B., Lin S., Yim W., Sun W., Zhang X., et al. (2026). Emestrin-Type Epidithiodiketopiperazines Inhibited Gasdermin D-Mediated Pyroptosis via Caspase-3/7 Activation. MedComm (2020), 7(1): e70548',p:'41536519',d:''},
+{y:2026,t:'Jimenez MP, Rojas-Saunero LP, Reimer CJ, Suel E, Lin PD, Hystad P, et al. (2026). Streetview greenspace types and dementia risk in older adults: The Multi-Ethnic Study of Atherosclerosis. American journal of epidemiology',p:'42267521',d:''},
+{y:2026,t:'Johansson K, Arvidsson I, Wendler M, Kristoffersson AC, Karpman D. (2026). Cellular signaling pathway of Shiga toxin-induced ATP release.. Front Cell Infect Microbiol. 16:1705239',p:'41809984',d:''},
+{y:2026,t:'Latrache M, Sesay A, Oger S, et al. (2026). Bioinspired total synthesis of (dibromo)sceptrin and (dibromo)ageliferin. Chem Commun (Camb). 62(41):10418-22',p:'42108805',d:''},
+{y:2026,t:'Lin J, Guo Y, Wang J, Wang F, Liu L. (2026). New Pyridinone Alkaloid and Polyketide from the Cordyceps-Colonizing Fungus Pseudogymnoascus roseus. Biomolecules. 16(2)',p:'41750258',d:'10.3390/biom16020187'},
+{y:2026,t:'Lin SK et al. (2026). Ligand-dependent corepressor suppresses angiogenesis and macrophage infiltration in gliobl astoma microenvironment via MCP-1 down-regulation. BMC Biotechnol',p:'42151892',d:''},
+{y:2026,t:'Liu C., Ribeiro M., Yang J., Li L., Li J., et al. (2026). Multi-omics profiling of fungal balls in chronic pulmonary aspergillosis patients reveals microbiome dynamics and metabolic adaptations. mBio: e0034826',p:'42084394',d:''},
+{y:2026,t:'Liu S, Guan X, Wei C, Huang Q, Yan X, Zenobi R. (2026). Noninvasive Analysis of Skin Emanations during Cupping Therapy by Thin-Film Solid-Phase Microextraction and Dielectric Barrier Discharge Ionization Mass Spectrometry. Analytical chemistry',p:'42267511',d:''},
+{y:2026,t:'Magann NL, Barnes GL, Schioldager R, Hörmann FM, Muñoz R, Han H, et al. (2026). Optimized Biomimetic Syntheses of Discorhabdin B and Aleutianamine Drives a Deeper Exploration of Their Anticancer Potential. Journal of the American Chemical Society. 148(22):23280-23292',p:'42212535',d:''},
+{y:2026,t:'Maruyama K, Nakamura K, Yasukochi M, Ohashi H, Nakajima S, Saitoh S, et al. (2026). Roquefortine C Isolated from a Quail Feces-Derived Fungus Exhibits Aryl Hydrocarbon Receptor Antagonistic and Broad-Spectrum Antiviral Activities. Bioscience, biotechnology, and biochemistry',p:'42138644',d:''},
+{y:2026,t:'Mills K, Belt M, Goosen JHM, Van Hellemondt GG, Heesterbeek PJC. (2026). Early migration following revision total knee arthroplasty with tibial metaphyseal cones: a 2-year prospective RSA cohort study of 25 patients. Acta orthopaedica. 97:374-382',p:'42267510',d:''},
+{y:2026,t:'Na C, Shi X, Fu J (2026). Pectic polysaccharides from Mongolian medicinal Hypecoum leptocarpum: Structure and ulcerative colitis amelioration via gut microbiota and intestinal inflammation regulation',p:'41371856',d:''},
+{y:2026,t:'Naidoo V, Achilonu I, Soobben M, Iwuchukwu E, Singh N, Kandhavelu J, et al. (2026). An Evaluation of the Interaction of Brefeldin A with Mitogen-Activated Protein Kinase 1 (MAPK1) and Protein Kinase C Alpha (PrKCα): Insights from Molecular Modelling Studies. International journal of molecular sciences. 27(7)',p:'41977419',d:''},
+{y:2026,t:'Pathak S. (2026). Unmasking Hemophagocytic Lymphohistiocytosis After Minimal Tumor Necrosis Factor-Alpha (TNF-α) Blockade: An Interplay of Contributing Elements. Cureus. 18(1):e101174',p:'41664746',d:''},
+{y:2026,t:'Rodríguez-Estévez D, Gil-Durán C, Silva R, Palma D, Vaca I, Chávez R. (2026). CRISPR/Cas9-mediated development of Penicillium roqueforti strains deficient in roquefortine C and mycophenolic acid enables toxin-free blue cheese production. International journal of food microbiology. 446:111535',p:'41308487',d:''},
+{y:2026,t:'Sahm B., Florêncio K., Pinto F., Maia A., Rocha C., et al. (2026). Anticancer Potential of Piericidin A1 and Derivatives Isolated From Streptomyces sp. Associated With Palythoa variabilis From Brazilian Reefs. Chem Biodivers, 23(4): e03815',p:'',d:''},
+{y:2026,t:'Song X, Ji Y, Cong M, et al. (2026). Identification of Marine-Derived Compounds with Potent Antiviral Activity in a Recombinant HBV cccDNA Cell Model.ACS Omega. 11(5):8222-8230',p:'41696231',d:''},
+{y:2026,t:'Uma A, Kumar SS. (2026). Enhancing wastewater treatment for industrial sludge remediation using nanomaterials. Journal of environmental science and health. Part A, Toxic/hazardous substances & environmental engineering. :1-14',p:'42267515',d:''},
+{y:2026,t:'Wang F, Bao B, Yang L, Yang X, Yu F, Zhang H, et al. (2026). Collective Total Synthesis of Ergot Alkaloids.. Org Lett. 28(14):4524-4530',p:'41914644',d:''},
+{y:2026,t:'Xian L, Li R, Liu X, et al. (2026). 16,17-Dihydro-ophiobolin X: a novel cytotoxic sesterterpenoid from the endophyte Penicillium ochrochloron YT2022-65. Nat Prod Res. :1-6',p:'42234988',d:''},
+{y:2026,t:'Xie D, Li P, Zhang L, Shang R, Li J, Liu K, et al. (2026). Penicipenoids A-G, antioxidant and anti-inflammatory cadinane sesquiterpenoids with rearranged carbon skeletons from the marine sponge symbiotic Penicillium sp. 5975. Chinese journal of natural medicines. 24(5):632-640',p:'42062035',d:''},
+{y:2026,t:'Yang J, Li Q, Zhao S, Wu Z, Zhang TJ, Chen Z, et al. (2026). Molecular Diagnostic Yield of Exome Sequencing and Genome Sequencing in Critical Ill Neonates and Infants: A Systematic Review and Meta-Analysis. Genetics in medicine : official journal of the American College of Medical Genetics. :102627',p:'42267533',d:''},
+{y:2026,t:'Zhang H et al. (2026). The PI4K2A-OSBPL6/ORP6-PS axis mediates lysosomal membrane repair to restore neuronal lipid homeostasis and promote neuronal survival after spinal cord injury. Autophagy 22(5):938-962',p:'41556583',d:''},
+{y:2026,t:'Zhang W, Xue Q, Ma D, Zhao X. (2026). Enantioselective Total Syntheses of (+)-Aconicarmichinium C and (+)-Pendulumine I: Strategic Use of a Bridgehead Enone via a Kinetic-Resolution-Enabled Intermolecular Diels-Alder Reaction. Journal of the American Chemical Society',p:'42267522',d:''},
+{y:2026,t:'Zhao X, Zou Z, Lin Y, Ma K, Xie C, Li L, et al. (2026). Ferroptosis-inhibitory compounds from the deep-sea-derived Penicillium sp. Bioorganic chemistry. 171:109574',p:'41619440',d:'10.1016/j.bioorg.2026.109574'},
+{y:2026,t:'Zhu YC, Xie QY, Ma QY (2026). Micromonospora yongxingensis sp. nov., isolated from marine sediment.. Int J Syst Evol Microbiol',p:'',d:'10.1099/ijsem.0.007170'},
+{y:2025,t:'Anh DV, Anh DH, Vien LT, Huong PTM, Cuong NX, Ngan NTT, et al. (2025). An Oxazole Alkaloid, Terpenoids, and Cyclodipeptides With Cytotoxic and Nitric Oxide Inhibitory Effects From a Mangrove-Derived Fungus Trichoderma sp. GXT-22.1. Chemistry & biodiversity. 22(5):e202402986',p:'39671217',d:'10.1002/cbdv.202402986'},
+{y:2025,t:'Berger M., Deharde M., Neuhoff J., Monien B., Siodlaczek S., et al. (2025). Mycotoxins - Determination of aflatoxins, ochratoxin A, free ochratoxin α, gliotoxin, citrinin, and dihydrocitrinone in urine by LC-MS/MS: Biomonitoring Method - Translation of the German version from 2025. MAK Collect Occup Health Saf, 10(2): Doc045',p:'41973598',d:''},
+{y:2025,t:'Buonsenso F, Meloni GR, Spadaro D (2025). Detection of Penicillium-Toxins in Nuts Commercialized in Italy Through LC-MS/MS Analyses. Toxins (Basel) 18(1)',p:'41591158',d:''},
+{y:2025,t:'Duvnjak M, Talajić G, Baranašić J, et al. (2025). Total Synthesis of (+)-Penicyclone A and Evaluation of Biological Activity Including Intermediate Compounds. International Journal of Molecular Sciences. 26(14):6643',p:'40724893',d:''},
+{y:2025,t:'Fan Y et al. (2025). Cytotoxic Mechanism of Deep-Sea Fungus Chaetomium globosum YP-106 Metabolite Chaetomugilin O in Thyroid Cancer Cells. Mar Drugs 23(10)',p:'41149573',d:''},
+{y:2025,t:'Fenton TR, Alshaikh B, Kusuda S, Helenius K, Modi N, Norman M, et al. (2025). Birth weight and head circumference for 22-29 weeks gestation neonates from an international cohort. Archives of disease in childhood. Fetal and neonatal edition. 110(4):401-408',p:'39762001',d:''},
+{y:2025,t:'Gao Y et al. (2025). Mutations in ClpC1 or ClpX subunit of caseinolytic protease confer resistance to ilamycins in mycobacteria. Commun Biol 8(1):1219',p:'40804467',d:''},
+{y:2025,t:'Gao H, Yu D, Luo Q, Wang Y, Lu L, et al. (2025). A unique mechanism involving cocatalysis of enzyme and nonenzyme to form β-carboline and spirotryprostatins in Aspergillus fumigatus. Sci Adv, 11(41): eadz2319',p:'41071895',d:''},
+{y:2025,t:'Hamami SMA, Riswana FR, Fitri LE, et al. (2025). In Silico Screening of Streptomyces sp. Metabolites Targeting P. falciparum DHODH and DPCK for Antimalarial Discovery.Biologics, 19:681-705',p:'41277945',d:''},
+{y:2025,t:'Hua W, Fei Q, Liu H, Wu J, Qi J, Wang Y, et al. (2025). Formation of (E,E)-2,4-decadienal in sugar-smoked chicken thighs via lipidomics, flavoromics, and free radical analysis. Food Chem X. 32:103307',p:'41399775',d:''},
+{y:2025,t:'Ichikawa K., Johnson H., Curtis M., Biswas N., Singh S., et al. (2025). Targeting glioma with heteroaromatic alkaloids: A review of potential therapeutics. Bioorg Med Chem, 121: 118051',p:'39999647',d:''},
+{y:2025,t:'Kim JT, Cheon WS, Lee S, Goh J, Lee CS, Mun HY. (2025). Characterization of Antimicrobial Compounds from Trichoderma flavipes Isolated from Freshwater Environments. Journal of fungi (Basel, Switzerland). 11(12)',p:'41440683',d:'10.3390/jof11120857'},
+{y:2025,t:'Liu Z., Gao C., Cheng S., Zhu W., Fu P. (2025). Bioinspired One-Step Oxidative Cleavage of Paxilline Enables Rapid Generation of Indole Diterpenoid Derivatives with Antibiofilm Activity. Org Lett, 27(38): 10825-10830',p:'40963329',d:''},
+{y:2025,t:'Liu Z, Yiu B, Basso P, Chen X, Patel D, Davie T, et al. (2025). Sterol-C4-methyl-oxidase Erg251 governs Candida albicans hypoxic growth, commensalism and virulence. Nature communications. 16(1):11479',p:'41387683',d:''},
+{y:2025,t:'Lv Y, Song W, Shao Z, et al. (2025). Breviane Spiroditerpenoids with Anti-inflammatory and Antiviral Activities from Deep-Sea-Derived Fungus Penicillium sp. F59. J Nat Prod. 88(1):67-79',p:'39688844',d:''},
+{y:2025,t:'Pansomsuay R, Fukasem P, Pittayakhajonwut P, Intaraudom C, Suriyachadkun C, Yasawong M, et al. (2025). Discovery of Streptomyces marinisediminis sp. nov., a new thiolutin producing actinomycete isolated from Thai marine sediment. Scientific reports. 15(1):29301',p:'40790075',d:''},
+{y:2025,t:'Runnebohm AM et al. (2025). Unraveling systemic responses to NQO1-activated IB-DNQ and Rucaparib single and dual agent therapy in triple-negative breast cancers. bioRxiv',p:'38798459',d:''},
+{y:2025,t:'Sama-Ae I et al. (2025). Penicillium-Derived Inhibitors of Plasmodium falciparum Lactate Dehydrogenase (PfLDH): A Computational Approach for Novel Antimalarial Therapy Development. Scientifica (Cairo) 2025:8838031',p:'40791280',d:''},
+{y:2025,t:'Shaaban M, Abdelwahab AB, El-Hagrassi AM (2025). Anti-Helicobacter pylori activity of diverse bioactive compounds from Sarcophyton glaucum-derived fungi: biological activity and molecular docking studies. Nat Prod Res :1-6',p:'40381654',d:''},
+{y:2025,t:'Shabbir F, Mishra VK, Noor S, Nath S, Khan MU, Fawy KF, et al. (2025). Computer-aided screening of marine fungal metabolites as potential inhibitors of new Delhi metallo-beta-lactamase-1. Sci Rep 15(1):33997',p:'41028780',d:''},
+{y:2025,t:'Shimomura M, Kanno Y, Kitao S, Horie M, Ide K, Sakata J, et al. (2025). Concise Total Synthesis of (±)-Makaluvamine F and Its Derivatives. Chemical & pharmaceutical bulletin. 73(10):927-932',p:'41033974',d:''},
+{y:2025,t:'Xu Z, Xie M, Xie C, Yang X, Wang J. (2025). Deep-Sea-Derived Isobisvertinol Targets TLR4 to Exhibit Neuroprotective Activity via Anti-Inflammatory and Ferroptosis-Inhibitory Effects. Marine drugs. 23(1)',p:'39852551',d:''},
+{y:2025,t:'Yang B., Wang Q., Zhu J. (2025). Total Synthesis of Discobahamin A and Putative Structure of Discobahamin B via an Isocyanide-based Macrocyclization Reaction. Angew Chem Int Ed Engl, 64(10): e202419383',p:'8158168',d:''},
+{y:2025,t:'Zare A., Afshar A., Mussin N., Kaliyev A., Aringazina R., et al. (2025). Uncovering Novel Anti-Lung Cancer Compounds: Insights from Marine Sponge-Derived Agents: A Bibliometric Review. Iran J Med Sci, 50(5): 278-303',p:'8496702',d:''},
+{y:2025,t:'Zein L et al. (2025). Linear ubiquitination at damaged lysosomes induces local NFKB activation and controls cell survival. Autophagy 21(5):1075-1095',p:'39744815',d:''},
+{y:2025,t:'Zhang L., Chao W., Tan C., Dou Z., Qiu F., et al. (2025). Secondary Metabolites of the Lichen J Nat Prod, 88(2): 513-521',p:'',d:''},
+{y:2025,t:'Zhang X et al. (2025). Genome Mining-Guided Discovery of Two New Depsides from Talaromyces sp. HDN1820200. Mar Drugs 23(3)',p:'40137316',d:'10.3390/md23030130'},
+{y:2025,t:'Zhou YD, Mahdi F, Nagle NM, et al. (2025). Mechanistic Investigation of Adociaquinone and Xestoquinone Derivatives in Breast Cancer Cells. Mar Drugs. 23(12)',p:'41440898',d:'10.3390/md23120464'},
+{y:2024,t:'Abdelmegeed H et al. (2024). Anti colorectal cancer activity and in silico studies of novel pyridine nortopsentin analog as cyclin dependent kinase 6 inhibitor. Sci Rep 14(1):26327',p:'39487179',d:''},
+{y:2024,t:'Campbell RAS, Thevathasan T, Wong DJN, Wilson AM, Lindsay HA, Campbell D, et al. (2024). Critical care unit bed availability and postoperative outcomes: a multinational cohort study. Anaesthesia. 79(11):1165-1179',p:'39326458',d:''},
+{y:2024,t:'Fan H., Shao X., Zhang Z., Ni C., Feng C., et al. (2024). Penicilloneines A and B, Quinolone-Citrinin Hybrids from a Starfish-Derived J Nat Prod, 87(4): 705-712',p:'38547118',d:''},
+{y:2024,t:'Jung Y, Kwon C, Kim T (2024). Tetramic acid-motif natural products from a marine fungus Tolypocladium cylindrosporum FB06 and their anti-Parkinson activities.. Mar Life Sci Technol',p:'38433962',d:''},
+{y:2024,t:'Kiichi Y, Fukuoka K, Kitano A, Ishino K, Kotoku N. (2024). Unified Synthesis and Biological Evaluation of Makaluvamine J and Its Analogs. Molecules (Basel, Switzerland). 29(6)',p:'38543025',d:''},
+{y:2024,t:'Kim HG, Hillman PF, Lee YJ, et al. (2024). Caboxamycin Inhibits Heart Inflammation in a Coxsackievirus B3-Induced Myocarditis Mouse Model.Viruses, 16(5):677',p:'38793559',d:''},
+{y:2024,t:'Li X, Chen Y, Liu Z, et al. Cytotoxic pyrone derivatives from the deep-sea-derived fungus Cladosporium halotolerans FS702. Nat Prod Res. 2024;38(4):594-600',p:'36938638',d:''},
+{y:2024,t:'Li W, Liu S (2024). A biomimetic approach to lycogarubin C, lynamicin D and related analogues. Org Biomol Chem 22(13):2558-2561',p:'38450726',d:''},
+{y:2024,t:'Li XD, Li XM, Wang BG, Li X. (2024). Antimicrobial sesterterpenoids with a unique 5/8/6/5 tetracyclic carbon-ring-system and diepoxide polyketides from a deep sea-sediment-sourced fungus Chaetomium globosum SD-347. Org Biomol Chem. 22(19):3979-3985',p:'38691112',d:''},
+{y:2024,t:'Li XD, Li XM, Wang BG, et al. (2024). Antimicrobial sesterterpenoids with a unique 5/8/6/5 tetracyclic carbon-ring-system and diepoxide polyketides from a deep sea-sediment-sourced fungusChaetomium globosumSD-347.Organic & Biomolecular Chemistry. 22(19):3979-3985',p:'38691112',d:''},
+{y:2024,t:'Liu F, Wang W, Wang F, Zhou L, Luo G, Zhang G, et al. (2024). Polyketide Derivatives from the Mangrove-Derived Fungus Penicillium sp. HDN15-312. Marine drugs. 22(8)',p:'39195476',d:''},
+{y:2024,t:'Luo M et al. (2024). Simultaneous Targeting of NQO1 and SOD1 Eradicates Breast Cancer Stem Cells via Mitochondrial Futile Redox Cycling. Cancer Res 84(24):4264-4282',p:'39264695',d:''},
+{y:2024,t:'Müller J., Gulder T. (2024). Chemoenzymatic total synthesis of sorbicillactone A. Commun Chem, 7(1): 39',p:'38402292',d:''},
+{y:2024,t:'Ramanjooloo A, Bekah D, Adeyemi SA, Ubanako P, Ngema L, Choonara YE, et al. (2024). Synthesis and in vitro assessment of gold nanoparticles conjugated with extracts, sterols and pure compounds derived from marine sponges from the Indian and Pacific Oceans. RSC advances. 14(48):36115-36131',p:'39529734',d:''},
+{y:2024,t:'Rezgui SP, Farhi J, Yu H, Sercel ZP, Virgil SC, Stoltz BM. (2024). Divergent total syntheses of pyrroloiminoquinone alkaloids enabled by the development of a Larock/Buchwald-Hartwig annulation/cyclization. Chemical science. 15(31):12284-12290',p:'39118607',d:''},
+{y:2024,t:'Rosales Martínez A, Rodríguez-García I. (2024). Synthesis of Marine (−)-Pelorol and Future Perspectives. Marine drugs. 22(9)',p:'39330306',d:''},
+{y:2024,t:'Sajer BH, Alshehri WA, Alghamdi SS, Suliman RS, Albejad A, Hakmi H. (2024). Aspergillus Species from the Sabkha Marsh: Potential Antimicrobial and Anticancer Agents Revealed Through Molecular and Pharmacological Analysis. Biologics : targets & therapy. 18:207-228',p:'39130166',d:'10.2147/BTT.S472491'},
+{y:2024,t:'Sun C., Ha Y., Liu X., Wang N., Lian X., et al. (2024). Isolation and Structure Elucidation of New Metabolites from the Mariana-Trench-Associated Fungus Molecules, 29(2)',p:'',d:''},
+{y:2024,t:'Sun S, He X, Yang J, Wang X, Li S. (2024). Facile Synthesis and First Antifungal Exploration of Tetracyclic Meroterpenoids: (+)-Aureol, (-)-Pelorol, and Its Analogs. Journal of natural products. 87(4):1092-1102',p:'38557062',d:''},
+{y:2024,t:'Wang S, Li S, Chen Y, et al. Phenylspirodrimane derivative from Stachybotrys chartarum FS705. Nat Prod Res. 2024;38(22):1-8',p:'38251853',d:''},
+{y:2024,t:'Wang C, Zhang J, Li K (2024). Terpenoids from the Soft Coral Sinularia densa Collected in the South China Sea.. Mar Drugs',p:'39452850',d:''},
+{y:2024,t:'Xiao D et al. (2024). A New Quinazolinone Alkaloid along with Known Compounds with Seed-Germination-Promoting Activity from Rhodiola tibetica Endophytic Fungus Penicillium sp. HJT-A-6. Molecules 29(9)',p:'38731603',d:''},
+{y:2024,t:'Ye W et al. (2024). The discovery of a novel single-function intermolecular Diels-Alder enzyme for the biosynthesis of hetero-dimer lithocarpins. Int J Biol Macromol 271(Pt 1):132539',p:'38777023',d:'10.1016/j.ijbiomac.2024.132539'},
+{y:2024,t:'You Y, Zhang X, Xiao W, Kunthic T, Xiang Z, Xu C. (2024). Unified enantiospecific synthesis of drimane meroterpenoids enabled by enzyme catalysis and transition metal catalysis. Chemical science. 15(46):19307-19314',p:'39568920',d:''},
+{y:2024,t:'Zhang Z., Sun Y., Li Y., Song X., Wang R., et al. (2024). The potential of marine-derived piperazine alkaloids: Sources, structures and bioactivities. Eur J Med Chem, 265: 116081',p:'',d:''},
+{y:2024,t:'Zhang X, Dong Y, Liu X, Wang R, Lu J, Song F. (2024). New bisabolane-type sesquiterpenoid from Aspergillus sydowii BTBU20213012. Natural product research. 38(16):2792-2799',p:'37480345',d:'10.1080/14786419.2023.2236764'},
+{y:2024,t:'Zhang Z, Sun Y, Li Y, et al. (2024). The potential of marine-derived piperazine alkaloids: Sources, structures and bioactivities. Eur J Med Chem. 265:116081',p:'38181652',d:''},
+{y:2024,t:'Zhang S., Paulin C., Shu H., Yagüe-Capilla M., Michel M., et al. (2024). Identification and evaluation of small-molecule inhibitors against the dNTPase SAMHD1 via a comprehensive screening funnel. iScience, 27(2): 108907',p:'38318365',d:''},
+{y:2024,t:'Zhang Y et al. (2024). AP3B1 facilitates PDIA3/ERP57 function to regulate rabies virus glycoprotein selective degradation and viral entry. Autophagy 20(12):2785-2803',p:'39128851',d:''},
+{y:2023,t:'Alanzi AR. (2023). Computational evaluation of marine demospongiae sponges metabolites activity as mycolic acid biosynthesis inhibitors in Mycobacterium tuberculosis. International journal of mycobacteriology. 12(3):332-344',p:'37721241',d:''},
+{y:2023,t:'Cheng Y, Li H, Wang X, Wu Y. (2023). Concise synthesis of marine natural products smenodiol and (-)-pelorol. Natural product research. 37(9):1505-1510',p:'35014568',d:''},
+{y:2023,t:'Dai JM, Mi QL, Li XM, Gang D, et al. (2023). The anti-TMV potency of the tobacco-derived fungus Aspergillus versicolor and its active alkaloids, as anti-TMV activity inhibitors. Phytochemistry, 205, 113485',p:'36334789',d:'10.1016/j.phytochem.2022.113485'},
+{y:2023,t:'Dong YL, Li XM, Shi XS, et al. (2023). Diketopiperazine Alkaloids and Bisabolene Sesquiterpenoids from Aspergillus versicolor AS-212, an Endozoic Fungus Associated with Deep-Sea Coral of Magellan Seamounts. Mar. Drugs 21(5):293',p:'37233487',d:''},
+{y:2023,t:'Fang X., Liao H., Fan X., Wang Y., Wang H., et al. (2023). Incorporation of viridicatin alkaloid-like scaffolds into DNA-encoded chemical libraries. Org Biomol Chem, 21(10): 2162-2166',p:'',d:''},
+{y:2023,t:'Hu J et al. (2023). Secondary metabolites from a deep-sea derived fungal strain of Phomopsis lithocarpus FS508. Nat Prod Res 37(14):2351-2358',p:'35220847',d:''},
+{y:2023,t:'Ishida R., Kurebayashi N., Iinuma H., Zeng X., Mori S., et al. (2023). A potent and selective cis-amide inhibitor of ryanodine receptor 2 as a candidate for cardiac arrhythmia treatment. Eur J Med Chem, 262: 115910',p:'',d:''},
+{y:2023,t:'Jiang YX et al. (2023). Efficient ilamycins production utilizing Enteromorpha prolifera by metabolically engineered Streptomyces atratus. Biotechnol Biofuels Bioprod 16(1):151',p:'37798770',d:''},
+{y:2023,t:'Leshchenko EV, Berdyshev DV, Yurchenko EA, et al. (2023). Bioactive Polyketides from the Natural Complex of the Sea Urchin-Associated Fungi Penicillium sajarovii KMM 4718 and Aspergillus protuberus KMM 4747. Int J Mol Sci. 24(23):16568',p:'38068891',d:''},
+{y:2023,t:'Liu Y, Lin L, Zheng H, He YL, Li Y, Zhou C, Hong P, Sun S, Zhang Y, Qian ZJ. Mechanisms of Antitumor Invasion and Metastasis of the Marine Fungal Derivative Epi-Aszonalenin A in HT1080 Cells. Mar Drugs. 2023;21(3):156',p:'36976205',d:'10.3390/md21030156'},
+{y:2023,t:'Lu Q et al. (2023). Group h Chitinase: A Molecular Target for the Development of Lepidopteran-Specific Insecticides. J Agric Food Chem',p:'37038745',d:''},
+{y:2023,t:'Phutthacharoen K, Khalid SJ, Schrey H, et al. Diaporphasines E and F: New Polyketides from the Saprotrophic Fungus Lachnum sp. IW157 Growing on the Reed Grass Phragmites communis. ACS Omega. 2023;8(44):41689-41695',p:'37970032',d:''},
+{y:2023,t:'Severance Z., Nuñez J., Le-McClain A., Malinky C., Bensen R., et al. (2023). Structure-Activity Relationships of Ligand Binding to Oxysterol-Binding Protein (OSBP) and OSBP-Related Protein 4. J Med Chem, 66(6): 3866-3875',p:'36916802',d:''},
+{y:2023,t:'Shao Z, Li H, Zhang Y, et al. Emestrin from Deep-Sea Cold Seep Fungus Aspergillus nidulans SD-531. Mar Drugs. 2023',p:'',d:''},
+{y:2023,t:'Yang SQ, Song Q, Li XM, Li X, Li HL, Meng LH, Wang BG. Antimicrobial polyketides and sesquiterpene lactones from the deep-sea cold-seep-derived fungus Talaromyces minioluteus CS-113 triggered by the histone deacetylase inhibitor SAHA. Org Biomol Chem. 2023;21(12):2575-85..1039/d3ob00058c',p:'36880760',d:'10.1039/d3ob00058c'},
+{y:2023,t:'Zhang Y, Lin M, Qin Y, et al. (2023). Anti-Vibrio potential of natural products from marine microorganisms. Eur J Med Chem. 252:115330',p:'37011553',d:''},
+{y:2022,t:'Abdelrahman SM, Dosoky NS, Hanora AM, Lopanik NB. (2022). Metabolomic Profiling and Molecular Networking of Nudibranch-Associated Streptomyces sp. SCSIO 001680. Molecules (Basel, Switzerland). 27(14)',p:'35889415',d:''},
+{y:2022,t:'Cao TQ, Liu Z, Dong L, et al. (2022). Identification of Potential Anti-Neuroinflammatory Inhibitors from Antarctic Fungal Strain Aspergillus sp. SF-7402 via Regulating the NF-κB Signaling Pathway in Microglia. Molecules. 27(9)',p:'35566201',d:'10.3390/molecules27092851'},
+{y:2022,t:'Carpi S, Scoditti E, Polini B, Brogi S, Calderone V, Proksch P, et al. (2022). Pro-Apoptotic Activity of the Marine Sponge Dactylospongia elegans Metabolites Pelorol and 5-epi-Ilimaquinone on Human 501Mel Melanoma Cells. Marine drugs. 20(7)',p:'35877720',d:''},
+{y:2022,t:'Cheng M, Cui X, Tang Y, et al. Total Synthesis of Leptochartamides from Leptosphaerulina chartarum. J Org Chem. 2022;87(16):11090-11096',p:'35921599',d:''},
+{y:2022,t:'Deng Y., Liu Y., Li J., Wang X., He S., et al. (2022). Marine natural products and their synthetic analogs as promising antibiofilm agents for antibiotics discovery and development. Eur J Med Chem, 239: 114513',p:'35724567',d:''},
+{y:2022,t:'Ebihara Y, Kurashima Y, Watanabe Y, Tanaka K, Matsui A, Nakanishi Y, et al. (2022). Outcomes of laparoscopic total gastrectomy in elderly patients: a propensity score matching analysis. Langenbeck\'s archives of surgery. 407(4):1461-1469',p:'35080645',d:''},
+{y:2022,t:'Guo Z, Zhu W, Zhao L, Chen Y, Li S, Cheng P, et al. (2022). New antibacterial depsidones from an ant-derived fungus Spiromastix sp. MY-1. Chinese journal of natural medicines. 20(8):627-632',p:'36031234',d:'10.1016/S1875-5364(22)60170-5'},
+{y:2022,t:'Hu J, Zhang W, Tan H, et al. Neocucurbins A-G, novel macrocyclic diterpenes and their derivatives fromNeocucurbitaria unguis-hominisFS685.Org Biomol Chem.2022;20(21):4376-4384',p:'35579069',d:''},
+{y:2022,t:'Huang F, Lin X, Lu Q (2022). Azaphilones from the Endophyte Diaporthe sp. and Their Toxicity. Chem Biodivers 19(11):e202200849',p:'36193753',d:''},
+{y:2022,t:'Ibrahim SRM, et al. Chaetomugilins and chaetoviridins. Molecules. 2022;27(22):7865',p:'',d:''},
+{y:2022,t:'Jiang Y, Wu S, Wu Y, Gao Y, Chong D, Sun C, et al. (2022). New brefeldin A-cinnamic acid ester derivatives as potential antitumor agents: Design, synthesis and biological evaluation. European journal of medicinal chemistry. 240:114598',p:'35849940',d:''},
+{y:2022,t:'Jiang Y, Gao Y, Liu J, Xu Y, Wei M, Wang C, et al. (2022). Design and Characterization of a Natural Arf-GEFs Inhibitor Prodrug CHNQD-01255 with Potent Anti-Hepatocellular Carcinoma Efficacy In Vivo. Journal of medicinal chemistry. 65(18):11970-11984',p:'36089748',d:''},
+{y:2022,t:'Kalinski JJ, Polyzois A, Waterworth SC, et al. (2022). Current Perspectives on Pyrroloiminoquinones: Distribution, Biosynthesis and Drug Discovery Potential. Molecules. 27(24):8724',p:'36557854',d:''},
+{y:2022,t:'Khan NA, Kaur N, Owens P, et al. (2022). Bis-Indole Alkaloids Isolated from the Sponge Spongosorites calcicola Disrupt Cell Membranes of MRSA. Int J Mol Sci. 23(4):1991',p:'35216106',d:''},
+{y:2022,t:'Liu C, Xu Y, Wen Z, et al. (2022). Synthesis and biological evaluation of diazepinomicin analogs as antitumor agents. Eur J Med Chem. 228:114029',p:'34838651',d:''},
+{y:2022,t:'Liu Z, Li S, Chen Y, Li M, Liu H, Zhang W. Cytotoxic polyketides from the deep-sea-derived fungus Aspergillus fischeri FS452. Nat Prod Res. 2022;36(22):5701-7..1080/14786419.2021.2015595',p:'34905421',d:'10.1080/14786419.2021.2015595'},
+{y:2022,t:'Liu Y et al. (2022). Mechanism of two alkaloids isolated from coral endophytic fungus for suppressing angiogenesis in atherosclerotic plaque in HUVEC. Int Immunopharmacol 109:108931',p:'35704971',d:'10.1016/j.intimp.2022.108931'},
+{y:2022,t:'Long S, Duarte D, Carvalho C, et al. (2022). Indole-Containing Pyrazino[2,1-b]quinazoline-3,6-diones Active against Plasmodium and Trypanosomatids. ACS Medicinal Chemistry Letters. 13(2):225-235',p:'35178179',d:'10.1021/acsmedchemlett.1c00589'},
+{y:2022,t:'Nguyen MV, Han JW, Kim H, Choi GJ. (2022). Phenyl Ethers from the Marine-Derived Fungus Aspergillus tabacinus and Their Antimicrobial Activity Against Plant Pathogenic Fungi and Bacteria. ACS omega. 7(37):33273-33279',p:'36157764',d:'10.1021/acsomega.2c03859'},
+{y:2022,t:'Omar AM, Mohamed GA, Ibrahim SRM. (2022). Chaetomugilins and Chaetoviridins-Promising Natural Metabolites: Structures, Separation, Characterization, Biosynthesis, Bioactivities. J Fungi (Basel). 8(2):127',p:'35205880',d:''},
+{y:2022,t:'Omar AM, Mohamed GA, Ibrahim SRM. Chaetomugilins and Chaetoviridins-Promising Natural Metabolites: Structures, Separation, Characterization, Biosynthesis, Bioactivities, Molecular Docking, and Molecular Dynamics. J Fungi (Basel). 2022;8(2):127',p:'35205880',d:''},
+{y:2022,t:'Pang X, Wang P, Liao S, Zhou X, Lin X, Yang B, Tian X, Wang J, Liu Y. Three unusual hybrid sorbicillinoids with anti-inflammatory activities from the deep-sea derived fungus Penicillium sp. SCSIO06868. Phytochemistry. 2022;202:113311..1016/j.phytochem.2022.113311',p:'35830939',d:'10.1016/j.phytochem.2022.113311'},
+{y:2022,t:'Rutz A, Sorokina M, Galgonek J, et al. (2022). The LOTUS Initiative for Open Natural Products Research.Zenodo',p:'',d:'10.5281/zenodo.5794106'},
+{y:2022,t:'Sarmiento-Vizcaíno A, Martín J, Ortiz-López FJ, et al. (2022). Natural products, including a new caboxamycin, from Streptomyces and other Actinobacteria isolated in Spain from storm clouds transported by Northern winds of Arctic origin.Front Chem, 10:948795',p:'36405319',d:''},
+{y:2022,t:'Shi S, Cui L, Zhang K (2022). Streptomyces marincola sp. nov., a Novel Marine Actinomycete, and Its Biosynthetic Potential of Bioactive Natural Products.. Front Microbiol',p:'38270294',d:''},
+{y:2022,t:'Song Q, Yang SQ, Li XM, et al. (2022). Aromatic Polyketides from the Deep-Sea Cold-Seep Mussel Associated Endozoic Fungus Talaromyces minioluteus CS-138. Mar Drugs. 20(8):529',p:'36005532',d:''},
+{y:2022,t:'Sun Y, Shi X, Xing Y, Ren X, Zhang D, Li X, et al. (2022). Co-culture of Aspergillus sydowii and Bacillus subtilis induces the production of antibacterial metabolites. Fungal biology. 126(4):320-332',p:'35314063',d:'10.1016/j.funbio.2022.01.002'},
+{y:2022,t:'Sweilam SH, Alqarni MH, Youssef FS. (2022). Antimicrobial Alkaloids from Marine-Derived Fungi as Drug Leads versus COVID-19 Infection: A Computational Approach to Explore their Anti-COVID-19 Activity and ADMET Properties. Evidence-based complementary and alternative medicine : eCAM. 2022:5403757',p:'35911157',d:''},
+{y:2022,t:'Talajić G, Topić E, Meštrović J, et al. (2022). Total Synthesis of Penicyclone A Using a Double Grignard Reaction. Journal of Organic Chemistry. 87(23):16054-16062',p:'36383733',d:''},
+{y:2022,t:'Tian P, Ye W, Zhang X, et al. (2022). Ten-step asymmetric total syntheses of potent antibiotics anthracimycin and anthracimycin B. Chem Sci. 13(43):12776-81',p:'36519065',d:''},
+{y:2022,t:'Wang X, Hu N, Kong W, Song B, Li S. (2022). Facile and divergent optimization of chromazonarol enabled the identification of simplified drimane meroterpenoids as novel pharmaceutical leads. European journal of medicinal chemistry. 227:113912',p:'34653771',d:''},
+{y:2022,t:'Welsch JT, Young RM, Allcock AL, Johnson MP, Baker BJ. Crannenols A-D, Sesquiterpenoids from the Irish Deep-Sea Soft Coral Acanella arbuscula. J Nat Prod. 2022;85(10):2395-8..1021/acs.jnatprod.2c00602',p:'36122192',d:'10.1021/acs.jnatprod.2c00602'},
+{y:2022,t:'Xu M, Peng R, Min Q, et al. (2022). Bisindole natural products: A vital source for the development of new anticancer drugs. Eur J Med Chem. 243:114748',p:'36170798',d:''},
+{y:2022,t:'Yue Y, Yu H, Suo Q, Li R, Liu S, Xing R, Zhang Q, Li P. Discovery of a novel jellyfish venom metalloproteinase inhibitor from secondary metabolites isolated from jellyfish-derived fungus Aspergillus versicolor SmT07. Chem Biol Interact. 2022;365:110113..1016/j.cbi.2022.110113',p:'35987279',d:'10.1016/j.cbi.2022.110113'},
+{y:2022,t:'Zeng H., Yu Y., Zeng X., Li M., Li X., et al. (2022). Anti-inflammatory Dimeric Benzophenones from an Endophytic Pleosporales Species. J Nat Prod, 85(1): 162-168',p:'',d:''},
+{y:2021,t:'Almeida MC, Resende DISP, da Costa PM, et al. (2021). Tryptophan derived natural marine alkaloids and synthetic derivatives as promising antimicrobial agents.Eur J Med Chem209:112945',p:'33153766',d:''},
+{y:2021,t:'Back CR, Stennett HL, Williams SE, et al. (2021). A New Micromonospora Strain with Antibiotic Activity Isolated from the Microbiome of a Mid-Atlantic Deep-Sea Sponge. Marine Drugs. 19(2):105',p:'33670308',d:''},
+{y:2021,t:'Chen S, Chen Y, Li S, Liu H, Li D, Liu Z, Zhang W. Hawatides A-G, new polyketides from the deep-sea-derived fungus Paraconiothyrium hawaiiense FS482. Tetrahedron. 2021 Jul 30;93:132303',p:'',d:'10.1016/j.tet.2021.132303'},
+{y:2021,t:'Chen S, Liu Z, Chen Y, Tan H, Liu H, Zhang W. Tersaphilones A-E, cytotoxic chlorinated azaphilones from the deep-sea-derived fungus Phomopsis tersa FS441. Tetrahedron. 2021;78:131806',p:'',d:'10.1016/j.tet.2020.131806'},
+{y:2021,t:'Chen W, Liu Y, Guo Z, Zhu H, Gu B, Liu Z, et al. (2021). Bioactive secondary metabolites from the deep-sea derived fungus Aspergillus sp. SCSIO 41029. The Journal of Antibiotics. 74(1):42-48',p:'33106626',d:''},
+{y:2021,t:'Dabelić S, Kifer D, Jakšić D, Kopjar N, Klarić MŠ. (2021). Sterigmatocystin, 5-Methoxysterigmatocistin, and Their Combinations Are Cytotoxic and Genotoxic to A549 and Hepg2 Cells and Provoke Phosphorylation of Chk2, but Not Fancd2 Checkpoint Proteins. Toxins. 13(7)',p:'34209435',d:'10.3390/toxins13070464'},
+{y:2021,t:'De BC, Zhang W, Zhang G, Liu Z, Tan B, Zhang Q, Zhang L, Zhang H, Zhu Y, Zhang C. Host-dependent heterologous expression of berninamycin gene cluster leads to linear thiopeptide antibiotics. Org Biomol Chem. 2021;19(41):8940-6..1039/d1ob01759d',p:'34617948',d:'10.1039/d1ob01759d'},
+{y:2021,t:'El-Elimat T., Raja H., Figueroa M., Al Sharie A., Bunch R., et al. (2021). Freshwater Fungi as a Source of Chemical Diversity: A Review. J Nat Prod, 84(3): 898-916',p:'',d:''},
+{y:2021,t:'Ge H, Shi M, Ma M, et al. (2021). Evaluation of the antiproliferative activity of 106 marine microbial metabolites against human lung cancer cells. Bioorg Med Chem Lett. 39:127915',p:'33691166',d:''},
+{y:2021,t:'Hamed A., Abdel-Razek A.S., Araby M., Abu-Elghait M., et al. (2021). Meleagrin from marine fungusEmericella dentataNq45: crystal structure and diverse biological activity studies.Nat. Prod. Res., 35(21):3830-3838',p:'32189530',d:''},
+{y:2021,t:'Hewage RT, Huang RJ, Lai SJ, et al. (2021). An Enzyme-Mediated Aza-Michael Addition Is Involved in the Biosynthesis of an Imidazoyl Hybrid Product of Conidiogenone B. Org Lett. 23(5):1904-1909',p:'33570417',d:''},
+{y:2021,t:'Hu M, Li X, Chen L, et al. Pestalotiopens A-D, New Polyketides from the Deep-Sea-Derived Fungus Pestalotiopsis sp. SCSIO 41312. Mar Drugs. 2021;19:57',p:'33561345',d:''},
+{y:2021,t:'Juhasz B et al. (2021). Dermacozine N, the First Natural Linear Pentacyclic Oxazinophenazine with UV-Vis Absorption Maxima in the Near Infrared Region, along with Dermacozines O and P Isolated from the Mariana Trench Sediment Strain Dermacoccus abyssi MT 1.1(T). Mar Drugs 19(6)',p:'34205180',d:'10.3390/md19060325'},
+{y:2021,t:'Kalinski JJ, Krause RWM, Parker-Nance S, Waterworth SC, Dorrington RA. (2021). Unlocking the Diversity of Pyrroloiminoquinones Produced by Latrunculid Sponge Species.. Mar Drugs. 19(2)',p:'33525412',d:''},
+{y:2021,t:'Li H, Liu X, Li X, Hu Z, Wang L. (2021). Novel Harziane Diterpenes from Deep-Sea Sediment Fungus Trichoderma sp. SCSIOW21 and Their Potential Anti-Inflammatory Effects. Marine drugs. 19(12)',p:'34940688',d:'10.3390/md19120689'},
+{y:2021,t:'Liang Z., Chen Y., Gu T., She J., Dai F., et al. (2021). LXR-Mediated Regulation of Marine-Derived Piericidins Aggravates High-Cholesterol Diet-Induced Cholesterol Metabolism Disorder in Mice. J Med Chem, 64(14): 9943-9959',p:'8573592',d:''},
+{y:2021,t:'Liu L, Chen Y, Zhang Z, et al. Spiroindimicins A-D, Spirobisindole Alkaloids from the Deep-Sea-Derived Streptomyces sp. SCSIO 03032. J Nat Prod. 2021;84:615-619. PMID',p:'',d:''},
+{y:2021,t:'Liu L, Chen Y, Zhang Z, et al. (2021). Spiroindimicins A-D, Spirobisindole Alkaloids from the Deep-Sea-Derived Streptomyces sp. SCSIO 03032. J Nat Prod. 84(3):615-9',p:'',d:'10.1021/acs.jnatprod.0c01351'},
+{y:2021,t:'Liu HB, Liu ZM, Chen YC, Tan HB, Li SN, Li DL, Liu HX, Zhang WM. Cytotoxic diaporindene and tenellone derivatives from the fungus Phomopsis lithocarpus. Chin J Nat Med. 2021;19(11):874-880..1016/S1875-5364(21)60095-X',p:'34844726',d:'10.1016/S1875-5364(21)60095-X'},
+{y:2021,t:'Niu S, Liu D, Shao Z, Liu J, Fan A, Lin W. Chemical epigenetic manipulation triggers the production of sesquiterpenes from the deep-sea derived Eutypella fungus. Phytochemistry. 2021;192:112978..1016/j.phytochem.2021.112978',p:'34678625',d:'10.1016/j.phytochem.2021.112978'},
+{y:2021,t:'Perry G., Das M., Woon E. (2021). Inhibition of AlkB Nucleic Acid Demethylases: Promising New Epigenetic Targets. J Med Chem, 64(23): 16974-17003',p:'34792334',d:''},
+{y:2021,t:'Rebollar-Ramos D, Ovalle-Magallanes B, Palacios-Espinosa JF, Macías-Rubalcava ML, Raja HA, González-Andrade M, et al. (2021). α-Glucosidase and PTP-1B Inhibitors from Malbranchea dendritica. ACS omega. 6(35):22969-22981',p:'34514267',d:'10.1021/acsomega.1c03708'},
+{y:2021,t:'Saetang P., Rukachaisirikul V., Phongpaichit S., Preedanon S., Sakayaroj J., et al. (2021). Antibacterial and Antifungal Polyketides from the Fungus J Nat Prod, 84(5): 1498-1506',p:'',d:''},
+{y:2021,t:'Skácel J, Slusher BS, Tsukamoto T (2021). Small Molecule Inhibitors Targeting Biosynthesis of Ceramide, the Central Hub of the Sphingolipid Network. J Med Chem, 64(1):279-297',p:'33395289',d:''},
+{y:2021,t:'Utkina N, Likhatskaya G, Malyarenko O, Ermakova S, Balabanova L, Slepchenko L, et al. (2021). Effects of Sponge-Derived Alkaloids on Activities of the Bacterial α-D-Galactosidase and Human Cancer Cell α-N-Acetylgalactosaminidase.. Biomedicines. 9(5)',p:'34063022',d:''},
+{y:2021,t:'Wang K., Chen Y., Gao S., Wang M., Ge M., et al. (2021). Norlichexanthone purified from plant endophyte prevents postmenopausal osteoporosis by targeting ER Acta Pharm Sin B, 11(2): 442-455',p:'',d:''},
+{y:2021,t:'Wang H, Nan X, Li H, Cao Z, Wu Y. (2021). A modular strategy for the synthesis of marine originated meroterpenoid-type natural products. Organic & biomolecular chemistry. 19(43):9439-9447',p:'34679152',d:''},
+{y:2021,t:'Xing CP, Chen D, Xie CL, et al. (2021). Anti-Food Allergic Compounds from Penicillium griseofulvum MCCC 3A00225, a Deep-Sea-Derived Fungus. Marine Drugs. 19(4):224',p:'33923496',d:'10.3390/md19040224'},
+{y:2021,t:'Xu R et al. (2021). Chemical Synthesis and Structure-Activity Relationship Study Yield Desotamide a Analogues with Improved Antibacterial Activity. Mar Drugs 19(6)',p:'34073984',d:''},
+{y:2021,t:'Yan LH, Li XM, Chi LP, Li X, Wang BG, et al. (2021). Six New Antimicrobial Metabolites from the Deep-Sea Sediment-Derived Fungus Aspergillus fumigatus SD-406. Mar Drugs, 20(1): 4',p:'35049858',d:''},
+{y:2021,t:'Yeom J, Kim H, Lim J, Yoon KW, Kim H, Jeong H. (2021). A calcium channel blocker, manoalide exerts an anti-allergic inflammatory effect through attenuating NF-κB activity. Immunopharmacology and immunotoxicology. 43(6):799-805',p:'34708672',d:''},
+{y:2021,t:'Youssef FS, Alshammari E, Ashour ML (2021). Bioactive Alkaloids from Genus Aspergillus: Mechanistic Interpretation of Their Antimicrobial and Potential SARS-CoV-2 Inhibitory Activity Using Molecular Modelling.Int J Mol Sci22(4):1866',p:'33668523',d:''},
+{y:2021,t:'Zhao X., Niu Y., Deng H., Luo D. (2021). Characterization and phytotoxicity of ophiobolins produced by Bipolaris setariae. Mycoscience, 62(1): 64-70',p:'37090018',d:''},
+{y:2021,t:'Zhu L, Li J, Fan X, Hu X, Chen J, Liu Y, et al. (2021). Design, synthesis and antitumor activity evaluation of Chrysamide B derivatives.. Bioorg Chem. 111:104828',p:'33895605',d:''},
+{y:2021,t:'Zhu LQ, Fan XH, Li JF, Chen JH, Liang Y, Hu XL, et al. (2021). Discovery of a novel inhibitor of nitric oxide production with potential therapeutic effect on acute inflammation.. Bioorg Med Chem Lett. 44:128106',p:'33991630',d:''},
+{y:2021,t:'Zou G et al. (2021). Furobenzotropolones A, B and 3-Hydroxyepicoccone B with Antioxidative Activity from Mangrove Endophytic Fungus Epicoccum nigrum MLY-3. Mar Drugs 19(7)',p:'34356820',d:''},
+{y:2020,t:'Abdel-Mageed WM et al. (2020). Whole Genome Sequence of Dermacoccus abyssi MT1.1 Isolated from the Challenger Deep of the Mariana Trench Reveals Phenazine Biosynthesis Locus and Environmental Adaptation Factors. Mar Drugs 18(3)',p:'32106586',d:'10.3390/md18030131'},
+{y:2020,t:'Aburjania Z, Whitt JD, Jang S, Nadkarni DH, Chen H, Rose JB, et al. (2020). Synthetic Makaluvamine Analogs Decrease c-Kit Expression and Are Cytotoxic to Neuroendocrine Tumor Cells.. Molecules. 25(21)',p:'33114525',d:''},
+{y:2020,t:'Akinfala TO, Houbraken J, Sulyok M, Adedeji AR, Odebode AC, Krska R, et al. (2020). Moulds and their secondary metabolites associated with the fermentation and storage of two cocoa bean hybrids in Nigeria.. International journal of food microbiology. 316:108490',p:'31874327',d:'10.1016/j.ijfoodmicro.2019.108490'},
+{y:2020,t:'Chamberlain TC, Cheung ST, Yoon JSJ, Ming-Lum A, Gardill BR, Shakibakho S, et al. (2020). iScience. 23(8):101433',p:'32823063',d:''},
+{y:2020,t:'Chen S, Liu H, Ye W, Li S, Li D, Liu Z, Zhang W. Ochuscins A-G, highly oxygenated usnic acid derivatives from the deep-sea-derived fungus Ochroconis sp. FS449. Tetrahedron. 2020 Apr 3;76(14):131066',p:'',d:'10.1016/j.tet.2020.131066'},
+{y:2020,t:'Chen S et al. (2020). Photeroids A and B, unique phenol-sesquiterpene meroterpenoids from the deep-sea-derived fungus Phomopsis tersa. Org Biomol Chem 18(4):642-645',p:'31916553',d:''},
+{y:2020,t:'Chen S, Liu Z, Chen Y, et al. (2020). Highly Substituted Phenol Derivatives with Nitric Oxide Inhibitory Activities from the Deep-Sea-Derived Fungus Trichobotrys effuse FS524. Mar Drugs. 18(3):134',p:'32111022',d:''},
+{y:2020,t:'Chen XH, Zhou GL, Sun CX, Zhang XM, Zhang GJ, Zhu TJ, Li J, Che Q, Li DH. Penicacids E-G, three new mycophenolic acid derivatives from the marine-derived fungus Penicillium parvum HDN17-478. Chin J Nat Med. 2020;18(11):850-4..1016/S1875-5364(20)60027-9',p:'33308607',d:'10.1016/S1875-5364(20)60027-9'},
+{y:2020,t:'Cheng Z., Liu W., Fan R., Han S., Li Y., et al. (2020). Terpenoids from the Deep-Sea-Derived Fungus Mar Drugs, 18(3)',p:'',d:''},
+{y:2020,t:'Chi LP, Li XM, Li X, et al. (2020). Cytotoxic Thiodiketopiperazine Derivatives from the Deep Sea-Derived Fungus Epicoccum nigrum SD-388. Mar Drugs. 18(3):160',p:'32183021',d:''},
+{y:2020,t:'Chi LP, Li XM, Wan YP, et al. (2020). Ophiobolin Sesterterpenoids and Farnesylated Phthalide Derivatives from the Deep Sea Cold-Seep-Derived Fungus Aspergillus insuetus SD-512. J Nat Prod. 83(12):3652-3660',p:'33322904',d:''},
+{y:2020,t:'Ding W et al. (2020). The roles of genes associated with regulation, transportation, and macrocyclization in desotamide biosynthesis in Streptomyces scopuliridis SCSIO ZJ46. Appl Microbiol Biotechnol 104(6):2603-2610',p:'32002605',d:''},
+{y:2020,t:'Fazal A, Webb ME, Seipke RF (2020). The Desotamide Family of Antibiotics. Antibiotics (Basel) 9(8)',p:'32727132',d:''},
+{y:2020,t:'Li L., Wang L., You Q., Xu X. (2020). Heat Shock Protein 90 Inhibitors: An Update on Achievements, Challenges, and Future Directions. J Med Chem, 63(5): 1798-1822',p:'31663736',d:''},
+{y:2020,t:'Li Q, Xu W, Fan R, et al. (2020). Penithoketone and Penithochromones A-L, Polyketides from the Deep-Sea-Derived Fungus Penicillium thomii YPGA3. J Nat Prod, 83(9): 2679-2685',p:'32902982',d:''},
+{y:2020,t:'Liu N., Yan F., Ma Q., Zhao J. (2020). Modulation of TRPV4 and BKCa for treatment of brain diseases. Bioorg Med Chem, 28(16): 115609',p:'32690264',d:''},
+{y:2020,t:'Liu Z, Chen Y, Li S, et al. Bioactive Metabolites from the Deep-Sea-Derived Fungus Diaporthe longicolla FS429. Mar Drugs. 2020;18(8):381',p:'32824125',d:''},
+{y:2020,t:'Liu H, Liu Z, Li H, et al. (2020). Lithocaldehydes A and B, polyketones from the deep-sea-derived fungusPhomopsis lithocarpusFS508.Org Biomol Chem. 18(37):7326-7329',p:'32940323',d:'10.1039/d0ob01674h'},
+{y:2020,t:'Liu H, Liu Z, Li H, et al. (2020). Lithocaldehydes A and B, polyketones from the deep-sea-derived fungus Phomopsis lithocarpus FS508. Org Biomol Chem. 18(37):7326-9',p:'33006495',d:''},
+{y:2020,t:'Majer T, Schollmeyer D, Koch P (2020). (2S,3&#x27;S,3a&#x27;R,5&#x27;R,7a&#x27;R)-5&#x27;-[(E)-5-(Furan-3-yl)-2-methyl-pent-1-en-1-yl]-3-hy-droxy-3&#x27;,4,7&#x27;-trimethyl-1&#x27;,2&#x27;,3&#x27;,3a&#x27;,5&#x27;,7a&#x27;-hexa-hydro-5H-spiro-[furan-2,4&#x27;-inden]-5-',p:'36337332',d:''},
+{y:2020,t:'Nakashima KI et al. (2020). Absolute configurations of talaromycones A and B, α-diversonolic ester, and aspergillusone B from endophytic Talaromyces sp. ECN211. Beilstein J Org Chem 16:290-296',p:'32180845',d:'10.3762/bjoc.16.28'},
+{y:2020,t:'Nguyen H., Choi S., Kim S., Lee J., Park A., et al. (2020). Corrigendum: The Hsp90 Inhibitor, Monorden, Is a Promising Lead Compound for the Development of Novel Fungicides. Front Plant Sci, 11: 635',p:'32508869',d:''},
+{y:2020,t:'Niu S, Peng G, Xia J, et al. (2020). Eutypellazines A-M, Thiodiketopiperazine Alkaloids from the Deep-Sea-Derived Fungus Eutypella sp. MCCC 3A00281. J Nat Prod. 83(7):2147-56',p:'',d:'10.1021/acs.jnatprod.0c00270'},
+{y:2020,t:'Park SC, Chung B, Lee J, et al. (2020). Sortase A-Inhibitory Metabolites from a Marine-Derived Fungus Aspergillus sp. Mar Drugs. 18(7):359',p:'32668629',d:''},
+{y:2020,t:'Peterková L., Kmoníčková E., Ruml T., Rimpelová S. (2020). Sarco/Endoplasmic Reticulum Calcium ATPase Inhibitors: Beyond Anticancer Perspective. J Med Chem, 63(5): 1937-1963',p:'32030976',d:''},
+{y:2020,t:'Pohl C et al. (2020). A Penicillium rubens platform strain for secondary metabolite production. Sci Rep 10(1):7630',p:'32376967',d:''},
+{y:2020,t:'Schmidt T, Schmidt C, Strahl A, Mussawy H, Rolvien T, Jandl NM, et al. (2020). Clinical gastroenterology and hepatology : the official clinical practice journal of the American Gastroenterological Association. 18(1):226-233.e3',p:'31163277',d:''},
+{y:2020,t:'Thesmar P et al. (2020). Divergent Synthesis of Bioactive Dithiodiketopiperazine Natural Products Based on a Double C(sp(3) )-H Activation Strategy. Chemistry 26(66):15298-15312',p:'32852800',d:''},
+{y:2020,t:'van Stuijvenberg J., Proksch P., Fritz G. (2020). Targeting the DNA damage response (DDR) by natural compounds. Bioorg Med Chem, 28(4): 115279',p:'',d:''},
+{y:2020,t:'Wang W., Yang J., Liao Y., Cheng G., Chen J., et al. (2020). Cytotoxic Nitrogenated Azaphilones from the Deep-Sea-Derived Fungus J Nat Prod, 83(4): 1157-1166',p:'',d:''},
+{y:2020,t:'Wang W et al. (2020). Cytotoxic Nitrogenated Azaphilones from the Deep-Sea-Derived Fungus Chaetomium globosum MP4-S01-7. J Nat Prod 83(4):1157-1166',p:'32193933',d:''},
+{y:2020,t:'Yang L, Peng X, Zhang Y, Liu Z, Li X, Gu Y, et al. (2020). Antimicrobial and Antioxidant Polyketides from a Deep-Sea-Derived Fungus Aspergillus versicolor SH0105. Marine drugs. 18(12)',p:'33322355',d:'10.3390/md18120636'},
+{y:2020,t:'Yuan S., Gopal J., Ren S., Chen L., Liu L., et al. (2020). Anticancer fungal natural products: Mechanisms of action and biosynthesis. Eur J Med Chem, 202: 112502',p:'32652407',d:''},
+{y:2020,t:'Zaman K., Hu Z., Wu X., Hou S., Saito J., et al. (2020). NF-κB Inhibitory and Antibacterial Helvolic and Fumagillin Derivatives from J Nat Prod, 83(3): 730-737',p:'',d:''},
+{y:2020,t:'Zatout R., Masi M., Sangermano F., Vurro M., Zonno M., et al. (2020). Drophiobiolins A and B, Bioactive Ophiobolan Sesterterpenoids Produced by Drechslera gigantea. J Nat Prod, 83(11): 3387-3396',p:'33074690',d:''},
+{y:2020,t:'Zhu M, Zhang X, Huang X, et al. (2020). Irregularly Bridged Epipolythiodioxopiperazines and Related Analogues: Sources, Structures, and Biological Activities. J Nat Prod. 83(6):2045-53',p:'32543845',d:''},
+{y:2020,t:'Zou Z., Zhang G., Li S., He Z., Yan Q., et al. (2020). Asperochratides A-J, Ten new polyketides from the deep-sea-derived Aspergillus ochraceus. Bioorg Chem, 105: 104349',p:'',d:''},
+{y:2019,t:'Chen SC et al. (2019). Tersone A-G, New Pyridone Alkaloids from the Deep-Sea Fungus Phomopsis tersa. Mar Drugs 17(7)',p:'31277263',d:''},
+{y:2019,t:'D\'Ambola M., Fiengo L., Chini M., Cotugno R., Bader A., et al. (2019). Fusicoccane Diterpenes from Hypoestes forsskaolii as Heat Shock Protein 90 (Hsp90) Modulators. J Nat Prod, 82(3): 539-549',p:'30839211',d:''},
+{y:2019,t:'Fan Y., Zhou Y., Du Y., Wang Y., Fu P., et al. (2019). Circumdatin-Aspyrone Conjugates from the Coral-Associated Mar Drugs, 17(7)',p:'',d:''},
+{y:2019,t:'Frank M., Hartmann R., Plenker M., Mándi A., Kurtán T., et al. (2019). Brominated Azaphilones from the Sponge-Associated Fungus J Nat Prod, 82(8): 2159-2166',p:'',d:''},
+{y:2019,t:'Fredimoses M, Zhou X, Ai W, Tian X, Yang B, Lin X, et al. (2019). Emerixanthone E, a new xanthone derivative from deep sea fungus Emericella sp SCSIO 05240. Nat Prod Res 33(14):2088-2094',p:'29911443',d:''},
+{y:2019,t:'Ghanta VR et al. (2019). Novel dermacozine-1-carboxamides as promising anticancer agents with tubulin polymerization inhibitory activity. RSC Adv 9(32):18670-18677',p:'35515253',d:'10.1039/c9ra02416f'},
+{y:2019,t:'Jennings LK, Khan NMD, Kaur N, et al. (2019). Brominated Bisindole Alkaloids from the Celtic Sea Sponge Spongosorites calcicola. Molecules. 24(21):3890',p:'31671793',d:''},
+{y:2019,t:'Jomori T, Shiroyama S, Ise Y, et al. (2019). Scrobiculosides A and B from the deep-sea sponge Pachastrella scrobiculosa. J Nat Med. 73(4):814-819',p:'31054009',d:''},
+{y:2019,t:'Kalinski JJ, Waterworth SC, Noundou XS, Jiwaji M, Parker-Nance S, Krause RWM, et al. (2019). Molecular Networking Reveals Two Distinct Chemotypes in Pyrroloiminoquinone-Producing Tsitsikamma favus Sponges.. Marine drugs. 17(1)',p:'30654589',d:''},
+{y:2019,t:'Klein-Júnior LC, Corrêa R, Vander Heyden Y, et al. (2019). All that glitters is not gold: Panning cytotoxic natural products and derivatives with a fused tricyclic backbone by the estimation of their leadliken. Eur J Med Chem. 166:1-10',p:'30684866',d:'10.1016/j.ejmech.2019.01.028'},
+{y:2019,t:'Kumar A, Ghosh S, Varma-Basil M, et al. (2019). Gliotoxin inhibits Mycobacterium tuberculosis growth. Tuberculosis. 115:100-7',p:'30685527',d:''},
+{y:2019,t:'Li F, Peifer C, Janussen D, et al. (2019). New Discorhabdin Alkaloids from the Antarctic Deep-Sea Sponge Latrunculia biformis. Mar Drugs. 17(8):439',p:'31349703',d:''},
+{y:2019,t:'Liu H et al. (2019). Four new metabolites from the endophytic fungus Diaporthe lithocarpus A740. Fitoterapia 137:104260',p:'31284016',d:''},
+{y:2019,t:'Liu M., Sun W., Shen L., Hao X., Al Anbari W., et al. (2019). Bipolaricins A-I, Ophiobolin-Type Tetracyclic Sesterterpenes from a Phytopathogenic Bipolaris sp. Fungus. J Nat Prod, 82(10): 2897-2906',p:'31573805',d:''},
+{y:2019,t:'Long S, Resende DISP, Kijjoa A, et al. (2019). Synthesis of New Proteomimetic Quinazolinone Alkaloids and Evaluation of Their Neuroprotective and Antitumor Effects. Molecules (Basel, Switzerland). 24(3):534',p:'30717179',d:'10.3390/molecules24030534'},
+{y:2019,t:'Niu S, Peng G, Xia J, et al. Eutypellazines A-M, Thiodiketopiperazine Alkaloids from the Deep-Sea-Derived Fungus Eutypella sp. MCCC 3A00281. Mar Drugs. 2019;17:500',p:'',d:'10.3390/md17080500'},
+{y:2019,t:'Niu S, Xia M, Chen M, et al. (2019). Cytotoxic Polyketides Isolated from the Deep-Sea-Derived Fungus Penicillium chrysogenum MCCC 3A00292. Mar Drugs. 17(12):686',p:'31817515',d:''},
+{y:2019,t:'Niu S, Xia M, Chen M, et al. (2019). Cytotoxic Polyketides Isolated from the Deep-Sea-Derived Fungus Penicillium chrysogenum MCCC 3A00292. Mar Drugs. 17(12):686',p:'31817515',d:''},
+{y:2019,t:'Ruocco N, Annunziata C, Ianora A, Libralato G, Manfra L, Costantini S, et al. (2019). Toxicity of diatom-derived polyunsaturated aldehyde mixtures on sea urchin Paracentrotus lividus development. Sci Rep. 9(1):517',p:'30679744',d:''},
+{y:2019,t:'Satoh A, Nishina Y. (2019). High-throughput screening of bioactive compounds via new catalytic reaction in the pooled mixture. Bioorganic & medicinal chemistry letters. 29(19):126539',p:'31421965',d:''},
+{y:2019,t:'Stevens M., Abdeen S., Salim N., Ray A., Washburn A., et al. (2019). HSP60/10 chaperonin systems are inhibited by a variety of approved drugs, natural products, and known bioactive molecules. Bioorg Med Chem Lett, 29(9): 1106-1112',p:'30852084',d:''},
+{y:2019,t:'Sun C, et al. New glutamine-containing azaphilone alkaloids from deep-sea Chaetomium globosum HDN151398. Mar Drugs. 2019;17(5):253',p:'',d:''},
+{y:2019,t:'Sun C, Ge X, Mudassir S, et al. (2019). New Glutamine-Containing Azaphilone Alkaloids from Deep-Sea-Derived Fungus Chaetomium globosum HDN151398. Mar Drugs. 17(5):253',p:'31035362',d:''},
+{y:2019,t:'Sun C, Ge X, Mudassir S, et al. New Glutamine-Containing Azaphilone Alkaloids from Deep-Sea-Derived Fungus Chaetomium globosum HDN151398. Mar Drugs. 2019;17(5):253',p:'31035362',d:''},
+{y:2019,t:'Wang W, Gao M, Luo Z, Liao Y, Zhang B, Ke W, et al. (2019). Secondary metabolites isolated from the deep sea-derived fungus Aspergillus sydowii C1-S01-A7. Natural product research. 33(21):3077-3082',p:'30251547',d:''},
+{y:2019,t:'Wang MS, Wang Z, Chen W, Yang X, et al. (2019). Synthesis of Oxa-Bridged Medium-Sized Carbocyclic Rings via Prins Cyclization. Org Lett, 21(6), 1881-1884',p:'31613040',d:'10.1021/acs.orglett.9b00491'},
+{y:2019,t:'Welin E, Ngamnithiporn A, Klatte M, et al. (2019). Concise total syntheses of (-)-jorunnamycin A and (-)-jorumycin enabled by asymmetric catalysis. Science, 363(6424):270-275',p:'30573544',d:''},
+{y:2019,t:'Xu J, Liu Z, Chen Y, et al. (2019). Lithocarols A-F, six tenellone derivatives from the deep-sea derived fungus Phomopsis lithocarpus FS508. Bioorg Chem. 87:728-735',p:'30954837',d:''},
+{y:2019,t:'Yurchenko A., Trinh P., Girich Ivanets E., Smetanina O., Rasin A., et al. (2019). Biologically Active Metabolites from the Marine Sediment-Derived Fungus Mar Drugs, 17(10)',p:'',d:''},
+{y:2019,t:'Zhu XL, Zhang R, Wu QY, et al. (2019). Natural Product Neopeltolide as a Cytochrome bc(1) Complex Inhibitor: Mechanism of Action and Structural Modification. J Agric Food Chem. 67(10):2774-81',p:'30794394',d:''},
+{y:2018,t:'Granchi C. (2018). ATP citrate lyase (ACLY) inhibitors: An anti-cancer strategy at the crossroads of glucose and lipid metabolism. Eur J Med Chem, 157: 1276-1291',p:'30195238',d:''},
+{y:2018,t:'Grijseels S et al. (2018). Identification of the decumbenone biosynthetic gene cluster in Penicillium decumbens and the importance for production of calbistrin. Fungal Biol Biotechnol 5:18',p:'30598828',d:''},
+{y:2018,t:'Hamed ANE, Schmitz R, Bergermann A, et al. (2018). Bioactive pyrrole alkaloids isolated from the Red Sea: marine sponge Stylissa carteri. Z Naturforsch C J Biosci. 73(5-6):199-210',p:'29353267',d:''},
+{y:2018,t:'Hayashi A, José Dorantes-Aranda J, Bowman JP, Hallegraeff G. (2018). Combined Cytotoxicity of the Phycotoxin Okadaic Acid and Mycotoxins on Intestinal and Neuroblastoma Human Cell Models.. Toxins (Basel). 10(12)',p:'30544794',d:''},
+{y:2018,t:'Huang H., Song Y., Li X., Wang X., Ling C., et al. (2018). Abyssomicin Monomers and Dimers from the Marine-Derived Streptomyces koyangensis SCSIO 5802. J Nat Prod, 81(8): 1892-1898',p:'30070834',d:''},
+{y:2018,t:'Kudryavtsev DS, Spirova EN, Shelukhina IV, Son LV, Makarova YV, Utkina NK, et al. (2018). Makaluvamine G from the Marine Sponge Zyzzia fuliginosa Inhibits Muscle nAChR by Binding at the Orthosteric and Allosteric Sites.. Marine drugs. 16(4)',p:'29597332',d:'10.3390/md16040109'},
+{y:2018,t:'Li H, Liao ZB, Tang D, et al. (2018). Polyketides from two Chaetomium species and their biological functions. J Antibiot (Tokyo). 71(7):677-681',p:'29662118',d:''},
+{y:2018,t:'Li F, Janussen D, Peifer C, et al. (2018). Targeted Isolation of Tsitsikammamines from the Antarctic Deep-Sea Sponge Latrunculia biformis by Molecular Networking and Anticancer Activity. Mar Drugs. 16(8):268',p:'30072656',d:''},
+{y:2018,t:'Limbadri S, Luo X, Lin X, et al. (2018). Bioactive Novel Indole Alkaloids and Steroids from Deep Sea-Derived FungusAspergillus fumigatusSCSIO 41012.Molecules23(9):2379',p:'30231470',d:''},
+{y:2018,t:'Niu S, Wang N, Xie C, Fan Z, Luo Z, Chen H, et al. (2018). Roquefortine J, a novel roquefortine alkaloid, from the deep-sea-derived fungus Penicillium granulatum MCCC 3A00475.. The Journal of antibiotics. 71(7):658-661',p:'29618769',d:''},
+{y:2018,t:'Rodriguez V, Martin J, Sarmiento-Vizcaino A, et al. (2018). Anthracimycin B, a new macrolide antibiotic from the marine-derived Streptomyces sp. MS19. Mar Drugs. 16(10):392',p:'30366404',d:''},
+{y:2018,t:'Shrestha S, Sorolla A, Fromont J, et al. (2018). Crambescidin 800, Isolated from the Marine Sponge Monanchora viridis, Induces Cell Cycle Arrest and Apoptosis in Triple-Negative Breast Cancer Cells. Mar Drugs. 16(2):53',p:'29419736',d:''},
+{y:2018,t:'Wang JF, Zhou LM, Chen ST, et al. (2018). New chlorinated diphenyl ethers and xanthones from a deep-sea-derived fungus Penicillium chrysogenum SCSIO 41001. Fitoterapia. 125:49-54',p:'29269234',d:''},
+{y:2018,t:'Wang W, Liao Y, Chen R, et al. (2018). Chlorinated Azaphilone Pigments with Antimicrobial and Cytotoxic Activities Isolated from the Deep Sea Derived FungusChaetomiumsp. NA-S01-R1.Mar. Drugs. 16(2):61',p:'29438326',d:''},
+{y:2018,t:'Xu JL, Liu HX, Chen YC, et al. (2018). Highly Substituted Benzophenone Aldehydes and Eremophilane Derivatives from the Deep-Sea Derived Fungus Phomopsis lithocarpus FS508. Mar Drugs. 16(9):329',p:'30158571',d:''},
+{y:2018,t:'Xu JL et al. (2018). Highly Substituted Benzophenone Aldehydes and Eremophilane Derivatives from the Deep-Sea Derived Fungus Phomopsis lithocarpus FS508. Mar Drugs 16(9)',p:'30208615',d:''},
+{y:2018,t:'Yang SQ, Li XM, Xu GM, et al. (2018). Antibacterial anthraquinone derivatives isolated from a mangrove-derived endophytic fungus Aspergillus nidulans by ethanol stress strategy. J Antibiot (Tokyo). 71(9):778-784',p:'29717199',d:'10.1038/s41429-018-0063-x'},
+{y:2017,t:'Chadha N., Silakari O. (2017). Indoles as therapeutics of interest in medicinal chemistry: Bird\'s eye view. Eur J Med Chem, 134: 159-184',p:'28412530',d:''},
+{y:2017,t:'Chen YX, Liu Z, Li HJ, et al. Spirograterpene A, a Tetracyclic Spiro-Diterpene with a Fused 5/5/5/5 Ring System from the Deep-Sea-Derived Fungus Penicillium granulatum MCCC 3A00475. J Nat Prod. 2017;80(7):2110-2114',p:'28692272',d:''},
+{y:2017,t:'Huang Z, Nong X, Ren Z, et al. (2017). Anti-HSV-1, antioxidant and antifouling phenolic compounds from the deep-sea-derived fungus Aspergillus versicolor SCSIO 41502. Bioorg Med Chem Lett. 27(4):787-791',p:'28129981',d:''},
+{y:2017,t:'Huang H, Liu T, Guo J, Yu L, Wu X, He Y, et al. (2017). Brefeldin A enhances docetaxel-induced growth inhibition and apoptosis in prostate cancer cells in monolayer and 3D cultures. Bioorganic & medicinal chemistry letters. 27(11):2286-2291',p:'28462831',d:''},
+{y:2017,t:'Huang Y, Li Y, Zhang J, et al. (2017). Sharpin inhibition by gliotoxin promotes cancer cell death. J Biol Chem. 292(19):7970-82',p:'28505447',d:''},
+{y:2017,t:'Irie R, Takada K, Ise Y, Ohtsuka S, Okada S, Gustafson KR, et al. (2017). Structure Revision of Poecillastrin C and the Absolute Configuration of the β-Hydroxyaspartic Acid Residue.. Organic letters. 19(19):5395-5397',p:'28956931',d:''},
+{y:2017,t:'Jarolim K et al. (2017). Dual effectiveness of Alternaria but not Fusarium mycotoxins against human topoisomerase II and bacterial gyrase. Arch Toxicol. 91(4):2007-2016',p:'27682608',d:''},
+{y:2017,t:'Lin S, McCauley EP, Lorig-Roach N, Tenney K, Naphen CN, Yang A, et al. (2017). Another Look at Pyrroloiminoquinone Alkaloids-Perspectives on Their Therapeutic Potential from Known Structures and Semisynthetic Analogues.. Marine drugs. 15(4)',p:'28353633',d:''},
+{y:2017,t:'Lindel T. (2017). Chemistry and Biology of the Pyrrole-Imidazole Alkaloids. Alkaloids Chem Biol. 77:117-219',p:'28212701',d:''},
+{y:2017,t:'Liu FA, Lin X, Zhou X, et al. (2017). Xanthones and Quinolones Derivatives Produced by the Deep-Sea-Derived Fungus Penicillium sp. SCSIO Ind16F01. Molecules. 22(12)',p:'29215585',d:'10.3390/molecules22121999'},
+{y:2017,t:'Losada AA, Cano-Prieto C, García-Salcedo R, et al. (2017). Caboxamycin biosynthesis pathway and identification of novel benzoxazoles produced by cross-talk in Streptomyces sp. NTK 937.Microb Biotechnol, 10(4):873-885',p:'28417606',d:''},
+{y:2017,t:'Losada AA, Méndez C, Salas JA, et al. (2017). Exploring the biocombinatorial potential of benzoxazoles: generation of novel caboxamycin derivatives.Microb Cell Fact, 16(1):93',p:'28545544',d:''},
+{y:2017,t:'Lv JM et al. (2017). Biosynthesis of helvolic acid and identification of an unusual C-4-demethylation process distinct from sterol biosynthesis. Nat Commun. 8(1):1644',p:'29158519',d:''},
+{y:2017,t:'McCauley E., Lam H., Lorig-Roach N., Luu J., Lloyd C., et al. (2017). Investigation of the Physical and Bioactive Properties of Bromo- and Iodo-Containing Sponge-Derived Compounds Possessing an Oxyphenylethanamine Core. J Nat Prod, 80(12): 3255-3266',p:'36893622',d:''},
+{y:2017,t:'Niu S, Liu D, Shao Z, Proksch P, Lin W. Eutypellazines A-M, thiodiketopiperazine-type alkaloids from deep sea derived fungus Eutypella sp. MCCC 3A00281. RSC Adv. 2017;7:33580-33590',p:'',d:'10.1039/C7RA05774A'},
+{y:2017,t:'Schinke C., Martins T., Queiroz S., Melo I., Reyes F. (2017). Antibacterial Compounds from Marine Bacteria, 2010-2015. J Nat Prod, 80(4): 1215-1228',p:'31298537',d:''},
+{y:2017,t:'Son S., Ko S., Jang M., Lee J., Kwon M., et al. (2017). Polyketides and Anthranilic Acid Possessing 6-Deoxy-α-l-talopyranose from a Streptomyces Species. J Nat Prod, 80(5): 1378-1386',p:'34251816',d:''},
+{y:2017,t:'Sun YZ, Kurtán T, Mándi A, et al. (2017). Immunomodulatory Polyketides from a Phoma-like Fungus Isolated from a Soft Coral. J Nat Prod. 80(11):2930-2940',p:'29048894',d:''},
+{y:2017,t:'Tian K, Xu F, Gao X, Han T, Li J, Pan H, et al. (2017). Nitric oxide-releasing derivatives of brefeldin A as potent and highly selective anticancer agents. European journal of medicinal chemistry. 136:131-143',p:'28494251',d:''},
+{y:2017,t:'Vo C., Shebert H., Zikovich S., Dryer R., Huang T., et al. (2017). Repurposing Hsp90 inhibitors as antibiotics targeting histidine kinases. Bioorg Med Chem Lett, 27(23): 5235-5244',p:'29110989',d:''},
+{y:2017,t:'Wang D et al. (2017). Potential allelopathic azaphilones produced by the endophytic Chaetomium globosum TY1 inhabited in Ginkgo biloba using the one strain-many compounds method. Nat Prod Res 31(6):724-728',p:'27686133',d:''},
+{y:2017,t:'Xu LL et al. (2017). Bioactive phenyl ether derivatives from the marine-derived fungus Aspergillus carneus. Nat Prod Res 31(16):1875-1879',p:'27917659',d:''},
+{y:2017,t:'Xu L., Wu P., Xue J., Molnar I., Wei X. (2017). Antifungal and Cytotoxic β-Resorcylic Acid Lactones from a Paecilomyces Species. J Nat Prod, 80(8): 2215-2223',p:'28749671',d:''},
+{y:2017,t:'Zhang X, Chen L, Chai W, Lian XY, Zhang Z. A unique indolizidinium alkaloid streptopertusacin A and bioactive bafilomycins from marine-derived Streptomyces sp. HZP-2. Phytochemistry. 2017;144:119-126',p:'28923323',d:''},
+{y:2016,t:'Chaiyosang B et al. (2016). A new lumazine peptide penilumamide E from the fungus Aspergillus terreus. Nat Prod Res 30(9):1017-24',p:'26518160',d:'10.1080/14786419.2015.1101107'},
+{y:2016,t:'Chen C, Wang J, Zhu H, et al. (2016). Chaephilones A and B, Two New Azaphilone Derivatives Isolated from Chaetomium globosum. Chemistry & Biodiversity. 13(4):422-6',p:'26938138',d:''},
+{y:2016,t:'Chen S, Wang J, Lin X, et al. (2016). Chrysamides A-C, Three Dimeric Nitrophenyl trans-Epoxyamides Produced by the Deep-Sea-Derived Fungus Penicillium chrysogenum SCSIO41001. Org Lett. 18(15):3650-3',p:'27440074',d:''},
+{y:2016,t:'Ebrahim W, El-Neketi M, Lewald LI, et al. (2016). Metabolites from the Fungal Endophyte Aspergillus austroafricanus in Axenic Culture and in Fungal-Bacterial Mixed Cultures. J Nat Prod. 79(4):914-22',p:'27070198',d:''},
+{y:2016,t:'Goey AK, Chau CH, Sissung TM, Cook KM, et al. (2016). Screening and Biological Effects of Marine Pyrroloiminoquinone Alkaloids: Potential Inhibitors of the HIF-1α/p300 Interaction.J Nat Prod, 79(5):1267-75',p:'27140429',d:''},
+{y:2016,t:'Hayashi A, Crombie A, Lacey E, Richardson AJ, Vuong D, Piggott AM, et al. (2016). Aspergillus Sydowii Marine Fungal Bloom in Australian Coastal Waters, Its Metabolites and Potential Impact on Symbiodinium Dinoflagellates.. Marine drugs. 14(3)',p:'26999164',d:''},
+{y:2016,t:'Hill RA, Sutherland A. (2016). Hot off the press.. Nat Prod Rep. 33(10):1126-1130',p:'27714022',d:''},
+{y:2016,t:'Li Y., Yue Q., Krausert N., An Z., Gloer J., et al. (2016). Emestrins: Anti-Cryptococcus Epipolythiodioxopiperazines from Podospora australis. J Nat Prod, 79(9): 2357-63',p:'27557418',d:''},
+{y:2016,t:'Roel M, Rubiolo JA, Guerra-Varela J, et al. (2016). Marine guanidine alkaloids crambescidins inhibit tumor growth and activate intrinsic apoptotic signaling in a colorectal carcinoma zebrafish xenograft model. Oncotarget. 7(50):83071-87',p:'27825113',d:''},
+{y:2015,t:'Alt S, Wilkinson B. Biosynthesis of the novel macrolide antibiotic anthracimycin. ACS Chem Biol. 2015;10(11):2468-79',p:'26349074',d:''},
+{y:2015,t:'Dasari R., Masi M., Lisy R., Ferdérin M., English L., et al. (2015). Fungal metabolite ophiobolin A as a promising anti-glioma agent: In vivo evaluation, structure-activity relationship and unique pyrrolylation of primary amines. Bioorg Med Chem Lett, 25(20): 4544-8',p:'26341136',d:''},
+{y:2015,t:'Ganihigama DU, Sureram S, Sangher S, et al. (2015). Antimycobacterial activity of natural products and synthetic agents: pyrrolodiquinolines and vermelhotin as anti-tubercular leads against clinical multidrug resistant isolates of Mycobacterium tuberculosis. Eur J Med Chem. 89:1-12',p:'25462220',d:''},
+{y:2015,t:'Guo W, Zhang Z, Zhu T, et al. (2015). Penicyclones A-E, Antibacterial Polyketides from the Deep-Sea-Derived Fungus Penicillium sp. F23-2. Journal of Natural Products. 78(11):2699-2703',p:'26540093',d:''},
+{y:2015,t:'Li H, Tian JM, Tang HY, et al. (2015). Chaetosemins A–E, new chromones isolated from an Ascomycete Chaetomium seminudum and their biological activities. RSC Advances. 5(37):29185-29192',p:'',d:'10.1039/C5RA00525F'},
+{y:2015,t:'Li H, Tian JM, Tang HY, et al. (2015). Chaetosemins A-E, new chromones isolated from an Ascomycete Chaetomium seminudum and their biological activities. RSC Advances. 5(37):29185-29192',p:'',d:'10.1039/C5RA00525F'},
+{y:2015,t:'Nam SJ, Kauffman CA, Jensen PR, Moore CE, Rheingold AL, et al. (2015). Actinobenzoquinoline and Actinophenanthrolines A-C, Unprecedented Alkaloids from a Marine Actinobacterium.. Org Lett, 17(13): 3240-3',p:'26084575',d:''},
+{y:2015,t:'Parrino B., Carbone A., Di Vita G., Ciancimino C., Attanzio A., et al. (2015). 3-[4-(1H-indol-3-yl)-1,3-thiazol-2-yl]-1H-pyrrolo[2,3-b]pyridines, nortopsentin analogues with antiproliferative activity. Mar Drugs, 13(4): 1901-24',p:'20472437',d:''},
+{y:2015,t:'Youn UJ, Sripisut T, Park EJ, et al. (2015). Determination of the absolute configuration of chaetoviridins and other bioactive azaphilones from the endophytic fungus Chaetomium globosum.Bioorg Med Chem Lett25(21):4719-23',p:'26343828',d:''},
+{y:2015,t:'Zhang Y., Islam M.A., McAlpine S.R. (2015). Synthesis of the Natural Product Marthiapeptide A. Organic Letters, 17(21):5149-5151',p:'',d:''},
+{y:2014,t:'Abdel-Mageed WM, Milne BF, Wagner M, et al. (2014). Dermacozines H-J: new phenazine alkaloids from a deep-sea Dermacoccus sp. J Nat Prod. 77(6):1471-9',p:'24499261',d:''},
+{y:2014,t:'Almeida C, Ortega H, Higginbotham S, et al. (2014). Chemical and bioactive natural products from Microthyriaceae sp., an endophytic fungus from a tropical grass. Lett Appl Microbiol. 59(1):58-64',p:'24612068',d:'10.1111/lam.12245'},
+{y:2014,t:'Fredimoses M, Zhou X, Ai W, et al. (2014). New Prenylxanthones from the Deep-Sea Derived Fungus Emericella sp. SCSIO 05240. Mar Drugs. 12(6):3190-202',p:'24879543',d:''},
+{y:2014,t:'Fredimoses M, Zhou X, Lin X, Tian X, Ai W, Wang J, et al. (2014). New prenylxanthones from the deep-sea derived fungus Emericella sp. SCSIO 05240.Mar Drugs. 12(6):3190-202',p:'PubMed',d:''},
+{y:2014,t:'Gavenonis J., Jonas N., Kritzer J. (2014). Potential C-terminal-domain inhibitors of heat shock protein 90 derived from a C-terminal peptide helix. Bioorg Med Chem, 22(15): 3989-93',p:'24984936',d:''},
+{y:2014,t:'Goddard ML, Mottier N, Jeanneret-Gris J, Christen D, Tabacchi R, Abou-Mansour E. (2014). Differential production of phytotoxins from Phomopsis sp. from grapevine plants showing esca symptoms.. J Agric Food Chem. 62(34):8602-7',p:'25070068',d:''},
+{y:2014,t:'Han Y., Di X., Li H., Shen T., Ren D., et al. (2014). Podoimbricatin A, a cytotoxic diterpenoid with an unprecedented 6/6/5/6-fused tetracyclic ring system from the twigs and leaves of Podocarpus imbricatus. Bioorg Med Chem Lett, 24(15): 3326-8',p:'',d:''},
+{y:2014,t:'Luo JG, Wang XB, Xu YM, et al. Delitschiapyrone A, a Pyrone-Naphthalenone Adduct Bearing a New Pentacyclic Ring System from the Leaf-Associated Fungus Delitschia sp. FL1581. Org Lett. 2014;16(22):5944-5947',p:'25493641',d:''},
+{y:2014,t:'Olano C, Cano-Prieto C, Losada AA, et al. (2014). Draft Genome Sequence of Marine Actinomycete Streptomyces sp. Strain NTK 937, Producer of the Benzoxazole Antibiotic Caboxamycin.Genome Announc, 2(4):e00534-14',p:'24994793',d:''},
+{y:2014,t:'Slanina J, Páchniková G, Carnecká M, Porubová Koubíková L, Adámková L, Humpa O, et al. (2014). Identification of key structural characteristics of Schisandra chinensis lignans involved in P-glycoprotein inhibition.. J Nat Prod. 77(10):2255-63',p:'25302569',d:''},
+{y:2014,t:'Song Y, Li Q, Liu X, et al. (2014). Cyclic Hexapeptides from the Deep South China Sea-Derived Streptomyces scopuliridis SCSIO ZJ46 Active Against Pathogenic Gram-Positive Bacteria. J Nat Prod. 77(8):1937-41',p:'25072108',d:''},
+{y:2014,t:'Ward DN, Talley DC, Tavag M, et al. (2014). UK-1 and structural analogs are potent inhibitors of hepatitis C virus replication.Bioorg Med Chem Lett, 24(2):609-612',p:'24360997',d:''},
+{y:2014,t:'Wilson MC, Mori T, Rückert C, et al. (2014). An environmental bacterial taxon with a large and distinct metabolic repertoire. Nature, 506(7486):58-62',p:'24476823',d:''},
+{y:2014,t:'Yao Q, Wang J, Zhang X, et al. Cytotoxic Polyketides from the Deep-Sea-Derived Fungus Engyodontium album DFFSCS021. Mar Drugs. 2014;12:5902-5915',p:'',d:'10.3390/md12125902'},
+{y:2014,t:'Yao Q, Wang J, Zhang X, et al. (2014). Cytotoxic polyketides from the deep-sea-derived fungus Engyodontium album DFFSCS021. Mar Drugs. 12(12):5902-15',p:'25501793',d:''},
+{y:2014,t:'[1] Yao Q, Wang J, Zhang X, Nong X, Xu X, Qi S. Cytotoxic Polyketides from the Deep-Sea-Derived Fungus Engyodontium album DFFSCS021. Mar Drugs. 2014;12(12):5902-15',p:'',d:''},
+{y:2013,t:'Bonitz T, Altenbacher R, Bode HB, et al. (2013). Unusual N-prenylation in diazepinomicin biosynthesis. ChemBioChem. 14(15):1982-8',p:'24376894',d:''},
+{y:2013,t:'Cacho RA et al. (2013). Complexity generation in fungal polyketide biosynthesis: a spirocycle-forming P450 in the concise pathway to the antifungal drug griseofulvin. ACS Chem Biol. 8(10):2322-30',p:'23978092',d:''},
+{y:2013,t:'Chen M., Shao C., Fu X., Xu R., Zheng J., et al. (2013). Bioactive indole alkaloids and phenyl ether derivatives from a marine-derived Aspergillus sp. Fungus. J Nat Prod, 76(4): 547-53',p:'',d:''},
+{y:2013,t:'Chen M, Shao CL, Fu XM, et al. (2013). Bioactive indole alkaloids and phenyl ether derivatives from a marine-derived Aspergillus sp. Fungus. J Nat Prod. 76(4):547-53',p:'23527875',d:''},
+{y:2013,t:'Chung YM, Wei CK, Chuang DW, et al. (2013). An epigenetic modifier enhances the production of anti-diabetic and anti-inflammatory sesquiterpenoids from Aspergillus sydowii. Bioorg Med Chem. 21(13):3866-72',p:'23647825',d:''},
+{y:2013,t:'Dal Piaz F., Vassallo A., Temraz A., Cotugno R., Belisario M., et al. (2013). A chemical-biological study reveals C9-type iridoids as novel heat shock protein 90 (Hsp90) inhibitors. J Med Chem, 56(4): 1583-95',p:'23362862',d:''},
+{y:2013,t:'De Bruyn T., van Westen G., Ijzerman A., Stieger B., de Witte P., et al. (2013). Structure-based identification of OATP1B1/3 inhibitors. Mol Pharmacol, 83(6): 1257-67',p:'',d:''},
+{y:2013,t:'De Bruyn T., van Westen G., Ijzerman A., Stieger B., de Witte P., et al. (2013). Structure-based identification of OATP1B1/3 inhibitors. Mol Pharmacol, 83(6): 1257-67',p:'23571415',d:''},
+{y:2013,t:'Fan Y., Wang Y., Liu P., Fu P., Zhu T., et al. (2013). Indole-diterpenoids with anti-H1N1 activity from the aciduric fungus Penicillium camemberti OUCMDZ-1492. J Nat Prod, 76(7): 1328-36',p:'23886345',d:''},
+{y:2013,t:'Fujita MJ, Sakai T, Miyamoto H, et al. (2013). Bisucaberin B, a linear hydroxamate class siderophore from Tenacibaculum mesophilum. Molecules. 18(3):2354-68',p:'23549298',d:''},
+{y:2013,t:'Hemberger Y, et al. Pestalotiopens A and B from Pestalotiopsis sp. Chem Eur J. 2013;19:15556-15564',p:'23489283',d:''},
+{y:2013,t:'Hemberger Y, Xu J, Wray V, Proksch P, Wu J, Bringmann G. Pestalotiopens A and B: stereochemically challenging flexible sesquiterpene-cyclopaldic acid hybrids from Pestalotiopsis sp. Chemistry. 2013;19(46):15556-64..1002/chem.201302204',p:'24123472',d:'10.1002/chem.201302204'},
+{y:2013,t:'Huryn D., Resnick L., Wipf P. (2013). Contributions of academic laboratories to the discovery and development of chemical biology tools. J Med Chem, 56(18): 7161-76',p:'23672690',d:''},
+{y:2013,t:'Jang KH, Nam SJ, Locke JB, et al. Anthracimycin, a potent anthrax antibiotic from a marine-derived actinomycete. Angew Chem Int Ed Engl. 2013;52(30):7822-4',p:'23776159',d:''},
+{y:2013,t:'Kong X et al. (2013). Aromatic polyketides from a sponge-derived fungus Metarhizium anisopliae mxh-99 and their antitubercular activities. Arch Pharm Res. 36(6):739-44',p:'23463335',d:''},
+{y:2013,t:'Liu H, Yu X, Padula D, Pescitelli G, Lin Z, Wang F, et al. (2013). Lignans from Schisandra sphenathera Rehd. et Wils. and semisynthetic schisantherin A analogues: absolute configuration, and their estrogenic and anti-proliferative activity.. European journal of medicinal chemistry. 59:265-73',p:'23237974',d:''},
+{y:2013,t:'Rosse G. (2013). Imaging probes of tau pathology. ACS Med Chem Lett, 4(9): 817-8',p:'24900752',d:''},
+{y:2013,t:'Sagong H., Parhi A., Bauman J., Patel D., Vijayan R., et al. (2013). 3-Hydroxyquinolin-2(1H)-ones As Inhibitors of Influenza A Endonuclease. ACS Med Chem Lett, 4(6): 547-50',p:'',d:''},
+{y:2013,t:'Seehafer K, Rominger F, Helmchen G, Langhans M, Robinson DG, Özata B, et al. (2013). Synthesis and biological properties of novel brefeldin A analogues. Journal of medicinal chemistry. 56(14):5872-84',p:'23805957',d:''},
+{y:2013,t:'Shapiro D et al. (2013). Activation of transient receptor potential ankyrin-1 (TRPA1) in lung cells by wood smoke particulate material. Chem Res Toxicol. 26(5):750-8',p:'23541125',d:''},
+{y:2013,t:'Song Y, Huang H, Chen Y, et al. (2013). Cytotoxic and antibacterial marfuraquinocins from the deep South China Sea-derived Streptomyces niveus SCSIO 3406. Journal of Natural Products. 76(12):2263-2268',p:'24251399',d:''},
+{y:2013,t:'Utkina NK (2013). Antioxidant activity of zyzzyanones and makaluvamines from the marine sponge Zyzzya fuliginosa. Nat Prod Commun 8(11):1551-2',p:'24427939',d:''},
+{y:2013,t:'Wagner M (2013). Dermacozine: neuartige Phenazin-Derivate von marinen Dermacoccus-Isolaten [Dermacozines: novel phenazine derivatives from marine Dermacoccus isolates]. PhD Thesis. Julius-Maximilians-Universität Würzburg.Thesis',p:'',d:''},
+{y:2013,t:'Wang Q., Yang J., Qi Q., Bao L., Yang X., et al. (2013). 3-Anhydro-6-hydroxy-ophiobolin A, a new sesterterpene inhibiting the growth of methicillin-resistant Staphylococcus aureus and inducing the cell death by apoptosis on K562, from the phytopathogenic fungus Bipolaris oryzae. Bioorg Med Chem Lett, 23(12): 3547-50',p:'23668986',d:''},
+{y:2013,t:'Xu YM, Espinosa-Artiles P, Liu MX, Arnold AE, Gunatilaka AAL. Secoemestrin D, a cytotoxic epitetrathiodioxopiperizine, and emericellenes A-E, five sesterterpenoids from Emericella sp. AST0036. J Nat Prod. 2013;76(12):2330-6..1021/np400762k',p:'24251417',d:'10.1021/np400762k'},
+{y:2013,t:'Zheng C.J., Sohn M.J., Lee S., Kim W.G. (2013). Meleagrin, a new FabI inhibitor fromPenicillium chrysogenumwith at least one additional mode of action.PLoS One, 8(11):e78922',p:'24312171',d:''},
+{y:2013,t:'Zhou G., Liu F., Wan J., Wang J., Wang D., et al. (2013). Design, synthesis and evaluation of a cellular stable and detectable biotinylated fumagillin probe and investigation of cell permeability of fumagillin and its analogs to endothelial and cancer cells. Eur J Med Chem, 70: 631-9',p:'24211639',d:''},
+{y:2012,t:'Asayama K, Ohkubo T, Metoki H, Obara T, Inoue R, Kikuya M, et al. (2012). Hypertension research : official journal of the Japanese Society of Hypertension. 35(11):1102-10',p:'22895063',d:''},
+{y:2012,t:'Brunhofer G, Fallarero A, Karlsson D, Batista-Gonzalez A, Shinde P, Gopi Mohan C, et al. (2012). Exploration of natural compounds as sources of new bifunctional scaffolds targeting cholinesterases and beta amyloid aggregation: the case of chelerythrine. Bioorganic & medicinal chemistry. 20(22):6669-79',p:'23062825',d:''},
+{y:2012,t:'Chen GD et al. (2012). New azaphilones and chlorinated phenolic glycosides from Chaetomium elatum with caspase-3 inhibitory activity. Planta Med 78(15):1683-9',p:'22890540',d:''},
+{y:2012,t:'Huang Z et al. (2012). A new isoflavone from the mangrove endophytic fungus Fusarium sp. (ZZF60). Nat Prod Res. 26(1):11-5',p:'21714733',d:''},
+{y:2012,t:'Huang H, Wang F, Luo M, Chen Y, Song Y, Zhang W, et al. (2012). Halogenated anthraquinones from the marine-derived fungus Aspergillus sp. SCSIO F063.. Journal of natural products. 75(7):1346-52',p:'22703109',d:''},
+{y:2012,t:'Izumi E., Ueda-Nakamura T., Veiga V., Pinto A., Nakamura C. (2012). Terpenes from Copaifera demonstrated in vitro antiparasitic and synergic activity. J Med Chem, 55(7): 2994-3001',p:'',d:''},
+{y:2012,t:'Kung H. (2012). The β-Amyloid Hypothesis in Alzheimer\'s Disease: Seeing Is Believing. ACS Med Chem Lett, 3(4): 265-7',p:'24936237',d:''},
+{y:2012,t:'Li X., Gao J., et al. (2012). Metabolites from Aspergillus fumigatus, an endophytic fungus associated with Melia azedarach, and their antifungal, antifeedant, and toxic activities. J Agric Food Chem, 60(13): 3424-31',p:'22409377',d:''},
+{y:2012,t:'Liao W., Shen C., Lin L., Yang Y., Han H., et al. (2012). Asperjinone, a nor-neolignan, and terrein, a suppressor of ABCG2-expressing breast cancer cells, from thermophilic Aspergillus terreus. J Nat Prod, 75(4): 630-5',p:'',d:''},
+{y:2012,t:'Little A, Porco JA. (2012). Total syntheses of graphisin A and sydowinin B. Organic letters. 14(11):2862-5',p:'22621405',d:''},
+{y:2012,t:'Lo HC, Entwistle R, Guo CJ, et al. (2012). Two separate gene clusters encode the biosynthetic pathway for the meroterpenoids austinol and dehydroaustinol in Aspergillus nidulans.J Am Chem Soc. 134(10):4709-4720',p:'22329759',d:''},
+{y:2012,t:'Rukachaisirikul V, Rodglin A, Sukpondma Y, Phongpaichit S, Buatong J, Sakayaroj J. (2012). Phthalide and isocoumarin derivatives produced by an Acremonium sp. isolated from a mangrove Rhizophora apiculata. Journal of natural products. 75(5):853-8',p:'22524636',d:''},
+{y:2012,t:'Srimongkolpithak N, Sundaram S, et al. (2012). Gliotoxin and related epidithiodiketopiperazines: inhibition of histone methyltransferases. J Med Chem. 55(21):9243-56',p:'22975593',d:''},
+{y:2012,t:'Sun Y., Takada K., Takemoto Y., Yoshida M., Nogi Y., et al. (2012). Gliotoxin analogues from a marine-derived fungus, Penicillium sp., and their cytotoxic and histone methyltransferase inhibitory activities. J Nat Prod, 75(1): 111-4',p:'',d:''},
+{y:2012,t:'Tan Q, Ouyang M, Shen S, Li W. (2012). Bioactive metabolites from a marine-derived strain of the fungus Neosartorya fischeri. Natural product research. 26(15):1402-7',p:'21916772',d:'10.1080/14786419.2011.592834'},
+{y:2012,t:'Valeriote FA, Tenney K, Media J, et al. (2012). Discovery and development of anticancer agents from marine sponges: perspectives based on a chemistry-experimental therapeutics collaborative program. J Exp Ther Oncol. 10(2):119-34',p:'23350352',d:''},
+{y:2012,t:'Wang QX et al. (2012). Polyketides with antimicrobial activity from the solid culture of an endolichenic fungus Ulocladium sp. Fitoterapia. 83(1):209-14',p:'22061662',d:''},
+{y:2012,t:'Yu P., Cui M., Wang X., Zhang X., Li Z., et al. (2012). ¹⁸F-labeled 2-phenylquinoxaline derivatives as potential positron emission tomography probes for in vivo imaging of β-amyloid plaques. Eur J Med Chem, 57: 51-8',p:'',d:''},
+{y:2012,t:'Yuan J, Li B, Zhang N, et al. (2012). Production of bacillomycin- and macrolactin-type antibiotics by Bacillus amyloliquefaciens NJN-6 for suppressing soilborne plant pathogens. J Agric Food Chem. 60(12):2976-81',p:'22385216',d:''},
+{y:2012,t:'Zhang W, Liu Z, Li S, et al. Spiroindimicins A-D: New Bisindole Alkaloids from a Deep-Sea-Derived Actinomycete. Org Lett. 2012;14(13):3364-7',p:'22694269',d:'10.1021/ol301343n'},
+{y:2012,t:'Zhou X., Huang H., Chen Y., Tan J., Song Y., Zou J., Tian X., Hua Y., Ju J. (2012). Marthiapeptide A, an Anti-Infective and Cytotoxic Polythiazole Cyclopeptide from a 60 L Scale Fermentation of the Deep Sea-Derived Marinactinospora thermotolerans SCSIO 00652. Journal of Natural Products, 75:2251-2255',p:'',d:''},
+{y:2012,t:'Zhuravleva OI, Afiyatullov SSh, Vishchuk OS, et al. (2012). Decumbenone C, a new cytotoxic decaline derivative from the marine fungus Aspergillus sulphureus KMM 4640. Arch Pharm Res. 35(10):1757-62',p:'23139126',d:''},
+{y:2011,t:'Akhaja T., Raval J. (2011). 1,3-Dihydro-2H-indol-2-ones derivatives: design, synthesis, in vitro antibacterial, antifungal and antitubercular study. Eur J Med Chem, 46(11): 5573-9',p:'9748377',d:''},
+{y:2011,t:'Alagille D., DaCosta H., Baldwin R., Tamagnan G. (2011). 2-Arylimidazo[2,1-b]benzothiazoles: a new family of amyloid binding agents with potential for PET and SPECT imaging of Alzheimer\'s brain. Bioorg Med Chem Lett, 21(10): 2966-8',p:'',d:''},
+{y:2011,t:'Ames BD et al. (2011). Complexity generation in fungal peptidyl alkaloid biosynthesis: oxidation of fumiquinazoline A to the heptacyclic hemiaminal fumiquinazoline C by the flavoenzyme Af12070 from Aspergillus fumigatus. Biochemistry. 50(40):8756-69',p:'21899262',d:''},
+{y:2011,t:'Andrianasolo EH, Haramaty L, McPhail KL, White E, Vetriani C, Falkowski P, et al. (2011). Bathymodiolamides A and B, ceramide derivatives from a deep-sea hydrothermal vent invertebrate mussel, Bathymodiolus thermophilus. Journal of natural products. 74(4):842-6',p:'21222464',d:''},
+{y:2011,t:'Boyer N, Morrison KC, Kim J, et al. (2011). Histone methyltransferase inhibitors for cancer therapy. Bioorg Med Chem. 19(24):7486-95',p:'22148349',d:''},
+{y:2011,t:'Cai S, Zhu T, Du L, et al. (2011). Sterigmatocystins from the deep-sea-derived fungus Aspergillus versicolor. The Journal of Antibiotics. 64:193-196',p:'21119680',d:'10.1038/ja.2010.154'},
+{y:2011,t:'Du L., Liu H., Fu W., Li D., Pan Q., et al. (2011). Unprecedented citrinin trimer tricitinol B functions as a novel topoisomerase IIα inhibitor. J Med Chem, 54(16): 5796-810',p:'21761866',d:''},
+{y:2011,t:'Ebada S., Schulz B., Wray V., Totzke F., Kubbutat M., et al. (2011). Arthrinins A-D: novel diterpenoids and further constituents from the sponge derived fungus Arthrinium sp. Bioorg Med Chem, 19(15): 4644-51',p:'',d:''},
+{y:2011,t:'Farshori N., Ahmad A., Khan A., Rauf A. (2011). A facile, one-pot synthesis, characterization and antimicrobial activity of o-hydroxy anilide derivatives and 1-substituted-1,3-dicyclohexylurea analogs of long chain carboxylic acids. Eur J Med Chem, 46(4): 1433-8',p:'3373224',d:''},
+{y:2011,t:'Gao SS, Li XM, Zhang Y, et al. (2011). Conidiogenones H and I, two new diterpenes of Cyclopiane class from a marine-derived endophytic fungus Penicillium chrysogenum QEN-24S. Chem Biodivers. 8(9):1748-1753',p:'21922663',d:''},
+{y:2011,t:'Gozalbes R., Jacewicz M., Annand R., Tsaioun K., Pineda-Lucena A. (2011). QSAR-based permeability model for drug-like compounds. Bioorg Med Chem, 19(8): 2615-24',p:'7494149',d:''},
+{y:2011,t:'Hamdache A, Lamarti A, Aleu J, et al. (2011). Non-peptide metabolites from the genus Bacillus. J Nat Prod. 74(4):893-9',p:'21401023',d:''},
+{y:2011,t:'Houbraken J et al. (2011). Phylogeny of Penicillium and the segregation of Trichocomaceae into three families. Stud Mycol. 70(1):1-51',p:'22308045',d:''},
+{y:2011,t:'Kobayashi Y (2011). [Efficient construction of nitrogen-containing heterocycles utilizing CN functional groups and its application to the synthesis of natural products]. Yakugaku Zasshi. 131(7):1037-46',p:'21720133',d:''},
+{y:2011,t:'Kouznetsova V., Tsigelny I., Nagle M., Nigam S. (2011). Elucidation of common pharmacophores from analysis of targeted metabolites transported by the multispecific drug transporter-Organic anion transporter1 (Oat1). Bioorg Med Chem, 19(11): 3320-40',p:'21571536',d:''},
+{y:2011,t:'Lee I., Yang J., Lee J., Choe Y. (2011). Synthesis and evaluation of 1-(4-[¹⁸F]fluoroethyl)-7-(4\'-methyl)curcumin with improved brain permeability for β-amyloid plaque imaging. Bioorg Med Chem Lett, 21(19): 5765-9',p:'21885280',d:''},
+{y:2011,t:'Li H, Huang H, Shao C, et al. (2011) Cytotoxic norsesquiterpene peroxides from the endophytic fungus Talaromyces flavus isolated from the mangrove plant Sonneratia apetala. Journal of Natural Products. 74(5):1230-1235',p:'21545109',d:''},
+{y:2011,t:'Li X, Kim SK, Nam KW, et al. (2011). Anti-inflammatory effect of gliotoxin from Aspergillus fumigatus in LPS-stimulated macrophages. Int Immunopharmacol. 11(12):2112-8',p:'21761939',d:''},
+{y:2011,t:'Makawana J., Mungra D., Patel M., Patel R. (2011). Microwave assisted synthesis and antimicrobial evaluation of new fused pyran derivatives bearing 2-morpholinoquinoline nucleus. Bioorg Med Chem Lett, 21(20): 6166-9',p:'8991955',d:''},
+{y:2011,t:'Niu S, Li S, Chen Y, et al. (2011). Lobophorins E and F, new spirotetronate antibiotics from a South China Sea-derived Streptomyces sp. SCSIO 01127. J Antibiot (Tokyo). 64(11):711-6',p:'21897400',d:''},
+{y:2011,t:'Reeves EP, McCarthy C, Doyle S, et al. (2011). Fungal toxins as a source of new drug leads. Nat Prod Rep. 28(11):1769-92',p:'21954885',d:''},
+{y:2011,t:'Sandhya B., Giles D., Mathew V., Basavarajaswamy G., Abraham R. (2011). Synthesis, pharmacological evaluation and docking studies of coumarin derivatives. Eur J Med Chem, 46(9): 4696-701',p:'8882437',d:''},
+{y:2011,t:'Tao YW et al. (2011). 3-Hy-droxy-4-(3-hy-droxy-phen-yl)-2-quinolone monohydrate. Acta Crystallogr Sect E Struct Rep Online. 67(Pt 8):o2195-6',p:'22091203',d:''},
+{y:2011,t:'Trisuwan K et al. (2011). Sesquiterpene and xanthone derivatives from the sea fan-derived fungus Aspergillus sydowii PSU-F154. J Nat Prod 74(7):1663-7',p:'21718031',d:'10.1021/np200374j'},
+{y:2011,t:'Vandeputte P, Ferrari S, Coste AT. (2011). Antifungal resistance and new strategies to control fungal infections. Int J Microbiol. 2012:713687',p:'20303767',d:''},
+{y:2011,t:'Yamada T, Muroga Y, Jinno M, et al. (2011). New class azaphilone produced by a marine fish-derived Chaetomium globosum. The stereochemistry and biological activities.Bioorg Med Chem19(13):4106-13',p:'21640594',d:''},
+{y:2011,t:'Yamada T et al. (2011). New class azaphilone produced by a marine fish-derived Chaetomium globosum. The stereochemistry and biological activities. Bioorg Med Chem 19(13):4106-13',p:'21640594',d:''},
+{y:2011,t:'Yousefi B., Manook A., Drzezga A., von Reutern B., Schwaiger M., et al. (2011). Synthesis and evaluation of 11C-labeled imidazo[2,1-b]benzothiazoles (IBTs) as PET tracers for imaging β-amyloid plaques in Alzheimer\'s disease. J Med Chem, 54(4): 949-56',p:'21275403',d:''},
+{y:2011,t:'Yousefi B., Drzezga A., von Reutern B., Manook A., Schwaiger M., et al. (2011). A Novel (18)F-Labeled Imidazo[2,1-b]benzothiazole (IBT) for High-Contrast PET Imaging of β-Amyloid Plaques. ACS Med Chem Lett, 2(9): 673-7',p:'24900362',d:''},
+{y:2011,t:'Zha Z., Choi S., Ploessl K., Lieberman B., Qu W., et al. (2011). Multidentate (18)F-polypegylated styrylpyridines as imaging agents for Aβ plaques in cerebral amyloid angiopathy (CAA). J Med Chem, 54(23): 8085-98',p:'22011144',d:''},
+{y:2010,t:'Abdel-Mageed WM, Milne BF, Wagner M, et al. (2010). Dermacozines, a new phenazine family from deep-sea dermacocci isolated from a Mariana Trench sediment.Org Biomol Chem8(10):2352-62.1039/c001445a',p:'20448892',d:'10.1039/c001445a'},
+{y:2010,t:'Bruncko M., Tahir S., Song X., Chen J., Ding H., et al. (2010). N-aryl-benzimidazolones as novel small molecule HSP90 inhibitors. Bioorg Med Chem Lett, 20(24): 7503-6',p:'21106457',d:''},
+{y:2010,t:'Carr G, Williams D, Díaz-Marrero A, Patrick B, Bottriell H, et al. Bafilomycins produced in culture by Streptomyces spp. isolated from marine habitats are potent inhibitors of autophagy. J Nat Prod. 2010;73(3):422-7',p:'20028134',d:''},
+{y:2010,t:'Cheng H., Zhang L., Liu Y., Chen S., Cheng H., et al. (2010). Design, synthesis and discovery of 5-hydroxyaurone derivatives as growth inhibitors against HUVEC and some cancer cell lines. Eur J Med Chem, 45(12): 5950-7',p:'20974505',d:''},
+{y:2010,t:'Duan X., Qiao J., Yang Y., Cui M., Zhou J., et al. (2010). Novel anilinophthalimide derivatives as potential probes for beta-amyloid plaque in the brain. Bioorg Med Chem, 18(3): 1337-43',p:'',d:''},
+{y:2010,t:'Farshori N., Banday M., Ahmad A., Khan A., Rauf A. (2010). Synthesis, characterization, and in vitro antimicrobial activities of 5-alkenyl/hydroxyalkenyl-2-phenylamine-1,3,4-oxadiazoles and thiadiazoles. Bioorg Med Chem Lett, 20(6): 1933-8',p:'20805011',d:''},
+{y:2010,t:'Fourches D., Barnes J., Day N., Bradley P., Reed J., et al. (2010). Cheminformatics analysis of assertions mined from literature that describe drug-induced liver injury in different species. Chem Res Toxicol, 23(1): 171-83',p:'20172722',d:''},
+{y:2010,t:'Gadakh A., Pandit C., Rindhe S., Karale B. (2010). Synthesis and antimicrobial activity of novel fluorine containing 4-(substituted-2-hydroxybenzoyl)-1H-pyrazoles and pyrazolyl benzo[d]oxazoles. Bioorg Med Chem Lett, 20(18): 5572-6',p:'21890359',d:''},
+{y:2010,t:'Gao M., Wang M., Hutchins G., Zheng Q. (2010). [(11)C]Dimebon, radiosynthesis and lipophilicity of a new potential PET agent for imaging of Alzheimer\'s disease and Huntington\'s disease. Bioorg Med Chem Lett, 20(8): 2529-32',p:'20299213',d:''},
+{y:2010,t:'Gao SS et al. (2010). Secondary metabolites from a marine-derived endophytic fungus Penicillium chrysogenum QEN-24S. Mar Drugs. 9(1):59-70',p:'21339945',d:''},
+{y:2010,t:'Greene N., Fisk L., Naven R., Note R., Patel M., et al. (2010). Developing structure-activity relationships for the prediction of hepatotoxicity. Chem Res Toxicol, 23(7): 1215-22',p:'21458999',d:''},
+{y:2010,t:'Guizzunti G, Brady TP, Fischer D, Malhotra V, Theodorakis EA. (2010). Chemical biology studies on norrisolide. Bioorg Med Chem. 18(6):2115-2122',p:'20189813',d:''},
+{y:2010,t:'Kamdar N., Haveliwala D., Mistry P., Patel S. (2010). Design, synthesis and in vitro evaluation of antitubercular and antimicrobial activity of some novel pyranopyrimidines. Eur J Med Chem, 45(11): 5056-63',p:'21981980',d:''},
+{y:2010,t:'Kategaonkar A., Pokalwar R., Sonar S., Gawali V., Shingate B., et al. (2010). Synthesis, in vitro antibacterial and antifungal evaluations of new alpha-hydroxyphosphonate and new alpha-acetoxyphosphonate derivatives of tetrazolo [1, 5-a] quinoline. Eur J Med Chem, 45(3): 1128-32',p:'20630629',d:''},
+{y:2010,t:'Kategaonkar A., Shinde P., Kategaonkar A., Pasale S., Shingate B., et al. (2010). Synthesis and biological evaluation of new 2-chloro-3-((4-phenyl-1H-1,2,3-triazol-1-yl)methyl)quinoline derivatives via click chemistry approach. Eur J Med Chem, 45(7): 3142-6',p:'21345547',d:''},
+{y:2010,t:'Miyanaga S, Sakurai H, Saiki I, et al. (2010). Anti-invasive and anti-angiogenic activity of diazepinomicin. J Antibiot (Tokyo). 63(7):365-8',p:'33372541',d:''},
+{y:2010,t:'Musso L., Dallavalle S., Merlini L., Bava A., Nasini G., et al. (2010). Natural and semisynthetic azaphilones as a new scaffold for Hsp90 inhibitors. Bioorg Med Chem, 18(16): 6031-43',p:'20655237',d:''},
+{y:2010,t:'Ozdemir A., Turan-Zitouni G., Asim Kaplancikli Z., Işcan G., Khan S., et al. (2010). Synthesis and the selective antifungal activity of 5,6,7,8-tetrahydroimidazo[1,2-a]pyridine derivatives. Eur J Med Chem, 45(5): 2080-4',p:'20724151',d:''},
+{y:2010,t:'Patel N., Khan I., Rajani S. (2010). Pharmacological evaluation and characterizations of newly synthesized 1,2,4-triazoles. Eur J Med Chem, 45(9): 4293-9',p:'21816516',d:''},
+{y:2010,t:'Pei Z., Gustavsson T., Roth R., Frejd T., Hägerhäll C. (2010). Photolabile ubiquinone analogues for identification and characterization of quinone binding sites in proteins. Bioorg Med Chem, 18(10): 3457-66',p:'28406643',d:''},
+{y:2010,t:'Ricci J., Park J., Chung W., Park K., Jung M. (2010). Concise synthesis and antiangiogenic activity of artemisinin-glycolipid hybrids on chorioallantoic membranes. Bioorg Med Chem Lett, 20(22): 6858-60',p:'',d:''},
+{y:2010,t:'Ronad P., Noolvi M., Sapkal S., Dharbhamulla S., Maddi V. (2010). Synthesis and antimicrobial activity of 7-(2-substituted phenylthiazolidinyl)-benzopyran-2-one derivatives. Eur J Med Chem, 45(1): 85-9',p:'20106559',d:''},
+{y:2010,t:'Wang J, Ding G, Fang L, et al. (2010). Thiodiketopiperazines produced by the endophytic fungus Epicoccum nigrum. J Nat Prod. 73(7):1240-9',p:'20550196',d:''},
+{y:2010,t:'Watts K., Ratnam J., Ang K., Tenney K., Compton J., et al. (2010). Assessing the trypanocidal potential of natural and semi-synthetic diketopiperazines from two deep water marine-derived fungi. Bioorg Med Chem, 18(7): 2566-74',p:'',d:''},
+{y:2010,t:'Yan HJ et al. (2010). Chemical constituents of a marine-derived endophytic fungus Penicillium commune G2M. Molecules. 15(5):3270-5',p:'20657476',d:''},
+{y:2010,t:'Yang G et al. (2010). Induced production of halogenated diphenyl ethers from the marine-derived fungus Penicillium chrysogenum. Chem Biodivers. 7(11):2766-70',p:'21072776',d:''},
+{y:2009,t:'Abdel-Aziz H., Mekawey A. (2009). Stereoselective synthesis and antimicrobial activity of benzofuran-based (1E)-1-(piperidin-1-yl)-N2-arylamidrazones. Eur J Med Chem, 44(12): 4985-97',p:'20036039',d:''},
+{y:2009,t:'Arico-Muendel C., Centrella P., Contonio B., Morgan B., O\'Donovan G., et al. (2009). Antiparasitic activities of novel, orally available fumagillin analogs. Bioorg Med Chem Lett, 19(17): 5128-31',p:'19648008',d:''},
+{y:2009,t:'Du L, Li D, Zhu T, et al. (2009). New alkaloids and diterpenes from a deep ocean sediment derived fungus Penicillium sp. Tetrahedron. 65(5):1033-1039',p:'',d:'10.1016/j.tet.2008.11.078'},
+{y:2009,t:'Figueroa M, González Mdel C, Rodríguez-Sotres R, et al. (2009). Calmodulin inhibitors from the fungus Emericella sp. Bioorg Med Chem. 17(6):2167-74',p:'19013822',d:''},
+{y:2009,t:'Ge H., Yu Z., Zhang J., Wu J., Tan R. (2009). Bioactive alkaloids from endophytic Aspergillus fumigatus. J Nat Prod, 72(4): 753-5',p:'19256529',d:''},
+{y:2009,t:'Guo H, Sun B, Gao H, et al. (2009). Diketopiperazines from the Cordyceps-colonizing fungus Epicoccum nigrum. J Nat Prod. 72(12):2115-9',p:'19919067',d:''},
+{y:2009,t:'Hohmann C, Schneider K, Bruntner C, et al. (2009). Caboxamycin, a new antibiotic of the benzoxazole family produced by the deep-sea strain Streptomyces sp. NTK 937.J Antibiot (Tokyo), 62(2):99-104',p:'19198633',d:''},
+{y:2009,t:'Kjer J, Wray V, Edrada-Ebel R, et al. (2009). Xanalteric acids I and II and related phenolic compounds from an endophytic Alternaria sp. isolated from the mangrove plant Sonneratia alba. J Nat Prod, 72(11):2053-2057',p:'19835393',d:''},
+{y:2009,t:'Kobayashi Y et al. (2009). A concise and versatile synthesis of viridicatin alkaloids from cyanoacetanilides. Org Lett. 11(7):1603-6',p:'19256518',d:''},
+{y:2009,t:'Li Y, Ye D, Chen X, et al. (2009). Breviane spiroditerpenoids from an extreme-tolerant Penicillium sp. isolated from a deep sea sediment sample. J Nat Prod. 72(5):912-6',p:'19326880',d:''},
+{y:2009,t:'Miyazawa T, Doi M, Shigeta H, et al. (2009). Chaetomugilins and chaetoviridins from Chaetomium globosum. Mar Drugs. 7(2):249-57',p:'19597583',d:''},
+{y:2009,t:'Ono M., Hayashi S., Kimura H., Kawashima H., Nakayama M., et al. (2009). Push-pull benzothiazole derivatives as probes for detecting beta-amyloid plaques in Alzheimer\'s brains. Bioorg Med Chem, 17(19): 7002-7',p:'',d:''},
+{y:2009,t:'Pérez-Garrido A., Morales Helguera A., Abellán Guillén A., Cordeiro M., Garrido Escudero A. (2009). Convenient QSAR model for predicting the complexation of structurally diverse compounds with beta-cyclodextrins. Bioorg Med Chem, 17(2): 896-904',p:'19782439',d:''},
+{y:2009,t:'Ratnayake A, Janso J, Feng X, et al. (2009). Evaluation of the anti-invasive and anti-metastatic activity of diazepinomicin. J Nat Prod. 72(10):1838-42',p:'20056543',d:''},
+{y:2009,t:'Rønnest M., Rebacz B., Markworth L., Terp A., Larsen T., et al. (2009). Synthesis and structure-activity relationship of griseofulvin analogues as inhibitors of centrosomal clustering in cancer cells. J Med Chem, 52(10): 3342-7',p:'19837487',d:''},
+{y:2009,t:'Sakina NL et al. (2009). Studying the photoprotective activity of a new class of heteroaromatic antioxidants. Bull Exp Biol Med. 147(2):193-5',p:'19513419',d:''},
+{y:2009,t:'Seo C., Sohn J., Ahn J., Yim J., Lee H., et al. (2009). Protein tyrosine phosphatase 1B inhibitory effects of depsidone and pseudodepsidone metabolites from the Antarctic lichen Stereocaulon alpinum. Bioorg Med Chem Lett, 19(10): 2801-3',p:'',d:''},
+{y:2009,t:'Serdons K., Terwinghe C., Vermaelen P., Van Laere K., Kung H., et al. (2009). Synthesis and evaluation of 18F-labeled 2-phenylbenzothiazoles as positron emission tomography imaging agents for amyloid plaques in Alzheimer\'s disease. J Med Chem, 52(5): 1428-37',p:'19216563',d:''},
+{y:2009,t:'Serdons K., Van Laere K., Janssen P., Kung H., Bormans G., et al. (2009). Synthesis and evaluation of three 18F-labeled aminophenylbenzothiazoles as amyloid imaging agents. J Med Chem, 52(22): 7090-102',p:'19877643',d:''},
+{y:2009,t:'Sáenz JB, Sun WJ, Chang JW, Li J, Bursulaya B, Gray NS, et al. (2009). Golgicide A reveals essential roles for GBF1 in Golgi assembly and function. Nature chemical biology. 5(3):157-65',p:'19182783',d:''},
+{y:2009,t:'Taldone T., Sun W., Chiosis G. (2009). Discovery and development of heat shock protein 90 inhibitors. Bioorg Med Chem, 17(6): 2225-35',p:'19017562',d:''},
+{y:2009,t:'Trisuwan K et al. (2009). Lactone derivatives from the marine-derived fungus Penicillium sp. PSU-F44. Chem Pharm Bull (Tokyo) 57(10):1100-2',p:'19801865',d:''},
+{y:2009,t:'Tsukamoto S, Kawabata T, Kato H, Greshock TJ, et al. (2009). Isolation of antipodal (-)-versicolamide B and notoamides L-N from a marine-derived Aspergillus sp. Org Lett, 11(6), 1297-300',p:'19281134',d:'10.1021/ol900071c'},
+{y:2009,t:'Yamada T, Muroga Y, Tanaka R, et al. (2009). New azaphilones, seco-chaetomugilins A and D, produced by a marine-fish-derived Chaetomium globosum. Marine Drugs. 7(2):249-57.https://pubmed.ncbi.nlm.nih.gov/19597583/',p:'https://pubmed.ncbi.nlm.nih.gov/19597583/',d:''},
+{y:2008,t:'Aly AH, Edrada-Ebel R, Indriani ID, et al. (2008). Cytotoxic metabolites from the fungal endophyte Alternaria sp. and their subsequent detection in its host plant Polygonum senegalense. J Nat Prod, 71(6):972-980',p:'18494522',d:''},
+{y:2008,t:'Gourdeau H, McAlpine JB, Noble R, et al. (2008). Identification, characterization and potent antitumor activity of ECO-4601, a novel farnesylated dibenzodiazepine. Cancer Res. 68(2):488-98',p:'17622531',d:''},
+{y:2008,t:'Kalkhambkar R., Kulkarni G., Kamanavalli C., Premkumar N., Asdaq S., et al. (2008). Synthesis and biological activities of some new fluorinated coumarins and 1-aza coumarins. Eur J Med Chem, 43(10): 2178-88',p:'18396854',d:''},
+{y:2008,t:'Kruhlak N., Choi S., Contrera J., Weaver J., Willard J., et al. (2008). Development of a phospholipidosis database and predictive quantitative structure-activity relationship (QSAR) models. Toxicol Mech Methods, 18(2-3): 217-27',p:'20435389',d:''},
+{y:2008,t:'Lee J., Byeon S., Kim Y., Lim S., Oh S., et al. (2008). [(18)F]-labeled isoindol-1-one and isoindol-1,3-dione derivatives as potential PET imaging agents for detection of beta-amyloid fibrils. Bioorg Med Chem Lett, 18(20): 5701-4',p:'18835777',d:''},
+{y:2008,t:'Lu Z., Lin Z., Wang W., Du L., Zhu T., et al. (2008). Citrinin dimers from the halotolerant fungus Penicillium citrinum B-57. J Nat Prod, 71(4): 543-6',p:'18281952',d:''},
+{y:2008,t:'Min H, Park E, Hong J, Kang Y, Kim S, Chung H, et al. (2008). Antiproliferative effects of dibenzocyclooctadiene lignans isolated from Schisandra chinensis in human cancer cells. Bioorganic & medicinal chemistry letters. 18(2):523-6',p:'18063366',d:''},
+{y:2008,t:'Muranaka K., Sano A., Ichikawa S., Matsuda A. (2008). Synthesis of Hsp90 inhibitor dimers as potential antitumor agents. Bioorg Med Chem, 16(11): 5862-70',p:'18487051',d:''},
+{y:2008,t:'Onodera H., Kaneko M., Takahashi Y., Uochi Y., Funahashi J., et al. (2008). Conformational significance of EH21A1-A4, phenolic derivatives of geldanamycin, for Hsp90 inhibitory activity. Bioorg Med Chem Lett, 18(5): 1588-91',p:'18243703',d:''},
+{y:2008,t:'Paterson I, Gardner NM, Poullennec KG, Wright AE. (2008). Synthesis and biological evaluation of 10,11-dihydrodictyostatin, a potent analogue of the marine anticancer agent dictyostatin. Journal of natural products. 71(3):364-9',p:'18081257',d:''},
+{y:2008,t:'Santana L., González-Díaz H., Quezada E., Uriarte E., Yáñez M., et al. (2008). Quantitative structure-activity relationship and complex network approach to monoamine oxidase A and B inhibitors. J Med Chem, 51(21): 6740-51',p:'18834112',d:''},
+{y:2008,t:'Surup F., Shojaei H., von Zezschwitz P., Kunze B., Grond S. (2008). Iromycins from Streptomyces sp. and from synthesis: new inhibitors of the mitochondrial electron transport chain. Bioorg Med Chem, 16(4): 1738-46',p:'18054490',d:''},
+{y:2008,t:'Wassvik C., Holmén A., Draheim R., Artursson P., Bergström C. (2008). Molecular characteristics for solid-state limited solubility. J Med Chem, 51(10): 3035-9',p:'19056282',d:''},
+{y:2008,t:'Yasuhide M, Yamada T, Numata A, et al. (2008). Chaetomugilins, new selectively cytotoxic metabolites, produced by a marine fish-derived Chaetomium species. J Antibiot (Tokyo). 61(10):615-22',p:'19168975',d:''},
+{y:2008,t:'Yasuhide M, Yamada T, Numata A, et al. Chaetomugilins, new selectively cytotoxic metabolites, produced by a marine fish-derived Chaetomium species. J Antibiot. 2008;61(10):615-622',p:'19168975',d:''},
+{y:2008,t:'Zhang D., Yang X., Kang J., Choi H., Son B. (2008). Chlorohydroaspyrones A and B, antibacterial aspyrone derivatives from the marine-derived fungus Exophiala sp. J Nat Prod, 71(8): 1458-60',p:'',d:''},
+{y:2007,t:'Arida AI et al. (2007). Improving the high variable bioavailability of griseofulvin by SEDDS. Chem Pharm Bull (Tokyo). 55(12):1713-9',p:'18057745',d:''},
+{y:2007,t:'Baert B., Deconinck E., Van Gele M., Slodicka M., Stoppie P., et al. (2007). Transdermal penetration behaviour of drugs: CART-clustering, QSPR and selection of model compounds. Bioorg Med Chem, 15(22): 6943-55',p:'17959273',d:''},
+{y:2007,t:'Bringmann G, Gulder TA, Lang G, et al. (2007). Large-scale biotechnological production of the antileukemic marine natural product sorbicillactone A. Mar Drugs, 5(2):23-30',p:'18463724',d:''},
+{y:2007,t:'Bunyapaiboonsri T, Yoiprommarat S, Prakit B, et al. (2007). New diphenyl ethers from the insect pathogenic fungus Cordyceps sp. BCC 1861. Chem Pharm Bull (Tokyo). 55(2):304-7',p:'17268106',d:''},
+{y:2007,t:'Byeon S., Jin Y., Lim S., Lee J., Yoo K., et al. (2007). Ferulic acid and benzothiazole dimer derivatives with high binding affinity to beta-amyloid fibrils. Bioorg Med Chem Lett, 17(14): 4022-5',p:'',d:''},
+{y:2007,t:'Cheng S, Clancy CJ, Nguyen KT, Clapp W, Nguyen MH. (2007). A Candida albicans petite mutant strain with uncoupled oxidative phosphorylation overexpresses MDR1 and has diminished susceptibility to fluconazole and voriconazole. Antimicrobial agents and chemotherapy. 51(5):1855-8',p:'17325226',d:''},
+{y:2007,t:'Dahiya R., Pathak D. (2007). Synthetic studies on novel benzimidazolopeptides with antimicrobial, cytotoxic and anthelmintic potential. Eur J Med Chem, 42(6): 772-98',p:'17331622',d:''},
+{y:2007,t:'Diamandis P, Wildenhain J, Clarke ID, Sacher AG, Graham J, Bellows DS, et al. (2007). Chemical genetics reveals a complex functional ground state of neural stem cells. Nat Chem Biol. 3(5):268-73',p:'17417631',d:''},
+{y:2007,t:'Ekins S., Mankowski D., Hoover D., Lawton M., Treadway J., et al. (2007). Three-dimensional quantitative structure-activity relationship analysis of human CYP51 inhibitors. Drug Metab Dispos, 35(3): 493-500',p:'17239491',d:''},
+{y:2007,t:'Khalil N. (2007). N- and S-alpha-l-arabinopyranosyl[1,2,4]triazolo[3,4-b][1,3,4]thiadiazoles. First synthesis and biological evaluation. Eur J Med Chem, 42(9): 1193-9',p:'17620378',d:''},
+{y:2007,t:'Mathew V., Keshavayya J., Vaidya V., Giles D. (2007). Studies on synthesis and pharmacological activities of 3,6-disubstituted-1,2,4-triazolo[3,4-b]-1,3,4-thiadiazoles and their dihydro analogues. Eur J Med Chem, 42(6): 823-40',p:'17408811',d:''},
+{y:2007,t:'Reeves EP, Murphy T, Daly P, Kavanagh K. (2007). Amphotericin B-induced alterations in the proteome of Aspergillus fumigatus. J Med Microbiol. 56(Pt 12):1621-7',p:'18212113',d:''},
+{y:2007,t:'Rodina A., Vilenchik M., Moulick K., Aguirre J., Kim J., et al. (2007). Selective compounds define Hsp90 as a major inhibitor of apoptosis in small-cell lung cancer. Nat Chem Biol, 3(8): 498-507',p:'17603540',d:''},
+{y:2007,t:'Serfling A., Wohlrab J., Deising H. (2007). Treatment of a clinically relevant plant-pathogenic fungus with an agricultural azole causes cross-resistance to medical azoles and potentiates caspofungin efficacy. Antimicrob Agents Chemother, 51(10): 3672-6',p:'17827020',d:''},
+{y:2007,t:'Takada K., Choi B., Rashid M., Gamble W., Cardellina J., et al. (2007). Structural assignment of poecillastrins B and C, macrolide lactams from the deep-water Caribbean sponge Poecillastra species. J Nat Prod, 70(3): 428-31',p:'17378533',d:''},
+{y:2007,t:'Ubukata M., Takamori H., Ohashi M., Mitsuhashi S., Yamashita K., et al. (2007). Mycophenolic acid as a latent agonist of PPARgamma. Bioorg Med Chem Lett, 17(17): 4767-70',p:'',d:''},
+{y:2007,t:'Viaud J, Zeghouf M, Barelli H, Zeeh J, Padilla A, Guibert B, et al. (2007). Structure-based discovery of an inhibitor of Arf activation by Sec7 domains through targeting of protein-protein complexes. Proceedings of the National Academy of Sciences of the United States of America. 104(25):10370-5',p:'17563369',d:''},
+{y:2007,t:'Wright AE, Botelho JC, Guzmán E, et al. (2007). Neopeltolide, a macrolide from a lithistid sponge of the family Neopeltidae. J Nat Prod. 70(3):412-6',p:'17315973',d:''},
+{y:2007,t:'Wu C., Wei J., Gao K., Wang Y. (2007). Dibenzothiazoles as novel amyloid-imaging agents. Bioorg Med Chem, 15(7): 2789-96',p:'17293116',d:''},
+{y:2007,t:'Zhang Q, Major MB, Takanashi S, Camp ND, Nishiya N, Peters EC, et al. (2007). Small-molecule synergist of the Wnt/beta-catenin signaling pathway. Proceedings of the National Academy of Sciences of the United States of America. 104(18):7444-8',p:'17460038',d:''},
+{y:2007,t:'Zhang Y, Liu S, Che Y, et al. (2007). Epicoccins A-D, epipolythiodioxopiperazines from a Cordyceps-colonizing isolate of Epicoccum nigrum. J Nat Prod. 70(9):1522-5',p:'17711348',d:''},
+{y:2007,t:'Zhang L., Yu J., Pan H., Hu P., Hao Y., et al. (2007). Small molecule regulators of autophagy identified by an image-based high-throughput screen. Proc Natl Acad Sci U S A, 104(48): 19023-8',p:'18024584',d:''},
+{y:2006,t:'Anadu NO, Davisson VJ, Cushman M. (2006). Synthesis and anticancer activity of brefeldin A ester derivatives. Journal of medicinal chemistry. 49(13):3897-905',p:'16789745',d:''},
+{y:2006,t:'Anstiss M, Nelson A. (2006). Catalytic and stoichiometric approaches to the desymmetrisation of centrosymmetric piperazines by enantioselective acylation: a total synthesis of dragmacidin A. Org Biomol Chem. 4(22):4135-43',p:'17312969',d:''},
+{y:2006,t:'Chen M, Kilgore N, Lee K, Chen D. (2006). Rubrisandrins A and B, lignans and related anti-HIV compounds from Schisandra rubriflora. Journal of natural products. 69(12):1697-701',p:'17190445',d:''},
+{y:2006,t:'Choi Y, Takamatsu S, Khan SI, Srinivas PV, Ferreira D, Zhao J, et al. (2006). Schisandrene, a dibenzocyclooctadiene lignan from Schisandra chinensis: structure-antioxidant activity relationships of dibenzocyclooctadiene lignans. Journal of natural products. 69(3):356-9',p:'16562834',d:''},
+{y:2006,t:'Evidente A., Andolfi A., Cimmino A., Vurro M., Fracchiolla M., et al. (2006). Herbicidal potential of ophiobolins produced by Drechslera gigantea. J Agric Food Chem, 54(5): 1779-83',p:'16506833',d:''},
+{y:2006,t:'Fujimoto H, Asai T, Kim YP, et al. (2006). Nine constituents including six xanthone-related compounds isolated from two ascomycetes, Gelasinospora santi-florii and Emericella quadrilineata. Chem Pharm Bull (Tokyo). 54(4):550-3',p:'16595963',d:''},
+{y:2006,t:'Grkovic T et al. (2006). Semi-synthetic preparation of the rare, cytotoxic, deep-sea sourced sponge metabolites discorhabdins P and U. Bioorg Med Chem Lett 16(7):1944-6',p:'16439119',d:''},
+{y:2006,t:'Han D et al. (2006). Hydrogen peroxide and redox modulation sensitize primary mouse hepatocytes to TNF-induced apoptosis. Free Radic Biol Med. 41(4):627-39',p:'16863996',d:''},
+{y:2006,t:'Lazaro JE, Nitcheu J, Mahmoudi N, et al. (2006). Antimalarial activity of crambescidin 800 and synthetic analogues against liver and blood stage of Plasmodium sp. J Antibiot (Tokyo). 59(9):583-90',p:'17136890',d:''},
+{y:2006,t:'Ono M., Kawashima H., Nonaka A., Kawai T., Haratake M., et al. (2006). Novel benzofuran derivatives for PET imaging of beta-amyloid plaques in Alzheimer\'s disease brains. J Med Chem, 49(9): 2725-30',p:'16640332',d:''},
+{y:2006,t:'Schardl CL, Panaccione DG, Tudzynski P. (2006). Alkaloids: toxicology, health perspectives. Phytochemistry. 67(20):2336-49',p:'16124785',d:''},
+{y:2006,t:'Stiefl N, Watson IA, Baumann K, Zaliani A. (2006). ErG: 2D pharmacophore descriptions for scaffold hopping. Journal of chemical information and modeling. 46(1):208-20',p:'16426057',d:''},
+{y:2006,t:'Zeng F., Southerland J., Voll R., Votaw J., Williams L., et al. (2006). Synthesis and evaluation of two 18F-labeled imidazo[1,2-a]pyridine analogues as potential agents for imaging beta-amyloid in Alzheimer\'s disease. Bioorg Med Chem Lett, 16(11): 3015-8',p:'16574411',d:''},
+{y:2005,t:'Clark B., Capon R., Lacey E., Tennant S., Gill J., et al. (2005). Gymnoascolides A-C: aromatic butenolides from an Australian isolate of the soil ascomycete Gymnoascus reessii. J Nat Prod, 68(8): 1226-30',p:'16124766',d:''},
+{y:2005,t:'Dymock B., Barril X., Brough P., Cansfield J., Massey A., et al. (2005). Novel, potent small-molecule inhibitors of the molecular chaperone Hsp90 discovered through structure-based design. J Med Chem, 48(13): 4212-5',p:'15974572',d:''},
+{y:2005,t:'Jeong B., Choi N., Ahn S., Bae H., Kim H., et al. (2005). Total synthesis and antiangiogenic activity of cyclopentane analogues of fumagillol. Bioorg Med Chem Lett, 15(15): 3580-3',p:'16384699',d:''},
+{y:2005,t:'Kallander L., Lu Q., Chen W., Tomaszek T., Yang G., et al. (2005). 4-Aryl-1,2,3-triazole: a novel template for a reversible methionine aminopeptidase 2 inhibitor, optimized to inhibit angiogenesis in vivo. J Med Chem, 48(18): 5644-7',p:'16134930',d:''},
+{y:2005,t:'Lang G, Pinkert A, Blunt JW, Munro MHG (2005). Discorhabdin W, the first dimeric discorhabdin.J Nat Prod, 68(12):1796-8',p:'16378380',d:''},
+{y:2005,t:'Park JH, Choi GJ, Jang KS, et al. (2005). Antifungal activity against plant pathogenic fungi of chaetoviridins isolated from Chaetomium globosum. FEMS Microbiol Lett. 252(2):309-13',p:'16209910',d:''},
+{y:2005,t:'Reigada D, Mitchell CH. (2005). Release of ATP from retinal pigment epithelial cells involves both CFTR and vesicular transport. American journal of physiology. Cell physiology. 288(1):C132-40',p:'15371258',d:''},
+{y:2005,t:'Sarbassov DD et al. (2005). Redox regulation of the nutrient-sensitive raptor-mTOR pathway and complex. J Biol Chem. 280(47):39505-9',p:'16183647',d:''},
+{y:2005,t:'Williams P., Buchanan G., Feling R., Kauffman C., Jensen P., et al. (2005). New cytotoxic salinosporamides from the marine Actinomycete Salinispora tropica. J Org Chem, 70(16): 6196-203',p:'19746976',d:''},
+{y:2005,t:'Zhang C, Ondeyka JG, Herath KB, Guan Z, Collado J, Platas G, et al. (2005). Tenellones A and B from a Diaporthe sp.: two highly substituted benzophenone inhibitors of parasite cGMP-dependent protein kinase activity. Journal of natural products. 68(4):611-3',p:'15844962',d:'10.1021/np049591n'},
+{y:2004,t:'Aron ZD, Pietraszkiewicz H, Overman LE, et al. (2004). Synthesis and anticancer activity of side chain analogs of the crambescidin alkaloids. Bioorg Med Chem Lett. 14(13):3445-9',p:'15177450',d:''},
+{y:2004,t:'Bedi P., Mahajan M., Kapoor V. (2004). Amidine derived 1,3-diazabuta-1,3-dienes as potential antibacterial and antifungal agents. Bioorg Med Chem Lett, 14(14): 3821-4',p:'15203169',d:''},
+{y:2004,t:'Biour M., Ben Salem C., Chazouillères O., Grangé J., Serfaty L., et al. (2004). [Drug-induced liver injury; fourteenth updated edition of the bibliographic database of liver injuries and related drugs]. Gastroenterol Clin Biol, 28(8-9): 720-59',p:'',d:''},
+{y:2004,t:'Campiani G, Butini S, Fattorusso C, Catalanotti B, Gemma S, Nacci V, et al. (2004). Pyrrolo[1,3]benzothiazepine-based serotonin and dopamine receptor antagonists. Molecular modeling, further structure-activity relationship studies, and identification of novel atypical antipsychotic agents. Journal of medicinal chemistry. 47(1):143-57',p:'14695828',d:''},
+{y:2004,t:'Cho H, Murakami K, Nakanishi H, Fujisawa A, Isoshima H, Niwa M, et al. (2004). Synthesis and structure-activity relationships of 5,6,7,8-tetrahydro-4H-thieno[3,2-b]azepine derivatives: novel arginine vasopressin antagonists. Journal of medicinal chemistry. 47(1):101-9',p:'14695824',d:''},
+{y:2004,t:'Clader JW. (2004). The discovery of ezetimibe: a view from outside the receptor. Journal of medicinal chemistry. 47(1):1-9',p:'14695813',d:''},
+{y:2004,t:'Daranas AH, Fernández JJ, Morales EQ, Norte M, Gavín JA. (2004). Self-association of okadaic acid upon complexation with potassium ion. Journal of medicinal chemistry. 47(1):10-3',p:'14695814',d:''},
+{y:2004,t:'Dudash J, Zhang X, Zeck RE, Johnson SG, Cox GG, Conway BR, et al. (2004). Glycosylated dihydrochalcones as potent and selective sodium glucose co-transporter 2 (SGLT2) inhibitors. Bioorganic & medicinal chemistry letters. 14(20):5121-5',p:'15380212',d:''},
+{y:2004,t:'Engelmeier D., Hadacek F., Hofer O., Lutz-Kutschera G., Nagl M., et al. (2004). Antifungal 3-butylisocoumarins from Asteraceae-Anthemideae. J Nat Prod, 67(1): 19-25',p:'14738379',d:''},
+{y:2004,t:'Ersmark K, Feierberg I, Bjelic S, Hamelink E, Hackett F, Blackman MJ, et al. (2004). Potent inhibitors of the Plasmodium falciparum enzymes plasmepsin I and II devoid of cathepsin D inhibitory activity. Journal of medicinal chemistry. 47(1):110-22',p:'14695825',d:''},
+{y:2004,t:'Faucher A, White PW, Brochu C, Grand-Maître C, Rancourt J, Fazal G. (2004). Discovery of small-molecule inhibitors of the ATPase activity of human papillomavirus E1 helicase. Journal of medicinal chemistry. 47(1):18-21',p:'14695816',d:''},
+{y:2004,t:'Funk OF, Kettmann V, Drimal J, Langer T. (2004). Chemical function based pharmacophore generation of endothelin-A selective receptor antagonists.. J Med Chem. 47(11):2750-60',p:'15139753',d:''},
+{y:2004,t:'Goudreau N, Cameron DR, Bonneau P, Gorys V, Plouffe C, Poirier M, et al. (2004). NMR structural characterization of peptide inhibitors bound to the Hepatitis C virus NS3 protease: design of a new P2 substituent. Journal of medicinal chemistry. 47(1):123-32',p:'14695826',d:''},
+{y:2004,t:'Goudreau N, Brochu C, Cameron DR, Duceppe J, Faucher A, Ferland J, et al. (2004). Potent inhibitors of the hepatitis C virus NS3 protease: design and synthesis of macrocyclic substrate-based beta-strand mimics. The Journal of organic chemistry. 69(19):6185-201',p:'15357576',d:''},
+{y:2004,t:'Iyengar BS, Dorr RT, Remers WA. (2004). Chemical basis for the biological activity of imexon and related cyanoaziridines.. J Med Chem. 47(1):218-23',p:'14695835',d:''},
+{y:2004,t:'Moran P. (2004). The value of three-dimensional trade marks. Medical device technology. 15(10):17',p:'16225278',d:''},
+{y:2004,t:'Otzen T, Wempe EG, Kunz B, Bartels R, Lehwark-Yvetot G, Hänsel W, et al. (2004). Folate-synthesizing enzyme system as target for development of inhibitors and inhibitor combinations against Candida albicans-synthesis and biological activity of new 2,4-diaminopyrimidines and 4\'-substituted 4-aminodiphenyl sulfones. Journal of medicinal chemistry. 47(1):240-53',p:'14695838',d:''},
+{y:2004,t:'Palani A, Dugar S, Clader JW, Greenlee WJ, Ruperto V, Duffy RA, et al. (2004). Isopropyl amide derivatives of potent and selective muscarinic M2 receptor antagonists. Bioorganic & medicinal chemistry letters. 14(7):1791-4',p:'15026073',d:''},
+{y:2004,t:'Park S., Kim D., Kim W., Ryoo I., Lee D., et al. (2004). Terrein: a new melanogenesis inhibitor and its mechanism. Cell Mol Life Sci, 61(22): 2878-85',p:'',d:''},
+{y:2004,t:'Pathak AK, Pathak V, Seitz LE, Suling WJ, Reynolds RC. (2004). Antimycobacterial agents. 1. Thio analogues of purine. Journal of medicinal chemistry. 47(1):273-6',p:'14695841',d:''},
+{y:2004,t:'Paula S, Tabet MR, Farr CD, Norman AB, Ball WJ. (2004). Three-dimensional quantitative structure-activity relationship modeling of cocaine binding by a novel human monoclonal antibody. Journal of medicinal chemistry. 47(1):133-42',p:'14695827',d:''},
+{y:2004,t:'Pyun H., Fardis M., Tario J., Yang C., Ruckman J., et al. (2004). Investigation of novel fumagillin analogues as angiogenesis inhibitors. Bioorg Med Chem Lett, 14(1): 91-4',p:'14684305',d:''},
+{y:2004,t:'Rybczynski PJ, Zeck RE, Dudash J, Combs DW, Burris TP, Yang M, et al. (2004). Benzoxazinones as PPARgamma agonists. 2. SAR of the amide substituent and in vivo results in a type 2 diabetes model. Journal of medicinal chemistry. 47(1):196-209',p:'14695833',d:''},
+{y:2004,t:'Stoyanovsky DA, Schor NF, Nylander KD, Salama G. (2004). Effects of pH on the cytotoxicity of sodium trioxodinitrate (Angeli\'s salt). Journal of medicinal chemistry. 47(1):210-7',p:'14695834',d:''},
+{y:2004,t:'Summa V, Petrocchi A, Pace P, Matassa VG, De Francesco R, Altamura S, et al. (2004). Discovery of alpha,gamma-diketo acids as potent selective and reversible inhibitors of hepatitis C virus NS5b RNA-dependent RNA polymerase. Journal of medicinal chemistry. 47(1):14-7',p:'14695815',d:''},
+{y:2004,t:'Summa V, Petrocchi A, Matassa VG, Taliani M, Laufer R, De Francesco R, et al. (2004). HCV NS5b RNA-dependent RNA polymerase inhibitors: from alpha,gamma-diketoacids to 4,5-dihydroxypyrimidine- or 3-methyl-5-hydroxypyrimidinonecarboxylic acids. Design and synthesis. Journal of medicinal chemistry. 47(22):5336-9',p:'15481971',d:''},
+{y:2004,t:'Tan RX, Jensen PR, Williams PG, Fenical W. Isolation and structure assignments of rostratins A-D, cytotoxic disulfides produced by the marine-derived fungus Exserohilum rostratum. J Nat Prod. 2004;67(8):1374-82..1021/np049920b',p:'15332857',d:'10.1021/np049920b'},
+{y:2004,t:'Tsukamoto S, Miura S, Yamashita Y, et al. (2004). Aspermytin A: a new neurotrophic polyketide isolated from a marine-derived fungus of the genus Aspergillus. Bioorg Med Chem Lett. 14(2):417-420',p:'14698172',d:''},
+{y:2003,t:'Abdel-Lateff A et al. (2003). Two new xanthone derivatives from the algicolous marine fungus Wardomyces anomalus. J Nat Prod. 66(5):706-8',p:'12762814',d:''},
+{y:2003,t:'Akakabe Y, Matsui K, Kajiwara T (2003). 2,4-Decadienals are produced via (R)-11-HPITE from arachidonic acid in marine green alga Ulva conglobata. Bioorg Med Chem. 11(17):3607-9',p:'12901905',d:''},
+{y:2003,t:'Bramlett KS et al. (2003). A natural product ligand of the oxysterol receptor, liver X receptor. J Pharmacol Exp Ther. 307(1):291-6',p:'12893846',d:''},
+{y:2003,t:'Bringmann G, Lang G, Mühlbacher J, et al. (2003). Sorbicillactone A: a structurally unprecedented bioactive novel-type alkaloid from a sponge-derived fungus. Prog Mol Subcell Biol, 37:231-53',p:'15825646',d:''},
+{y:2003,t:'Chang TI et al. (2003). Oxidant regulation of gene expression and neural tube development: Insights gained from diabetic pregnancy on molecular causes of neural tube defects. Diabetologia. 46(4):538-45',p:'12739027',d:''},
+{y:2003,t:'Gunasekera SP et al. (2003). Discorhabdins S, T, and U, new cytotoxic pyrroloiminoquinones from a deep-water Caribbean sponge of the genus Batzella. J Nat Prod 66(12):1615-7',p:'14695808',d:''},
+{y:2003,t:'Hellwig V., Mayer-Bartschmid A., Müller H., Greif G., Kleymann G., et al. (2003). Pochonins A-F, new antiviral and antiparasitic resorcylic acid lactones from Pochonia chlamydosporia var. catenulata. J Nat Prod, 66(6): 829-37',p:'12828470',d:''},
+{y:2003,t:'Luo Q., Li J., Liu Z., Chen L., Li J., et al. (2003). Discovery and structural modification of inhibitors of methionine aminopeptidases from Escherichia coli and Saccharomyces cerevisiae. J Med Chem, 46(13): 2631-40',p:'34403037',d:''},
+{y:2003,t:'Nakamura A, Imaizumi A, Yanagawa Y, Niimi R, Kohsaka T. (2003). Suppression of tumor necrosis factor-alpha by beta2-adrenoceptor activation: role of mitogen-activated protein kinases in renal mesangial cells. Inflammation research : official journal of the European Histamine Research Society. [et al.]. 52(1):26-31',p:'12608646',d:''},
+{y:2003,t:'Singh SB et al. (2003). Isolation, structure, and HIV-1-integrase inhibitory activity of structurally diverse fungal metabolites. J Ind Microbiol Biotechnol. 30(12):721-31',p:'14714192',d:''},
+{y:2003,t:'Takenaka Y et al. (2003). Phenyl ethers from cultured lichen mycobionts of Graphis scripta var. serpentina and G. rikuzensis. Chem Pharm Bull (Tokyo). 51(7):794-7',p:'12843584',d:''},
+{y:2003,t:'Zhou G., Tsai C., Liu J. (2003). Fumagalone, a reversible inhibitor of type 2 methionine aminopeptidase and angiogenesis. J Med Chem, 46(16): 3452-4',p:'12877582',d:''},
+{y:2002,t:'Abcouwer SF, Marjon PL, Loper RK, Vander Jagt DL. (2002). Response of VEGF expression to amino acid deprivation and inducers of endoplasmic reticulum stress. Investigative ophthalmology & visual science. 43(8):2791-8',p:'12147617',d:''},
+{y:2002,t:'Babu E., Takeda M., Narikawa S., Kobayashi Y., Enomoto A., et al. (2002). Role of human organic anion transporter 4 in the transport of ochratoxin A. Biochim Biophys Acta, 1590(1-3): 64-75',p:'12063169',d:''},
+{y:2002,t:'Chang LC, Otero-Quintero S, Hooper JNA, Bewley CA. (2002). Batzelline D and isobatzelline E from the indopacific sponge Zyzzya fuliginosa. Journal of natural products. 65(5):776-8',p:'12027767',d:''},
+{y:2002,t:'Dal Piaz F, Casapullo A, Randazzo A, Riccio R, Pucci P, Marino G, et al. (2002). Molecular basis of phospholipase A2 inhibition by petrosaspongiolide M. Chembiochem : a European journal of chemical biology. 3(7):664-71',p:'12325001',d:''},
+{y:2002,t:'Fujii Y, Asahara M, Ichinoe M, et al. (2002). Fungal melanin inhibitor and related compounds from Penicillium decumbens. Phytochemistry. 60(7):703-8',p:'12127587',d:''},
+{y:2002,t:'Furumai T, Igarashi Y, Higuchi H, et al. (2002). Kosinostatin, a quinocycline antibiotic with antitumor activity from Micromonospora sp. TP-A0468. The Journal of Antibiotics. 55(2):128-133',p:'12002993',d:''},
+{y:2002,t:'Kozlovskiĭ AG et al. (2002). [The biosynthesis of low-molecular-weight nitrogen-containing secondary metabolite-alkaloids by the resident strains of Penicillium chrysogenum and Penicillium expansum isolated on the board of the Mir space station ]. Mikrobiologiia. 71(6):773-7',p:'12526198',d:''},
+{y:2002,t:'Liu CH et al. (2002). Antifungal metabolite with a new carbon skeleton from Keissleriella sp. YS4108, a marine filamentous fungus. Planta Med. 68(4):363-5',p:'11988865',d:''},
+{y:2002,t:'Malmstrøm J., Christophersen C., Barrero A., Oltra J., Justicia J., et al. (2002). Bioactive metabolites from a marine-derived strain of the fungus Emericella variecolor. J Nat Prod, 65(3): 364-7',p:'',d:''},
+{y:2002,t:'Malmstrøm J, Christophersen C, Barrero AF, et al. (2002). Bioactive metabolites from a marine-derived strain of the fungus Emericella variecolor. J Nat Prod. 65(3):364-7',p:'11908979',d:''},
+{y:2002,t:'Perron-Sierra F., Pierré A., Burbridge M., Guilbaud N. (2002). Novel bicyclic oxazolone derivatives as anti-angiogenic agents. Bioorg Med Chem Lett, 12(11): 1463-6',p:'12031320',d:''},
+{y:2002,t:'Trombetta D, Saija A, Bisignano G, Arena S, Caruso S, Mazzanti G, et al. (2002). Study on the mechanisms of the antibacterial action of some plant alpha,beta-unsaturated aldehydes. Lett Appl Microbiol. 35(4):285-90',p:'12358689',d:''},
+{y:2002,t:'Yabunaka H., Kenmochi A., Nakatogawa Y., Sakamoto K., Miyoshi H. (2002). Hybrid ubiquinone: novel inhibitor of mitochondrial complex I. Biochim Biophys Acta, 1556(2-3): 106-12',p:'12460667',d:''},
+{y:2002,t:'Yang L, Andersen RJ (2002). Absolute configuration of the antiinflammatory sponge natural product contignasterol.J Nat Prod, 65(12):1924-6',p:'12502341',d:'10.1021/np020297+'},
+{y:2001,t:'Abrunhosa L et al. (2001). Mycotoxin production from fungi isolated from grapes. Lett Appl Microbiol. 32(4):240-2',p:'11298933',d:''},
+{y:2001,t:'Blank I, Lin J, Vera FA, Welti DH, Fay LB (2001). Identification of potent odorants formed by autoxidation of arachidonic acid: structure elucidation and synthesis of (E,Z,Z)-2,4,7-tridecatrienal. J Agric Food Chem. 49(6):2959-65',p:'11409993',d:''},
+{y:2001,t:'Casapullo A, Cutignano A, Bruno I, Bifulco G, Debitus C, Gomez-Paloma L, et al. (2001). Makaluvamine P, a new cytotoxic pyrroloiminoquinone from Zyzzya cf. fuliginosa. Journal of natural products. 64(10):1354-6',p:'11678667',d:'10.1021/np010053+'},
+{y:2001,t:'Girona J, Vallvé JC, Ribalta J, Heras M, Olivé S, Masana L (2001). 2,4-Decadienal downregulates TNF-alpha gene expression in THP-1 human macrophages. Atherosclerosis. 158(1):95-101',p:'11500179',d:''},
+{y:2001,t:'Jung K., Takeda M., Kim D., Tojo A., Narikawa S., et al. (2001). Characterization of ochratoxin A transport by human organic anion transporters. Life Sci, 69(18): 2123-35',p:'11669456',d:''},
+{y:2001,t:'Klich M, Mendoza C, Mullaney E, et al. (2001). A new sterigmatocystin-producing Emericella variant from agricultural desert soils. Syst Appl Microbiol. 24(1):131-8',p:'11403392',d:''},
+{y:2001,t:'Lombardo F., Shalaeva M., Tupper K., Gao F. (2001). ElogD(oct): a tool for lipophilicity determination in drug discovery. 2. Basic and neutral compounds. J Med Chem, 44(15): 2490-7',p:'11448232',d:''},
+{y:2001,t:'Ramana KV, Dixit BL, Srivastava S, Bhatnagar A, Balendiran GK, Watowich SJ, et al. (2001). Characterization of the glutathione binding site of aldose reductase. Chem Biol Interact. 130-132(1-3):537-48',p:'11306073',d:''},
+{y:2001,t:'Rizov M (2001). Control of food and agro product contamination in Bulgaria. Arh Hig Rada Toksikol. 52(2):177-80',p:'11370305',d:''},
+{y:2001,t:'Spiteller P, Kern W, Reiner J, Spiteller G (2001). Aldehydic lipid peroxidation products derived from linoleic acid. Biochim Biophys Acta. 1531(3):188-208',p:'11325611',d:''},
+{y:2001,t:'Trucksess MW et al. (2001). Solid phase extraction method for patulin in apple juice and unfiltered apple juice. Methods Mol Biol. 157:205-13',p:'11051004',d:''},
+{y:2001,t:'Tuomi T, Johnsson T, Himanen K, et al. (2001). Detection of aflatoxins (G(1-2), B(1-2)), sterigmatocystin, citrinine and ochratoxin A in samples contaminated by microbes. Analyst. 126(9):1545-50',p:'11592647',d:''},
+{y:2001,t:'Vermes C, Chandrasekaran R, Jacobs JJ, Galante JO, Roebuck KA, Glant TT. (2001). The effects of particulate wear debris, cytokines, and growth factors on the functions of MG-63 osteoblasts. The Journal of bone and joint surgery. American volume. 83(2):201-11',p:'11216681',d:''},
+{y:2001,t:'Wu SC, Yen GC, Sheu F (2001). Mutagenicity and identification of mutagenic compounds of fumes obtained from heating peanut oil. J Food Prot. 64(2):240-5',p:'11271774',d:''},
+{y:2000,t:'Dymock BW et al. (2000). Novel approaches to the treatment of hepatitis C virus infection. Antivir Chem Chemother. 11(2):79-96',p:'10819433',d:''},
+{y:2000,t:'Goclik E, König GM, Wright AD, Kaminsky R. (2000). Pelorol from the tropical marine sponge Dactylospongia elegans. Journal of natural products. 63(8):1150-2',p:'10978215',d:''},
+{y:2000,t:'Han C., Ahn S., Choi N., Hong R., Moon S., et al. (2000). Design and synthesis of highly potent fumagillin analogues from homology modeling for a human MetAP-2. Bioorg Med Chem Lett, 10(1): 39-43',p:'10636239',d:''},
+{y:2000,t:'Jorgensen W., Duffy E. (2000). Prediction of drug solubility from Monte Carlo simulations. Bioorg Med Chem Lett, 10(11): 1155-8',p:'10866370',d:''},
+{y:2000,t:'Kwak JH, Schmitz FJ, Kelly M. (2000). Sesquiterpene quinols/quinones from the Micronesian sponge Petrosaspongia metachromia. Journal of natural products. 63(8):1153-6',p:'10978216',d:''},
+{y:2000,t:'Lombardo F., Shalaeva M., Tupper K., Gao F., Abraham M. (2000). ElogPoct: a tool for lipophilicity determination in drug discovery. J Med Chem, 43(15): 2922-8',p:'10956200',d:''},
+{y:2000,t:'Pueyo ME et al. (2000). Angiotensin II stimulates endothelial vascular cell adhesion molecule-1 via nuclear factor-kappaB activation induced by intracellular oxidative stress. Arterioscler Thromb Vasc Biol. 20(3):645-51',p:'10712386',d:''},
+{y:2000,t:'Roelofsen H, Wolters H, Van Luyn MJ, Miura N, Kuipers F, Vonk RJ. (2000). Copper-induced apical trafficking of ATP7B in polarized hepatoma cells provides a mechanism for biliary copper excretion. Gastroenterology. 119(3):782-93',p:'10982773',d:''},
+{y:2000,t:'Rojas I., Lotina-Hennsen B., Mata R. (2000). Effect of lichen metabolites on thylakoid electron transport and photophosphorylation in isolated spinach chloroplasts. J Nat Prod, 63(10): 1396-9',p:'',d:''},
+{y:2000,t:'Soejima A, Ishizuka S, Miyake N, Fukuoka K, Suzuki M, Kamiya Y, et al. (2000). Simultaneous inhibition of renal phospholipase A(2) and glutathione synthesis by manoalide and DL-buthionine sulfoximine induces acute tubular dysfunction in rats. Experimental nephrology. 8(2):84-90',p:'10729747',d:''},
+{y:2000,t:'Wang H, Ganesan A. (2000). Total synthesis of the fumiquinazoline alkaloids: solution-phase studies. The Journal of Organic Chemistry. 65(4):1022-1030',p:'10814050',d:'10.1021/jo9914364'},
+{y:1999,t:'Afshar S, Cardenas ME, et al. (1999). Identification of gliotoxin as an inhibitor of geranylgeranyltransferase. J Biol Chem. 274(39):27839-45',p:'14552752',d:''},
+{y:1999,t:'Chu M et al. (1999). Isolation and structure of SCH 351633: a novel hepatitis C virus (HCV) NS3 protease inhibitor from the fungus Penicillium griseofulvum. Bioorg Med Chem Lett. 9(14):1949-52',p:'10450960',d:''},
+{y:1999,t:'Ding Q, Chichak K, Lown JW. (1999). Pyrroloquinoline and pyridoacridine alkaloids from marine sources. Current medicinal chemistry. 6(1):1-27',p:'9873113',d:''},
+{y:1999,t:'Kiningham KK et al. (1999). Overexpression of manganese superoxide dismutase protects against mitochondrial-initiated poly(ADP-ribose) polymerase-mediated cell death. FASEB J. 13(12):1601-10',p:'10463952',d:''},
+{y:1999,t:'Matsumoto SS, Haughey HM, Schmehl DM, et al. (1999). Makaluvamines vary in ability to induce dose-dependent DNA cleavage via topoisomerase II interaction. Anticancer Drugs. 10(1):39-45',p:'10194546',d:''},
+{y:1999,t:'Tsuda M., Sekine T., Takeda M., Cha S., Kanai Y., et al. (1999). Transport of ochratoxin A by renal multispecific organic anion transporter 1. J Pharmacol Exp Ther, 289(3): 1301-5',p:'10869195',d:''},
+{y:1998,t:'Banskota A., Tezuka Y., Prasain J., Matsushige K., Saiki I., et al. (1998). Chemical constituents of Brazilian propolis and their cytotoxic activities. J Nat Prod, 61(7): 896-900',p:'',d:''},
+{y:1998,t:'Charlton JL. (1998). Antiviral activity of lignans.. J Nat Prod. 61(11):1447-51',p:'9834179',d:''},
+{y:1998,t:'De Rosa M, Giordano S, Scettri A, Sodano G, Soriente A, Pastor PG, et al. (1998). Synthesis and comparison of the antiinflammatory activity of manoalide and cacospongionolide B analogues. Journal of medicinal chemistry. 41(17):3232-8',p:'9703468',d:''},
+{y:1998,t:'Matsuzaki K, Tahara H, Inokoshi J, et al. (1998). New brominated and halogen-less derivatives and structure-activity relationship of azaphilones inhibiting gp120-CD4 binding. J Antibiot (Tokyo). 51(11):1004-11',p:'9918393',d:''},
+{y:1998,t:'Moreau P, Anizon F, Sancelme M, Prudhomme M, Bailly C, et al. (1998). Syntheses and biological evaluation of indolocarbazoles, analogues of rebeccamycin, modified at the imide heterocycle.. J Med Chem, 41(10): 1631-40',p:'9572888',d:''},
+{y:1998,t:'Mukhopadhyay T, Nadkarni SR, Patel MV, Bhat RG, Desikan KR, Ganguli BN, Rupp RH, Fehlhaber HW, Kogler H. (1998). Maclafungin, a new antifungal macrocyclic lactone from Actinomycete sp. Y-8521050. Tetrahedron. 54(44):13621-8 00838-2',p:'',d:'10.1016/S0040-4020(98)00838-2'},
+{y:1998,t:'Nakao Y, Oku N, Matsunaga S, Fusetani N (1998). Cyclotheonamides E2 and E3, new potent serine protease inhibitors from the marine sponge of the genus Theonella. J Nat Prod, 61(5):667-670',p:'9599274',d:''},
+{y:1998,t:'Rabindran SK, He H, Singh M, Brown E, Collins KI, et al. (1998). Reversal of a novel multidrug resistance mechanism in human colon carcinoma cells by fumitremorgin C. Cancer Res, 58(24): 5850-8',p:'9865745',d:''},
+{y:1998,t:'Wang H, Ganesan A. (1998). Total Synthesis of the Quinazoline Alkaloids (-)-Fumiquinazoline G and (-)-Fiscalin B. The Journal of Organic Chemistry. 63(8):2432-2433',p:'11672100',d:'10.1021/jo980360t'},
+{y:1997,t:'Dröse S, Altendorf K. Bafilomycins and concanamycins as inhibitors of V-ATPases and P-ATPases. J Exp Biol. 1997;200(Pt 1):1-8..1242/jeb.200.1.1',p:'9023991',d:'10.1242/jeb.200.1.1'},
+{y:1997,t:'Nicoară S. (1997). [Vitreous surgery in ocular traumatology]. Oftalmologia (Bucharest, Romania : 1990). 41(3):247-50',p:'9409973',d:''},
+{y:1997,t:'Venables DA, Concepción GP, Matsumoto SS, Barrows LR, Ireland CM. (1997). Makaluvamine N: a new pyrroloiminoquinone from Zyzzya fuliginosa. Journal of natural products. 60(4):408-10',p:'9134749',d:'10.1021/np9607262'},
+{y:1996,t:'Ganesh V, Lee AY, Clardy J, et al. (1996). Comparison of the structures of the cyclotheonamide A complexes of human alpha-thrombin and bovine beta-trypsin. Protein Sci, 5(5):825-35',p:'8732754',d:''},
+{y:1996,t:'Sanchez M et al. (1996). Paxilline inhibition of the alpha-subunit of the high-conductance calcium-activated potassium channel. Neuropharmacology. 35(7):963-8',p:'8938726',d:''},
+{y:1996,t:'Teshirogi I, Matsutani S, Shirahase K, Fujii Y, Yoshida T, Tanaka K, et al. (1996). Synthesis and phospholipase A2 inhibitory activity of thielocin B3 derivatives. Journal of medicinal chemistry. 39(26):5183-91',p:'8978846',d:''},
+{y:1995,t:'Bifulco G., Bruno I., Riccio R., Lavayre J., Bourdy G. (1995). Further brominated bis- and tris-indole alkaloids from the deep-water New Caledonian marine sponge Orina Sp. J Nat Prod, 58(8): 1254-60',p:'7595591',d:''},
+{y:1995,t:'Bramley AM, Langlands JM, Jones AK, et al. (1995). Effects of IZP-94005 (contignasterol) on antigen-induced bronchial responsiveness in ovalbumin-sensitized guinea-pigs.Br J Pharmacol, 115(8):1433-8',p:'8564202',d:'10.1111/j.1476-5381.1995.tb16634.x'},
+{y:1995,t:'Cocks S, Wrigley SK, Chicarelli-Robinson MI, Smith RM. (1995). High-performance liquid chromatography comparison of supercritical-fluid extraction and solvent extraction of microbial fermentation products. Journal of chromatography. A. 697(1-2):115-22',p:'7780576',d:''},
+{y:1995,t:'Schmidt EW, Harper MK, Faulkner DJ. (1995). Makaluvamines H-M and damirone C from the pohnpeian sponge Zyzzya fuliginosa. J Nat Prod. 58(12):1861-7',p:'8691207',d:''},
+{y:1995,t:'Takahashi C, Matsushita T, Doi M, et al. (1995). Fumiquinazolines A–G, novel metabolites of a fungus separated from a Pseudolabrus marine fish. Journal of the Chemical Society, Perkin Transactions 1. (18):2345-2353',p:'',d:'10.1039/P19950002345'},
+{y:1994,t:'Bifulco G., Bruno I., Minale L., Riccio R., Calignano A., et al. (1994). (+/-)-Gelliusines A and B, two diastereomeric brominated tris-indole alkaloids from a deep water new caledonian marine sponge (Gellius or Orina sp.). J Nat Prod, 57(9): 1294-9',p:'7798965',d:''},
+{y:1994,t:'Crabbe MJ, Betina V. (1994). Structural correlates of antifungal and cytotoxic activity of brefeldin A: the importance of a rigid planar lactone ring. Folia microbiologica. 39(5):445-8',p:'7729778',d:''},
+{y:1994,t:'Grabley S, Thiericke R, Wink J, Henne P, Philipps S, Wessels P, et al. (1994). Secondary metabolites by chemical screening, 26.1 7-O-beta-D-galactosyl-brefeldin A via transglycosylation with Penicillium brefeldianum. Journal of natural products. 57(4):541-4',p:'8021656',d:''},
+{y:1994,t:'Takei M, Burgoyne DL, Andersen RJ (1994). Effect of contignasterol on histamine release induced by anti-immunoglobulin E from rat peritoneal mast cells.J Pharm Sci, 83(9):1234-5',p:'7530301',d:'10.1002/jps.2600830909'},
+{y:1993,t:'Kobayashi J, Zeng CM, Ishibashi M, Sasaki T. (1993). Luffariolides F and G, new manoalide derivatives from the Okinawan marine sponge Luffariella sp. Journal of natural products. 56(3):436-9',p:'8482949',d:''},
+{y:1993,t:'Lewis SD, Ng AS, Baldwin JJ, et al. (1993). Inhibition of thrombin and other trypsin-like serine proteinases by cyclotheonamide A. Thromb Res, 70(2):173-90',p:'8322286',d:''},
+{y:1993,t:'Longley RE, McConnell OJ, Essich E, et al. (1993). Evaluation of marine sponge metabolites for cytotoxicity and signal transduction activity. J Nat Prod, 56(6):915-920',p:'8350092',d:''},
+{y:1993,t:'Longley RE, McConnell OJ, Essich E, et al. (1993). Evaluation of marine sponge metabolites for cytotoxicity and signal transduction activity. J Nat Prod. 56(6):915-20',p:'8350092',d:''},
+{y:1992,t:'Alvi KA, Crews P. (1992). Homoscalarane sesterterpenes from Lendenfeldia frondosa. Journal of natural products. 55(7):859-65',p:'1402955',d:''},
+{y:1992,t:'Burgoyne DL, Andersen RJ, Allen TM (1992). Contignasterol, a highly oxygenated steroid with the unnatural 14beta configuration from the marine sponge Petrosia contignata Thiele, 1899.J Org Chem, 57(2):525-528',p:'',d:'10.1021/jo00028a024'},
+{y:1992,t:'McCarthy PJ et al. (1992). Antifungal activity of meridine, a natural product from the marine sponge Corticium sp. J Nat Prod. 55(11):1664-8',p:'1479383',d:''},
+{y:1992,t:'Potts BC, Faulkner DJ, Jacobs RS. (1992). Phospholipase A2 inhibitors from marine organisms. Journal of natural products. 55(12):1701-17',p:'1294693',d:''},
+{y:1992,t:'Taraporewala IB, Cessac JW, Chanh TC, et al. (1992). HIV-1 neutralization and tumor cell proliferation inhibition in vitro by simplified analogues of pyrido[4,3,2-mn]thiazolo[5,4-b]acridine marine alkaloids. J Med Chem. 35(15):2744-52',p:'1495008',d:''},
+{y:1991,t:'Selala M., Laekeman G., Loenders B., Musuku A., Herman A., et al. (1991). In vitro effects of tremorgenic mycotoxins. J Nat Prod, 54(1): 207-12',p:'2045816',d:''},
+{y:1990,t:'Rollema H., Johnson E., Booth R., Caldera P., Lampen P., et al. (1990). In vivo intracerebral microdialysis studies in rats of MPP+ analogues and related charged species. J Med Chem, 33(8): 2221-30',p:'2374149',d:''},
+{y:1989,t:'Burres NS, Sazesh S, Gunawardana GP, et al. (1989). Antitumor activity and nucleic acid binding properties of dercitin, a new acridine alkaloid isolated from a marine Dercitus species sponge. Cancer Res. 49(19):5267-74',p:'2548717',d:''},
+{y:1988,t:'Bowman EJ, Siebers A, Altendorf K. Bafilomycins: a class of inhibitors of membrane ATPases from microorganisms, animal cells, and plant cells. Proc Natl Acad Sci U S A. 1988;85(21):7972-6..1073/pnas.85.21.7972',p:'2973058',d:'10.1073/pnas.85.21.7972'},
+{y:1988,t:'Glaser KB, Vedvick TS, Jacobs RS. (1988). Inactivation of phospholipase A2 by manoalide. Localization of the manoalide binding site on bee venom phospholipase A2.. Biochemical pharmacology. 37(19):3639-46',p:'3178877',d:''},
+{y:1987,t:'Glaser KB, Jacobs RS. (1987). Inactivation of bee venom phospholipase A2 by manoalide. A model based on the reactivity of manoalide with amino acids and peptide sequences.. Biochemical pharmacology. 36(13):2079-86',p:'3111475',d:''},
+{y:1987,t:'Takahashi A, Nakamura H, Kameyama T, Kurasawa S, Naganawa H, Okami Y, et al. (1987). Bisucaberin, a new siderophore, sensitizing tumor cells to macrophage-mediated cytolysis. II. Physico-chemical properties and structure determination.. The Journal of antibiotics. 40(12):1671-6',p:'2962973',d:''},
+{y:1986,t:'Glaser KB, Jacobs RS. (1986). Molecular pharmacology of manoalide. Inactivation of bee venom phospholipase A2. Biochemical pharmacology. 35(3):449-53',p:'3947381',d:''},
+{y:1973,t:'Sassa T, Takemura T, Ikeda M, et al. (1973). Structure of Radiclonic Acid, a New Plant Growth-Regulator Produced by a Fungus. Tetrahedron Lett. 14(26):2333-2334',p:'',d:'10.1016/S0040-4039(01)96211-2'},
+{y:1942,t:'Waksman SA et al. (1942). THE PRODUCTION OF TWO ANTIBACTERIAL SUBSTANCES, FUMIGACIN AND CLAVACIN. Science. 96(2487):202-3',p:'17755578',d:''},
+{y:1939,t:'Oxford A., Raistrick H., Simonart P. (1939). Studies in the biochemistry of micro-organisms: Griseofulvin, C(17)H(17)O(6)Cl, a metabolic product of Penicillium griseo-fulvum Dierckx. Biochem J, 33(2): 240-8',p:'17194716',d:''},
+{y:9999,t:'Chen JM, Wang WY, et al. Engyodontiumin A preparation method and application. Chinese Patent CN103724190B. 2016Link',p:'',d:''},
+{y:9999,t:'Chinese Patent CN110938566B. Penicillium sp. SCSIOW21 Producing Bisucaberin B from Deep-Sea Sediment',p:'',d:''},
+{y:9999,t:'Chinese Patent CN104877925A. Actinoalloteichus sp. SHA6 Producing Maclafungin from Deep-Sea Sediment. 2015CN104877925A',p:'',d:''},
+{y:9999,t:'Lithocarpins A-D: four tenellone-macrolide conjugated [4+2] hetero-adducts from the deep-sea derived fungus Phomopsis lithocarpus FS508. Org Chem Front',p:'',d:'10.1039/C8QO00095F'}
+];
+
+  var yearMap = {};
+  var yearOrder = [];
+  REFS_DATA.forEach(function(r){
+    var y = r.y === 9999 ? 'unknown' : String(r.y);
+    if (!yearMap[y]) { yearMap[y] = []; yearOrder.push(y); }
+    yearMap[y].push(r);
+  });
+
+  var uIdx = yearOrder.indexOf('unknown');
+  if (uIdx > -1) { yearOrder.splice(uIdx, 1); yearOrder.push('unknown'); }
+
+  // ── Trend bar chart ──
+  var maxCount = 0;
+  yearOrder.forEach(function(y){
+    if (y !== 'unknown') {
+      var c = yearMap[y].length;
+      if (c > maxCount) maxCount = c;
+    }
+  });
+
+  var trendHtml = '<div class="trend-bar-container">';
+  yearOrder.forEach(function(y){
+    if (y === 'unknown') return;
+    var count = yearMap[y].length;
+    var pct = (count / maxCount) * 100;
+    var barColor = 'hsl(' + Math.round(190 + (pct/100)*50) + ',60%,50%)';
+    trendHtml += '<div class="trend-bar" style="height:' + Math.max(3, pct) + '%;background:' + barColor + '" title="' + y + ': ' + count + ' refs"></div>';
+  });
+  trendHtml += '</div>';
+  trendHtml += '<div class="trend-legend">';
+  trendHtml += '<span>📈 From ' + yearOrder[0] + ' to ' + (yearOrder[yearOrder.length-1] || yearOrder[0]) + '</span>';
+  trendHtml += '<span>Peak: 2020 (37 refs)</span>';
+  trendHtml += '</div>';
+  document.getElementById('trend-chart').innerHTML = trendHtml;
+
+  // ── Year jump ──
+  var jumpHtml = '';
+  yearOrder.forEach(function(y){
+    var label = y === 'unknown' ? 'Other' : y;
+    jumpHtml += '<a href="#year-' + y + '">' + label + '</a>';
+  });
+  document.getElementById('year-jump').innerHTML = jumpHtml;
+
+  // ── Render ──
+  var container = document.getElementById('refs-container');
+  var html = '';
+  var globalIdx = 1;
+
+  yearOrder.forEach(function(y){
+    var items = yearMap[y];
+    var label = y === 'unknown' ? 'Other / Unknown Year' : y;
+    html += '<div class="ref-year-section">';
+    html += '  <h2 class="ref-year-heading" id="year-' + y + '">' + label + ' <span class="ref-year-count">' + items.length + ' refs</span></h2>';
+    html += '  <ul class="ref-list">';
+    items.forEach(function(r){
+      var links = '';
+      if (r.p) links += '<a href="https://pubmed.ncbi.nlm.nih.gov/' + r.p + '/" target="_blank" class="ref-link-pmid">[PMID:' + r.p + ' \u2197]</a>';
+      if (r.d) links += '<a href="https://doi.org/' + r.d + '" target="_blank" class="ref-link-doi">DOI\uff1a' + r.d + ' \u2197</a>';
+      html += '    <li class="ref-item">';
+      html += '      <span class="ref-num">[' + globalIdx + ']</span>';
+      html += '      <span class="ref-text">' + r.t;
+      if (links) html += ' <span class="ref-links">' + links + '</span>';
+      html += '      </span>';
+      html += '    </li>';
+      globalIdx++;
+    });
+    html += '  </ul>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+
+})();
+</script>
+</body>
+</ht
