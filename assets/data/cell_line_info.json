@@ -1,0 +1,966 @@
+{
+  "mcf-7": {
+    "cvcl_id": "CVCL_0031",
+    "synonyms": [
+      "MCF 7",
+      "MCF.7",
+      "MCF7",
+      "Michigan Cancer Foundation-7",
+      "ssMCF-7",
+      "ssMCF7",
+      "MCF7/WT",
+      "MCF7-CTRL",
+      "IBMF-7",
+      "MCF-7 Cells",
+      "MCF7 Cells",
+      "Michigan Cancer Foundation 7 Cells"
+    ],
+    "description": "An adenocarcinoma cell line established in 1970 from the pleural effusion of a 69 year old Caucasian female patient with breast carcinoma.",
+    "tissue": "pleural effusion",
+    "organism": "Homo sapiens (human)"
+  },
+  "hepg2": {
+    "cvcl_id": "CVCL_0027",
+    "synonyms": [
+      "HEP-G2",
+      "Hep G2",
+      "HEP G2",
+      "HepG2",
+      "HEPG2"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Hep-G2.",
+    "tissue": "liver",
+    "organism": "Homo sapiens (human)"
+  },
+  "hct-116": {
+    "cvcl_id": "CVCL_0291",
+    "synonyms": [
+      "HPAF II",
+      "HPAFII",
+      "HPAF-2",
+      "HPAF2",
+      "HPAF/CD18",
+      "CD18/HPAF",
+      "HPAF-II/CD18",
+      "CD-18",
+      "CD18",
+      "CD 18"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HPAF-II.",
+    "tissue": "ascitic fluid",
+    "organism": "Homo sapiens (human)"
+  },
+  "hela": {
+    "cvcl_id": "CVCL_0030",
+    "synonyms": [
+      "HELA",
+      "Hela",
+      "He La",
+      "He-La",
+      "HeLa-CCL2",
+      "Helacyton gartleri",
+      "HeLa Cells"
+    ],
+    "description": "HeLa cells were developed from cervix adenocarcinoma of a 31-year-old Black female. The cells are positive for keratin by immunoperoxidase staining. HeLa cells have been reported to contain human papilloma virus 18 (HPV-18) sequences.  P53 expression was reported to be low, and normal levels of pRB (retinoblastoma suppressor) were found. Four typical HeLa marker chromosomes have been reported.  M1 is a rearranged long arm and centromere of chromosome 1 and the long arm of chromosome 3. M2 is a combination of short arm of chromosome 3 and long arm of chromosome 5.  M3 is an isochromosome of the short arm of chromosome 5. M4 consists of the long arm of chromosome 11 and an arm of chromosome 19. HeLa Marker Chromosomes: One copy of Ml, one copy of M2, four-five copies of M3, and two copies of M4 as revealed by G-banding patterns.",
+    "tissue": "uterine cervix",
+    "organism": "Homo sapiens (human)"
+  },
+  "hl-60": {
+    "cvcl_id": "CVCL_0002",
+    "synonyms": [
+      "HL 60",
+      "HL.60",
+      "HL60",
+      "Human Leukemia-60",
+      "HL-60 Cells",
+      "HL60 Cells"
+    ],
+    "description": "A promyelocytic cell line derived from a patient with ACUTE PROMYELOCYTIC LEUKEMIA. HL-60 cells lack specific markers for LYMPHOID CELLS but express surface receptors for FC FRAGMENTS and COMPLEMENT SYSTEM PROTEINS. They also exhibit phagocytic activity and responsiveness to chemotactic stimuli. (From Hay et al., American Type Culture Collection, 7th ed, pp127-8)",
+    "tissue": "blood",
+    "organism": "Homo sapiens (human)"
+  },
+  "k562": {
+    "cvcl_id": "CVCL_0004",
+    "synonyms": [
+      "K562",
+      "K.562",
+      "K 562",
+      "KO",
+      "GM05372",
+      "GM05372E",
+      "K562 Cells"
+    ],
+    "description": "An ERYTHROLEUKEMIA cell line derived from a CHRONIC MYELOID LEUKEMIA patient in BLAST CRISIS.",
+    "tissue": "pleural effusion",
+    "organism": "Homo sapiens (human)"
+  },
+  "nci-h460": {
+    "cvcl_id": "CVCL_0459",
+    "synonyms": [
+      "PR-1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line PR1 [Rat pituitary tumor].",
+    "tissue": "pituitary gland",
+    "organism": "Rattus norvegicus (Norway rat)"
+  },
+  "ht-29": {
+    "cvcl_id": "CVCL_0320",
+    "synonyms": [
+      "IEC 18",
+      "IEC18",
+      "Intestinal Epithelioid Cell line No. 18"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line IEC-18.",
+    "tissue": "ileum",
+    "organism": "Rattus norvegicus (Norway rat)"
+  },
+  "mda-mb-231": {
+    "cvcl_id": "CVCL_0062",
+    "synonyms": [
+      "BAF-B03",
+      "BAF/B03"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line BaF-B03.",
+    "tissue": "bone marrow",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "pc-3": {
+    "cvcl_id": "CVCL_0035",
+    "synonyms": [
+      "PC3",
+      "PC.3",
+      "PC-3 Cells",
+      "PC-3 Cell Line",
+      "PC3 Cell Line",
+      "PC-3 (Human Prostatic Carcinoma) Cell Line",
+      "Human Prostatic Carcinoma Cell Line PC3",
+      "PC3 Cells"
+    ],
+    "description": "An epithelial cell line initiated from a human bone metastasis of a grade IV prostatic ADENOCARCINOMA.",
+    "tissue": "bone tissue",
+    "organism": "Homo sapiens (human)"
+  },
+  "hek293": {
+    "cvcl_id": "CVCL_0045",
+    "synonyms": [
+      "Hek293",
+      "HEK-293",
+      "HEK/293",
+      "(HEK)293",
+      "HEK 293",
+      "HEK;293",
+      "293",
+      "293 HEK",
+      "293 Ad5",
+      "Graham 293",
+      "Graham-293",
+      "Human Embryonic Kidney 293",
+      "HEK293 Cells",
+      "HEK 293 Cells",
+      "HEK 293 Cell Line",
+      "Human Kidney Cell Line 293",
+      "293T Cells",
+      "Human Embryonic Kidney Cell Line 293"
+    ],
+    "description": "A cell line generated from human embryonic kidney cells that were transformed with human adenovirus type 5.",
+    "tissue": "kidney",
+    "organism": "Homo sapiens (human)"
+  },
+  "sh-sy5y": {
+    "cvcl_id": "CVCL_0019",
+    "synonyms": [
+      "SH-Sy5y",
+      "SHSY5Y",
+      "SHSY-5Y",
+      "SK-SH-SY5Y",
+      "SY5Y",
+      "SH-SY5Y Parental"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SH-SY5Y.",
+    "tissue": "bone marrow",
+    "organism": "Homo sapiens (human)"
+  },
+  "caco-2": {
+    "cvcl_id": "CVCL_0025",
+    "synonyms": [
+      "CaCo-2",
+      "CACO-2",
+      "Caco 2",
+      "CACO 2",
+      "CACO2",
+      "CaCo2",
+      "CaCO2",
+      "Caco2",
+      "Caco-2/ATCC",
+      "Caco-II",
+      "Caco-2 Cells"
+    ],
+    "description": "Human colonic adenocarcinoma cells that express features characteristic of mature intestinal cells, including enterocytes or mucus cells, which are used as in vitro models for studies investigating intestinal cell function and differentiation.",
+    "tissue": "colon",
+    "organism": "Homo sapiens (human)"
+  },
+  "thp-1": {
+    "cvcl_id": "CVCL_0006",
+    "synonyms": [
+      "THP1",
+      "THP 1",
+      "THPI",
+      "THP-1(ATCC)",
+      "THP-1-O",
+      "O-THP-1",
+      "Tohoku Hospital Pediatrics-1",
+      "THP-1 Cells",
+      "THP-1 Cell Line"
+    ],
+    "description": "A human leukemia monocytic cell line derived from a patient with LEUKEMIA, MONOCYTIC, ACUTE. It is used as a model to study the function of MONOCYTES and MACROPHAGES, their signaling pathways, nutrient and drug transport.",
+    "tissue": "blood",
+    "organism": "Homo sapiens (human)"
+  },
+  "a549": {
+    "cvcl_id": "CVCL_0023",
+    "synonyms": [
+      "A 549",
+      "A549",
+      "NCI-A549",
+      "A549/ATCC",
+      "A549 ATCC",
+      "A549ATCC",
+      "hA549",
+      "A549 Cells",
+      "A549 Cell Line"
+    ],
+    "description": "An immortalized cell line derived from human ADENOCARCINOMA, ALVEOLAR basal epithelial cells isolated from the lungs of a male patient in 1972. The cell line is positive for KERATIN, can synthesize LECITHIN, and contains high levels of POLYUNSATURATED FATTY ACIDS in its PLASMA MEMBRANE. It is used as a model for PULMONARY ALVEOLI function and virus infections, as a TRANSFECTION host, and for PRECLINICAL DRUG EVALUATION.",
+    "tissue": "lung",
+    "organism": "Homo sapiens (human)"
+  },
+  "mcf7": {
+    "cvcl_id": "CVCL_0031",
+    "synonyms": [
+      "MCF 7",
+      "MCF.7",
+      "MCF7",
+      "Michigan Cancer Foundation-7",
+      "ssMCF-7",
+      "ssMCF7",
+      "MCF7/WT",
+      "MCF7-CTRL",
+      "IBMF-7",
+      "MCF-7 Cells",
+      "MCF7 Cells",
+      "Michigan Cancer Foundation 7 Cells"
+    ],
+    "description": "An adenocarcinoma cell line established in 1970 from the pleural effusion of a 69 year old Caucasian female patient with breast carcinoma.",
+    "tissue": "pleural effusion",
+    "organism": "Homo sapiens (human)"
+  },
+  "sf-268": {
+    "cvcl_id": "CVCL_0203",
+    "synonyms": [
+      "COLO-320DM",
+      "COLO_320DM",
+      "COLO-320-DM",
+      "COLO #320DM",
+      "COLO320/DM",
+      "COLO320-DM",
+      "COLO320DM",
+      "Colo320DM",
+      "COLO320 DM",
+      "COLO 320 DM",
+      "COLO 320 (DM)",
+      "Colorado 320 Double Minutes"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line COLO 320DM.",
+    "tissue": "sigmoid colon",
+    "organism": "Homo sapiens (human)"
+  },
+  "hepg-2": {
+    "cvcl_id": "CVCL_0027",
+    "synonyms": [
+      "HEP-G2",
+      "Hep G2",
+      "HEP G2",
+      "HepG2",
+      "HEPG2"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Hep-G2.",
+    "tissue": "liver",
+    "organism": "Homo sapiens (human)"
+  },
+  "p388": {
+    "cvcl_id": "CVCL_2194",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM04345.",
+    "tissue": "blood",
+    "organism": "Homo sapiens (human)"
+  },
+  "achn": {
+    "cvcl_id": "CVCL_1068",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line OSCA-49.",
+    "tissue": "bone tissue",
+    "organism": "Canis lupus familiaris (dog)"
+  },
+  "mda-mb-468": {
+    "cvcl_id": "CVCL_0419",
+    "synonyms": [
+      "Murine Thymic Epithelial Cell line 1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MTEC1.",
+    "tissue": "thymus epithelium",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "bel-7402": {
+    "cvcl_id": "CVCL_5494",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM22626.",
+    "tissue": "blood",
+    "organism": "Homo sapiens (human)"
+  },
+  "raw264-7": {
+    "cvcl_id": "CVCL_0493",
+    "synonyms": [
+      "SGHPL4",
+      "CTB-CL-MC4",
+      "MC4",
+      "Saint Georges Hospital Placental cell Line-4"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SGHPL-4.",
+    "tissue": "placenta",
+    "organism": "Homo sapiens (human)"
+  },
+  "du-145": {
+    "cvcl_id": "CVCL_0105",
+    "synonyms": [
+      "30A5"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line 30A-5.",
+    "tissue": "embryo",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "sk-mel-5": {
+    "cvcl_id": "CVCL_0528",
+    "synonyms": [
+      "T 98 G",
+      "T-98G",
+      "T98 G",
+      "T98-G"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line T98G.",
+    "tissue": "brain",
+    "organism": "Homo sapiens (human)"
+  },
+  "sk-mel-28": {
+    "cvcl_id": "CVCL_0526",
+    "synonyms": [
+      "T-24",
+      "T 24"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line T24.",
+    "tissue": "urinary bladder",
+    "organism": "Homo sapiens (human)"
+  },
+  "nci-h23": {
+    "cvcl_id": "CVCL_1547",
+    "synonyms": [
+      "HHW 105",
+      "GM10114"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HHW105.",
+    "tissue": "",
+    "organism": "Cricetulus griseus (Chinese hamster)"
+  },
+  "uo-31": {
+    "cvcl_id": "CVCL_1908",
+    "synonyms": [
+      "K-1735 C-16",
+      "K1735-Cl16",
+      "K1735-C116",
+      "K1735c116",
+      "K-1735 clone 16"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line K1735-C16.",
+    "tissue": "",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "a2780": {
+    "cvcl_id": "CVCL_0134",
+    "synonyms": [
+      "AKATA",
+      "Akata-BL",
+      "Akata BL",
+      "Akata-EC",
+      "Akata-Early Culture"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Akata.",
+    "tissue": "",
+    "organism": "Homo sapiens (human)"
+  },
+  "sk-ov-3": {
+    "cvcl_id": "CVCL_0532",
+    "synonyms": [
+      "TIG1",
+      "Tokyo Institute of Gerontology-1",
+      "AG06173",
+      "AG06173A"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line TIG-1.",
+    "tissue": "lung primordium",
+    "organism": "Homo sapiens (human)"
+  },
+  "u937": {
+    "cvcl_id": "CVCL_0007",
+    "synonyms": [
+      "U937",
+      "U 937",
+      "U937 Cells"
+    ],
+    "description": "A human cell line established from a diffuse histiocytic lymphoma (HISTIOCYTIC LYMPHOMA, DIFFUSE) and displaying many monocytic characteristics. It serves as an in vitro model for MONOCYTE and MACROPHAGE differentiation.",
+    "tissue": "pleural effusion",
+    "organism": "Homo sapiens (human)"
+  },
+  "huh7": {
+    "cvcl_id": "CVCL_0336",
+    "synonyms": [
+      "J-774A.1",
+      "J774.A1",
+      "J774 A1",
+      "J774A.1",
+      "J 774A.1",
+      "J774 A.1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line J774A1.",
+    "tissue": "",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "b16": {
+    "cvcl_id": "CVCL_F935",
+    "synonyms": [],
+    "description": "",
+    "tissue": "",
+    "organism": ""
+  },
+  "b16-f10": {
+    "cvcl_id": "CVCL_0159",
+    "synonyms": [
+      "BFC1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line BFC-1.",
+    "tissue": "brown adipose tissue",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "hct-15": {
+    "cvcl_id": "CVCL_0292",
+    "synonyms": [
+      "HSC5"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HSC-5 [Human skin squamous cell carcinoma].",
+    "tissue": "skin of body",
+    "organism": "Homo sapiens (human)"
+  },
+  "sw-620": {
+    "cvcl_id": "CVCL_0547",
+    "synonyms": [
+      "WAC-2",
+      "WAC 2"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line WAC2.",
+    "tissue": "bone marrow",
+    "organism": "Homo sapiens (human)"
+  },
+  "ovcar-3": {
+    "cvcl_id": "CVCL_0465",
+    "synonyms": [
+      "RAW264",
+      "RAW2647",
+      "RAW264.7",
+      "RAW-264.7",
+      "Raw 264.7",
+      "Raw264.7",
+      "RAW 264.7 Cells",
+      "RAW 264.7 Cell Line"
+    ],
+    "description": "A transformed macrophage cell line isolated from ASCITES of mice infected with ABELSON MURINE LEUKEMIA VIRUS.",
+    "tissue": "ascitic fluid",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "ovcar-4": {
+    "cvcl_id": "CVCL_0466",
+    "synonyms": [
+      "RBA1",
+      "Rat Brain Astrocyte-1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line RBA-1.",
+    "tissue": "brain",
+    "organism": "Rattus norvegicus (Norway rat)"
+  },
+  "ovcar-5": {
+    "cvcl_id": "CVCL_0467",
+    "synonyms": [
+      "RBE-4",
+      "Rat Brain Endothelial 4"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line RBE4.",
+    "tissue": "brain endothelium",
+    "organism": "Rattus norvegicus (Norway rat)"
+  },
+  "ovcar-8": {
+    "cvcl_id": "CVCL_0468",
+    "synonyms": [
+      "RBL 1",
+      "RBL-I",
+      "RBL",
+      "Rat Basophilic Leukemia-1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line RBL-1.",
+    "tissue": "blood",
+    "organism": "Rattus norvegicus (Norway rat)"
+  },
+  "786-0": {
+    "cvcl_id": "CVCL_1051",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line OSCA-18.",
+    "tissue": "bone tissue",
+    "organism": "Canis lupus familiaris (dog)"
+  },
+  "a498": {
+    "cvcl_id": "CVCL_1054",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line OSCA-27.",
+    "tissue": "bone tissue",
+    "organism": "Canis lupus familiaris (dog)"
+  },
+  "caki-1": {
+    "cvcl_id": "CVCL_0234",
+    "synonyms": [
+      "EFM19"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line EFM-19.",
+    "tissue": "pleural effusion",
+    "organism": "Homo sapiens (human)"
+  },
+  "hop-62": {
+    "cvcl_id": "CVCL_4648",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM24078.",
+    "tissue": "blood",
+    "organism": "Homo sapiens (human)"
+  },
+  "igrov-1": {
+    "cvcl_id": "CVCL_1304",
+    "synonyms": [
+      "NZM74"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line NZM074.",
+    "tissue": "",
+    "organism": "Homo sapiens (human)"
+  },
+  "km12": {
+    "cvcl_id": "CVCL_1331",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line NZM106.",
+    "tissue": "",
+    "organism": "Homo sapiens (human)"
+  },
+  "hcc-1937": {
+    "cvcl_id": "CVCL_0293",
+    "synonyms": [
+      "HSCT6"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HSC-T6.",
+    "tissue": "liver",
+    "organism": ""
+  },
+  "bt-474": {
+    "cvcl_id": "CVCL_0179",
+    "synonyms": [
+      "C-6",
+      "C 6",
+      "RGC-6",
+      "RGC6",
+      "RGc6"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line C6.",
+    "tissue": "brain",
+    "organism": ""
+  },
+  "t-47d": {
+    "cvcl_id": "CVCL_0553",
+    "synonyms": [
+      "WRL-68",
+      "WRL68"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line WRL 68.",
+    "tissue": "uterine cervix",
+    "organism": ""
+  },
+  "zr-75-1": {
+    "cvcl_id": "CVCL_0588",
+    "synonyms": [
+      "KU812F",
+      "KU-812-F",
+      "KU-812F",
+      "KU 812F",
+      "KU812-F"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Ku812F.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "c4-2b": {
+    "cvcl_id": "CVCL_4785",
+    "synonyms": [
+      "GM-1799"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM01799.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "h1975": {
+    "cvcl_id": "CVCL_1510",
+    "synonyms": [
+      "SH-EPi"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SH-EP1.",
+    "tissue": "bone marrow",
+    "organism": ""
+  },
+  "hcc827": {
+    "cvcl_id": "CVCL_2063",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line AG19980.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "a375": {
+    "cvcl_id": "CVCL_0132",
+    "synonyms": [
+      "R3327 AT-3",
+      "AT-3",
+      "AT3",
+      "AT-3-TC",
+      "Dunning R3327 AT-3"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line R-3327-AT-3.",
+    "tissue": "",
+    "organism": ""
+  },
+  "t98g": {
+    "cvcl_id": "CVCL_0556",
+    "synonyms": [
+      "Wurzburg",
+      "Jurkat JR",
+      "JR"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Jurkat Wurzburg.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "u251": {
+    "cvcl_id": "CVCL_0021",
+    "synonyms": [
+      "U-251 MG",
+      "U-251-MG",
+      "U-251_MG",
+      "U251-MG",
+      "U251MG",
+      "U-251",
+      "U251",
+      "U251n",
+      "U251N",
+      "251 MG",
+      "251MG",
+      "251 MG(6)"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line U-251MG.",
+    "tissue": "parietal lobe",
+    "organism": ""
+  },
+  "nci-n87": {
+    "cvcl_id": "CVCL_1603",
+    "synonyms": [
+      "JH143"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM50061.",
+    "tissue": "",
+    "organism": ""
+  },
+  "sw-1990": {
+    "cvcl_id": "CVCL_1721",
+    "synonyms": [
+      "JL281"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM16436.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "cfpac-1": {
+    "cvcl_id": "CVCL_1119",
+    "synonyms": [
+      "NZM76"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line NZM076.",
+    "tissue": "",
+    "organism": ""
+  },
+  "hcc-2157": {
+    "cvcl_id": "CVCL_6957",
+    "synonyms": [
+      "COLO-857",
+      "Colo 857",
+      "COLO857",
+      "Colorado 857"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line COLO 857.",
+    "tissue": "axillary lymph node",
+    "organism": ""
+  },
+  "hcc-2185": {
+    "cvcl_id": "CVCL_6958",
+    "synonyms": [
+      "COLO-858",
+      "Colo 858",
+      "COLO858",
+      "Colorado 858"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line COLO 858.",
+    "tissue": "axillary lymph node",
+    "organism": ""
+  },
+  "hcc-3153": {
+    "cvcl_id": "CVCL_6900",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HGALBV073.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "hcc-1599": {
+    "cvcl_id": "CVCL_6901",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HGALBV074.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "kyse-30": {
+    "cvcl_id": "CVCL_1351",
+    "synonyms": [
+      "HSC-172"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line HSC 172.",
+    "tissue": "lung primordium",
+    "organism": ""
+  },
+  "kyse-70": {
+    "cvcl_id": "CVCL_1352",
+    "synonyms": [
+      "Jpx-9",
+      "JPX9",
+      "JPX 9-4"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line JPX-9.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "kyse-150": {
+    "cvcl_id": "CVCL_1354",
+    "synonyms": [
+      "HE-28",
+      "AG05337",
+      "AG05337A",
+      "AG 5337"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line RPE-28.",
+    "tissue": "presumptive retinal pigmented epithelium",
+    "organism": ""
+  },
+  "kyse-450": {
+    "cvcl_id": "CVCL_1355",
+    "synonyms": [
+      "RPE-28 Sv4",
+      "RPE 28 SV4",
+      "AG06096",
+      "AG06096A"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line RPE-28 SV4.",
+    "tissue": "presumptive retinal pigmented epithelium",
+    "organism": ""
+  },
+  "kyse-510": {
+    "cvcl_id": "CVCL_1357",
+    "synonyms": [
+      "MCH 29",
+      "MCH29"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MCH029.",
+    "tissue": "skin of shoulder",
+    "organism": ""
+  },
+  "kyse-520": {
+    "cvcl_id": "CVCL_1358",
+    "synonyms": [
+      "MCH 39",
+      "MCH39"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MCH039.",
+    "tissue": "skin of prepuce of penis",
+    "organism": ""
+  },
+  "oe33": {
+    "cvcl_id": "CVCL_1644",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line vWTa.",
+    "tissue": "dermis",
+    "organism": ""
+  },
+  "oe19": {
+    "cvcl_id": "CVCL_1643",
+    "synonyms": [
+      "JL219"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM50126.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "snu-1": {
+    "cvcl_id": "CVCL_0171",
+    "synonyms": [
+      "BetaTCtet",
+      "betaTC-tet"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Beta-TC-tet.",
+    "tissue": "islet of Langerhans",
+    "organism": ""
+  },
+  "snu-5": {
+    "cvcl_id": "CVCL_1717",
+    "synonyms": [
+      "JL266"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM50143.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "snu-16": {
+    "cvcl_id": "CVCL_1718",
+    "synonyms": [
+      "JL430"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line GM50186.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "snu-216": {
+    "cvcl_id": "CVCL_3865",
+    "synonyms": [
+      "MEL HO",
+      "MEL-HO",
+      "MEL-Ho",
+      "Mel-HO",
+      "MelHo",
+      "MELHO",
+      "Ho"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line Mel Ho.",
+    "tissue": "skin of body",
+    "organism": ""
+  },
+  "snu-484": {
+    "cvcl_id": "CVCL_3870",
+    "synonyms": [
+      "MFH-INO",
+      "MFHINO"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MFH-ino.",
+    "tissue": "",
+    "organism": ""
+  },
+  "snu-601": {
+    "cvcl_id": "CVCL_3872",
+    "synonyms": [
+      "Mhh-Call 2",
+      "MHH-CALL2",
+      "MHHCALL2"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MHH-CALL-2.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "snu-620": {
+    "cvcl_id": "CVCL_6993",
+    "synonyms": [
+      "FKH1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line FKH-1.",
+    "tissue": "blood",
+    "organism": ""
+  },
+  "snu-719": {
+    "cvcl_id": "CVCL_3875",
+    "synonyms": [
+      "MHH-NB11",
+      "MHHNB11"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line MHH-NB-11.",
+    "tissue": "adrenal gland",
+    "organism": ""
+  },
+  "kato-iii": {
+    "cvcl_id": "CVCL_0371",
+    "synonyms": [
+      "LN 229",
+      "LN229",
+      "LNT-229"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line LN-229.",
+    "tissue": "",
+    "organism": ""
+  },
+  "ben": {
+    "cvcl_id": "CVCL_1067",
+    "synonyms": [],
+    "description": "This page summarizes the data available in PubChem associated with the cell line OSCA-48.",
+    "tissue": "bone tissue",
+    "organism": ""
+  },
+  "raw-264-7": {
+    "cvcl_id": "CVCL_0493",
+    "synonyms": [
+      "SGHPL4",
+      "CTB-CL-MC4",
+      "MC4",
+      "Saint Georges Hospital Placental cell Line-4"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SGHPL-4.",
+    "tissue": "placenta",
+    "organism": "Homo sapiens (human)"
+  },
+  "raw264.7": {
+    "cvcl_id": "CVCL_0493",
+    "synonyms": [
+      "SGHPL4",
+      "CTB-CL-MC4",
+      "MC4",
+      "Saint Georges Hospital Placental cell Line-4"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SGHPL-4.",
+    "tissue": "placenta",
+    "organism": "Homo sapiens (human)"
+  },
+  "b16f10": {
+    "cvcl_id": "CVCL_0159",
+    "synonyms": [
+      "BFC1"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line BFC-1.",
+    "tissue": "brown adipose tissue",
+    "organism": "Mus musculus (house mouse)"
+  },
+  "nci-h1975": {
+    "cvcl_id": "CVCL_1510",
+    "synonyms": [
+      "SH-EPi"
+    ],
+    "description": "This page summarizes the data available in PubChem associated with the cell line SH-EP1.",
+    "tissue": "bone marrow",
+    "organism": ""
+  }
+}
