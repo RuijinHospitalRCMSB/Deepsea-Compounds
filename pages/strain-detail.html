@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Strain Detail — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--primary:#0077b6;--primary-hover:#005f8c;--primary-light:rgba(0,119,182,0.08);--bg-page:#f0f4f8;--bg-content:#ffffff;--bg-card:#f8fafc;--border:#dde4ec;--border-light:#e8edf4;--text-primary:#0d1b2a;--text-secondary:#455a64;--text-muted:#78909c;--shadow-sm:0 1px 3px rgba(13,27,42,0.06);--shadow-md:0 4px 12px rgba(13,27,42,0.08);--shadow-lg:0 8px 24px rgba(13,27,42,0.12);--radius-sm:6px;--radius-md:8px;--radius-lg:12px;--font-sans:'Noto Sans SC',-apple-system,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+body{background:var(--bg-page);font-family:var(--font-sans);color:var(--text-primary);}
+.global-sidebar{position:fixed;top:0;left:0;width:180px;height:100vh;background:#0d1b2a;color:#fff;overflow-y:auto;z-index:100;display:flex;flex-direction:column;}
+.sidebar-header{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;}
+.sidebar-logo{font-size:22px;}.sidebar-title{font-size:13px;font-weight:700;color:#fff;margin:0;}
+.sidebar-nav{list-style:none;padding:6px 0;margin:0;flex:1;}
+.sidebar-nav li{margin:0;}
+.sidebar-nav li a{display:flex;align-items:flex-start;gap:8px;padding:9px 16px;font-size:12px;color:#90caf9;cursor:pointer;text-decoration:none;border-left:2px solid transparent;transition:all 0.12s;}
+.sidebar-nav li a:hover{background:rgba(255,255,255,0.04);color:#fff;}
+.sidebar-nav li.active a{background:rgba(21,101,192,0.25);color:#fff;border-left-color:#42a5f5;}
+.nav-label .nav-en{display:inline;}.nav-label .nav-zh{display:none;}
+.sidebar-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;}
+.theme-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);font-size:14px;padding:4px 8px;border-radius:4px;cursor:pointer;}
+.sidebar-ver{font-size:10px;color:rgba(255,255,255,0.3);}
+.global-main{margin-left:180px;min-height:100vh;background:var(--bg-page);position:relative;}
+.global-topbar{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg-content);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
+.nav-toggle-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--text-secondary);padding:4px;}
+.page-content{padding:20px 12px 40px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text-muted);text-decoration:none;font-size:12px;margin-bottom:16px;transition:color 0.15s;}
+.back-link:hover{color:var(--primary);}
+.loading-state,.error-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;}
+.detail-hero{display:flex;flex-direction:column;gap:8px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.detail-hero-title{font-size:24px;font-weight:700;color:var(--text-primary);margin:0;line-height:1.3;}
+.detail-hero-title i{font-style:italic;}
+.hero-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.hero-badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:4px;font-weight:600;}
+.hero-badge.genus{background:var(--primary-light);color:var(--primary);}
+.hero-badge.depth{color:#fff;}
+.info-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.info-card{background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-md);padding:10px 12px;text-align:center;box-shadow:var(--shadow-sm);}
+.info-card-icon{font-size:18px;margin-bottom:2px;}
+.info-card-label{font-size:9px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.04em;font-weight:600;}
+.info-card-value{font-size:13px;color:var(--text-primary);font-weight:500;margin-top:2px;word-break:break-word;}
+.taxonomy-bar{display:flex;flex-wrap:wrap;gap:3px;align-items:center;margin-bottom:16px;}
+.tax-item{display:flex;align-items:center;gap:4px;padding:3px 10px;background:var(--bg-content);border:1px solid var(--border);border-radius:4px;font-size:11px;}
+.tax-rank{color:var(--text-muted);font-size:9px;text-transform:uppercase;letter-spacing:0.03em;}
+.tax-name{color:var(--text-primary);font-weight:500;}
+.section{margin-bottom:20px;}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.section-header h2{font-size:16px;font-weight:700;color:var(--text-primary);margin:0;}
+.section-line{flex:1;height:1px;background:var(--border);}
+.ctags{display:flex;flex-wrap:wrap;gap:6px;}
+.ctag{display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600;}
+.depth-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.strain-sort-bar{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.strain-sort-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.3px;}
+.strain-sort-btn{padding:4px 11px;border:1px solid var(--border);border-radius:5px;background:var(--bg-content);color:var(--text-secondary);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;line-height:1.4;}
+.strain-sort-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.strain-sort-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.strain-sort-btn .ssa{font-size:8px;margin-left:2px;line-height:1;}
+.cpd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.cpd-card{display:flex;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-content);text-decoration:none;transition:all 0.15s;box-shadow:var(--shadow-sm);align-items:center;}
+.cpd-card:hover{border-color:var(--primary);box-shadow:var(--shadow-md);}
+.cpd-img{width:32px;height:32px;border-radius:4px;border:1px solid var(--border-light);background:var(--bg-card);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.cpd-img img{width:100%;height:100%;object-fit:contain;}
+.cpd-img-fallback{font-size:12px;color:var(--text-muted);}
+.cpd-info{flex:1;min-width:0;line-height:1.2;}
+.cpd-name{font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cpd-formula{font-size:10px;color:var(--text-muted);margin-top:1px;}
+.cpd-tags{display:flex;gap:3px;flex-shrink:0;align-items:center;}
+.cpd-ct{font-size:8px;padding:1px 6px;border-radius:8px;font-weight:600;white-space:nowrap;}
+.cpd-cid{font-size:9px;color:var(--text-muted);font-family:var(--font-mono);}
+@media(max-width:800px){.cpd-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:500px){.cpd-grid{grid-template-columns:1fr;}}
+.ext-links{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:100%;}
+.ext-link{display:flex;flex-direction:column;gap:4px;padding:14px 16px;background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-lg);text-decoration:none;transition:all 0.2s;box-shadow:var(--shadow-sm);}
+.ext-link:hover{border-color:var(--primary);box-shadow:var(--shadow-md);transform:translateY(-1px);}
+.ext-link-icon{font-size:24px;line-height:1;}
+.ext-link-title{font-size:14px;font-weight:600;color:var(--text-primary);}
+.ext-link-desc{font-size:11px;color:var(--text-muted);line-height:1.3;}
+.ext-link-id{display:inline-flex;align-items:center;gap:5px;margin-top:2px;font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--primary);background:var(--primary-light);padding:3px 10px;border-radius:6px;width:fit-content;}
+.ext-link:hover .ext-link-id{background:var(--primary);color:#fff;}
+.details-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.detail-card{background:var(--bg-content);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow-sm);}
+.detail-card h4{font-size:12px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.detail-card h4 span{font-size:14px;}
+.dtl-row{display:flex;padding:4px 0;border-bottom:1px solid var(--border-light);font-size:12px;line-height:1.6;}
+.dtl-row:last-child{border-bottom:none;}
+.dtl-label{color:var(--text-muted);min-width:120px;flex-shrink:0;font-size:11px;}
+.dtl-value{color:var(--text-primary);font-weight:500;flex:1;}
+.dtl-value.mono{font-family:var(--font-mono);font-size:11px;}
+.dtl-value i{font-style:italic;}
+.dtl-badge{display:inline-block;background:var(--primary-light);color:var(--primary);font-family:var(--font-mono);font-size:11px;padding:1px 8px;border-radius:4px;font-weight:600;}
+@media(max-width:900px){.info-row{grid-template-columns:repeat(3,1fr);}.ext-links{grid-template-columns:1fr 1fr;}.details-grid{grid-template-columns:1fr;}.page-content{padding:16px;}}
+@media(max-width:600px){.global-sidebar{display:none;}.global-main{margin-left:0;}.info-row{grid-template-columns:repeat(2,1fr);}.ext-links{grid-template-columns:1fr;}.page-content{padding:12px;}.detail-hero-title{font-size:20px;}}
+</style>
+</head>
+<body>
+<div id="scroll-progress" style="position:fixed;top:0;left:0;height:2px;background:var(--primary);z-index:999;width:0%;transition:width .1s;"></div>
+<nav id="sidebar" class="global-sidebar">
+<div class="sidebar-header"><div class="sidebar-logo">🌊</div><h2 class="sidebar-title">Deep-Sea DB</h2></div>
+<ul class="sidebar-nav">
+<li><a href="../index.html"><span>🏠</span><span class="nav-label"><span class="nav-en">Home</span><span class="nav-zh">首页</span></span></a></li>
+<li><a href="browse-compounds.html"><span>🧪</span><span class="nav-label"><span class="nav-en">Compounds</span><span class="nav-zh">化合物</span></span></a></li>
+<li class="active"><a href="browse-strains.html"><span>🧫</span><span class="nav-label"><span class="nav-en">Strains</span><span class="nav-zh">菌种</span></span></a></li>
+<li><a href="browse-targets.html"><span>🎯</span><span class="nav-label"><span class="nav-en">Targets</span><span class="nav-zh">靶标</span></span></a></li>
+<li><a href="browse-phenotypes.html"><span>📊</span><span class="nav-label"><span class="nav-en">Phenotypes</span><span class="nav-zh">表型</span></span></a></li>
+<li><a href="browse-chemotypes.html"><span>🧪</span><span class="nav-label"><span class="nav-en">Chemotypes</span><span class="nav-zh">化学分类</span></span></a></li>
+<li><a href="browse-references.html"><span>📚</span><span class="nav-label"><span class="nav-en">References</span><span class="nav-zh">参考文献</span></span></a></li>
+</ul>
+<div class="sidebar-footer"><button id="theme-toggle" class="theme-btn">🌙</button><span class="sidebar-ver">v2.0</span></div>
+</nav>
+<div class="global-main">
+<header class="global-topbar"><button id="nav-toggle" class="nav-toggle-btn">☰</button>
+<div class="search-container" style="flex:1;max-width:360px;position:relative;">
+<input type="text" id="global-search" placeholder="Search compounds…" style="width:100%;padding:7px 14px;border:1px solid var(--border);border-radius:20px;font-size:12px;background:var(--bg-page);color:var(--text-primary);outline:none;font-family:inherit;">
+</div></header>
+<main class="page-content" id="strainDetail"><div class="loading-state">Loading strain data…</div></main>
+</div>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/data/strains_detail.js"></script>
+<script>
+(function(){'use strict';
+var CT_COLORS={Polyketide:'#1565c0',Alkaloid:'#2e7d32',Terpenoid:'#d4532a',Peptide:'#6a1b9a',Phenylpropanoid:'#f9a825','Polyketide-Peptide':'#00695c','Alkaloid-Peptide':'#4a148c'};
+function ctColor(ct){return CT_COLORS[ct]||'#78909c';}
+function depColor(d){if(!d)return'#78909c';var l=d.toLowerCase();return l.indexOf('hadal')!==-1?'#3b1f7a':l.indexOf('deep')!==-1?'#071a5e':l.indexOf('slope')!==-1?'#0d47a1':'#1565c0';}
+function esc(t){if(!t)return'';var d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function imgUrl(cid,s){s=s||'l';return cid?'https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid='+cid+'&t='+s:'';}
+function shortDep(d){if(!d)return'';return d.split('(')[0].trim();}
+function depthRange(d){var m=d.match(/\d[\d –-]+m/);return m?m[0]:'';}
+function capFirst(s){return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+var GB_LOOKUP = {
+  'Acanella arbuscula':{acc:'OZ240499',seqLen:627,sciName:'Acanella arbuscula',definition:'Acanella arbuscula mitochondrial partial COI gene for cytochrome',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Parrondo Lombardia,M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:44213},
+  'Actinoalloteichus sp. SHA6':{acc:'HQ439906',seqLen:1354,sciName:'Actinoalloteichus sp. SHA6',definition:'Actinoalloteichus sp. SHA6 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'marine soil',culture:'SHA6',coords:'',altitude:'',authors:'Hu,J., Pan,H., Wang,S. and Wang,X.',paperTitle:'The novel antifungal substances produced by Actinoalloteichus sp.',institution:'',submitted:'',taxId:930796},
+  'Actinomyces nPS12745Streptomyces sp. SCSIO 03032':{acc:'NZ_CP021121',seqLen:6287975,sciName:'Streptomyces marincola',definition:'Streptomyces marincola strain SCSIO 03032 chromosome, complete',molType:'genomic DNA',isolation:'sediment',culture:'SCSIO 03032',coords:'',altitude:'',authors:'Ma,L., Zhu,Y., Zhang,W., Zhang,G., Tian,X., Zhang,S. and Zhang,C.',paperTitle:'Complete genome sequence of Streptomyces sp. SCSIO 03032 revealed',institution:'',submitted:'',taxId:2878388},
+  'Alteromonas haloplanktis SB-1123':{acc:'PZ413894',seqLen:1430,sciName:'Pseudoalteromonas haloplanktis',definition:'Pseudoalteromonas haloplanktis strain LHXWE21 16S ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'LHXWE21',coords:'',altitude:'',authors:'Liu,H.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:228},
+  'Aplysina sp.':{acc:'PV035866',seqLen:782,sciName:'Aplysina sp.',definition:'Aplysina sp. isolate T3-09B small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Nunez-Pons,L., Labalme,C., Calcinai,B., Delvenne,C. and Mazzella,V.',paperTitle:'Martinica Turtle Sponge Diet',institution:'',submitted:'',taxId:3151534},
+  'Aspergillus californicus SCSIO 3':{acc:'MN969065',seqLen:980,sciName:'Aspergillus californicus',definition:'Aspergillus californicus strain DTO 061-D4 RNA polymerase II second',molType:'genomic DNA',isolation:'',culture:'DTO 061-D4',coords:'',altitude:'',authors:'Houbraken,J., Kocsube,S., Visagie,C.M., Yilmaz,N., Wang,X.-C.,',paperTitle:'Classification of Aspergillus, Penicillium, Talaromyces and related',institution:'',submitted:'',taxId:1810905},
+  'Aspergillus carneus HQ889708Penicillium solitum MCCC 3A00215':{acc:'MH858684',seqLen:1148,sciName:'Aspergillus carneus',definition:'Aspergillus carneus strain CBS 494.65 internal transcribed spacer',molType:'genomic DNA',isolation:'',culture:'CBS 494.65',coords:'',altitude:'',authors:'Vu,D., Groenewald,M., de Vries,M., Gehrmann,T., Stielow,B.,',paperTitle:'Large-scale generation and analysis of filamentous fungal DNA',institution:'',submitted:'',taxId:41282},
+  'Aspergillus fischeri FS452':{acc:'LC760958',seqLen:519,sciName:'Aspergillus tubingensis',definition:'Aspergillus tubingensis FS452 CaM gene for calmodulin, partial',molType:'genomic DNA',isolation:'',culture:'FS452',coords:'',altitude:'',authors:'Hagiuda,R. and Hirose,D.',paperTitle:'Species diversity of xerophilic Aspergillus and Penicillium in',institution:'',submitted:'',taxId:5068},
+  'Aspergillus fumigatus':{acc:'PZ502420',seqLen:523,sciName:'Aspergillus fumigatus',definition:'Aspergillus fumigatus isolate VK233 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Thanneru,V. and Thayanidhi,P.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:746128},
+  'Aspergillus fumigatus SCSIO 41012':{acc:'PZ502420',seqLen:523,sciName:'Aspergillus fumigatus',definition:'Aspergillus fumigatus isolate VK233 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Thanneru,V. and Thayanidhi,P.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:746128},
+  'Aspergillus insuetus SD-512':{acc:'PZ111821',seqLen:573,sciName:'Aspergillus insuetus',definition:'Aspergillus insuetus isolate STG-143W small subunit ribosomal RNA',molType:'genomic DNA',isolation:'Tempera surface of the icon                      \'\'Resurrection - Descent into Hell\'\', 16th century, from                      the storage fund of the State Tetyakovsky Gallery',culture:'',coords:'55.74 N 37.61 E',altitude:'',authors:'Zhgun,A.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:469274},
+  'Aspergillus sp.':{acc:'PZ501920',seqLen:1165,sciName:'Aspergillus sp.',definition:'Aspergillus sp. strain M912 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'M912',coords:'',altitude:'',authors:'Phi,D.T., Doan,H.T.M., Nguyen,L.T.T., Pham,C.V., Tran,H.V. and',paperTitle:'A potential fungal strain isolated from soft coral specimens',institution:'',submitted:'',taxId:5065},
+  'Aspergillus sp. SCSIO 41029':{acc:'PZ501920',seqLen:1165,sciName:'Aspergillus sp.',definition:'Aspergillus sp. strain M912 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'M912',coords:'',altitude:'',authors:'Phi,D.T., Doan,H.T.M., Nguyen,L.T.T., Pham,C.V., Tran,H.V. and',paperTitle:'A potential fungal strain isolated from soft coral specimens',institution:'',submitted:'',taxId:5065},
+  'Aspergillus sp. SCSIO Ind09F01':{acc:'KP681643',seqLen:528,sciName:'Aspergillus sp. SCSIO Ind09F01',definition:'Aspergillus sp. SCSIO Ind09F01 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'ocean sediment at a depth of 4530 m',culture:'SCSIO Ind09F01',coords:'',altitude:'',authors:'Tian,Y., Qin,X., Lin,X., Kaliyaperumal,K., Zhou,X., Liu,J., Ju,Z.,',paperTitle:'Sydoxanthone C and acremolin B produced by deep-sea-derived fungus',institution:'',submitted:'',taxId:1654592},
+  'Aspergillus sydowii SYX6Penicillium chrysogenum MCCC 3A00292Penicillium sp. SCSIO 06871':{acc:'PZ484242',seqLen:523,sciName:'Aspergillus sydowii',definition:'Aspergillus sydowii isolate H1006 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Bhunjun,C.S., Manawasinghe,I.S., Kandawatte,T.C., Tian,Q.,',paperTitle:'Taxonomy and Phylogeny of Eurotiomycetes: Insights into',institution:'',submitted:'',taxId:75750},
+  'Aspergillus ustus':{acc:'QQ494655',seqLen:1632,sciName:'Aspergillus ustus',definition:'JP 2024164174-A/73: METHOD FOR PRODUCING DRIMANYL ACETATE',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'.',paperTitle:'METHOD FOR PRODUCING DRIMANYL ACETATE COMPOUNDS',institution:'',submitted:'',taxId:40382},
+  'Aspergillus versicolor':{acc:'PZ484243',seqLen:524,sciName:'Aspergillus versicolor',definition:'Aspergillus versicolor isolate H1005 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Bhunjun,C.S., Manawasinghe,I.S., Kandawatte,T.C., Tian,Q.,',paperTitle:'Taxonomy and Phylogeny of Eurotiomycetes: Insights into',institution:'',submitted:'',taxId:46472},
+  'Aspergillus versicolor CXCTD-06-6a':{acc:'PZ484243',seqLen:524,sciName:'Aspergillus versicolor',definition:'Aspergillus versicolor isolate H1005 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Bhunjun,C.S., Manawasinghe,I.S., Kandawatte,T.C., Tian,Q.,',paperTitle:'Taxonomy and Phylogeny of Eurotiomycetes: Insights into',institution:'',submitted:'',taxId:46472},
+  'Chaetomium globosum':{acc:'PZ502405',seqLen:569,sciName:'Chaetomium globosum',definition:'Chaetomium globosum isolate TFE15 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:38033},
+  'Chaetomium globosum HDN151398':{acc:'MH828376',seqLen:543,sciName:'Chaetomium globosum',definition:'Chaetomium globosum strain HDN151398 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'HDN151398',coords:'',altitude:'-408 m',authors:'Sun,C., Che,Q., Zhu,T., Gu,Q. and Li,D.',paperTitle:'Cytotoxic azaphilone alkaloids from Chaetomium globosum HDN151398',institution:'',submitted:'',taxId:38033},
+  'Chaetomium globosum MP4-S01-7':{acc:'MN099445',seqLen:500,sciName:'Chaetomium globosum',definition:'Chaetomium globosum isolate MP4-S01-7 internal transcribed spacer',molType:'genomic DNA',isolation:'seawater',culture:'',coords:'',altitude:'',authors:'Wang,W.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:38033},
+  'Chaetomium globosum OUPS-T106B-6':{acc:'PZ502405',seqLen:569,sciName:'Chaetomium globosum',definition:'Chaetomium globosum isolate TFE15 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:38033},
+  'Chaetomium globosum SD-347':{acc:'MN809366',seqLen:578,sciName:'Chaetomium globosum',definition:'Chaetomium globosum strain SD-347 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'SD-347',coords:'',altitude:'',authors:'Li,X.-D.',paperTitle:'Sesterchaetin A-B: Sesterterpenoids with Rarely Occurring',institution:'',submitted:'',taxId:38033},
+  'Chaetomium seminudum':{acc:'MH864523',seqLen:569,sciName:'Humicola seminuda',definition:'Humicola seminuda strain CBS 127324 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'CBS 127324',coords:'',altitude:'',authors:'Vu,D., Groenewald,M., de Vries,M., Gehrmann,T., Stielow,B.,',paperTitle:'Large-scale generation and analysis of filamentous fungal DNA',institution:'',submitted:'',taxId:2074842},
+  'Chaetomium sp. NA-S01-R1':{acc:'MG786198',seqLen:568,sciName:'Chaetomium sp.',definition:'Chaetomium sp. isolate NA-S01-R1 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'seawater',culture:'',coords:'',altitude:'',authors:'Wang,W., Liao,Y., Chen,R., Hou,Y., Ke,W., Zhang,B., Gao,M.,',paperTitle:'Chlorinated Azaphilone Pigments with Antimicrobial and Cytotoxic',institution:'',submitted:'',taxId:1769349},
+  'Cladosporium halotolerans FS702':{acc:'OP250122',seqLen:456,sciName:'Cladosporium halotolerans',definition:'Cladosporium halotolerans isolate FS702 internal transcribed spacer',molType:'genomic DNA',isolation:'South China Sea sediment',culture:'',coords:'20.600000 N 118.300000 E',altitude:'-2372 m',authors:'Li,S.N. and Zhang,W.M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1052096},
+  'Dactylospongia':{acc:'PZ247562',seqLen:423,sciName:'Dactylospongia elegans',definition:'Dactylospongia elegans voucher KB_8 large subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Hayuningrat,S.J., Park,J., Setiawan,E., Prihantoro,A.W. and',paperTitle:'Species diversity and habitat distribution of sponges (Porifera) in',institution:'',submitted:'',taxId:1162779},
+  'Delitschia sp. FL1581':{acc:'KM679364',seqLen:755,sciName:'Delitschia sp. FL1581',definition:'Delitschia sp. FL1581 5.8S ribosomal RNA gene, partial sequence;',molType:'genomic DNA',isolation:'surface-sterilized leaf litter',culture:'',coords:'',altitude:'',authors:'Luo,J.G., Wang,X.B., Xu,Y.M., U\'Ren,J.M., Arnold,A.E., Kong,L.Y.',paperTitle:'Delitschiapyrone A, a Pyrone-Naphthalenone Adduct Bearing a New',institution:'',submitted:'',taxId:1570846},
+  'Derived Fungus Aspergillus fumigatus SD-406':{acc:'OL662987',seqLen:546,sciName:'Aspergillus fumigatus',definition:'Aspergillus fumigatus strain SD-406 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'SD-406',coords:'',altitude:'',authors:'Yan,L.-h.',paperTitle:'Six New Antimicrobial Metabolites from the Deep-sea Sediment',institution:'',submitted:'',taxId:746128},
+  'Dermacoccus abyssi MT1.1/MT1.2':{acc:'PZ404105',seqLen:1115,sciName:'Dermacoccus abyssi',definition:'Dermacoccus abyssi strain RWF1-1.2_I 16S ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'RWF1-1.2_I',coords:'',altitude:'',authors:'Maric,I., Sokic,M., Rosic,I. and Beric,T.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:322596},
+  'Dermacoccus abyssi MT1.1T':{acc:'PZ404105',seqLen:1115,sciName:'Dermacoccus abyssi',definition:'Dermacoccus abyssi strain RWF1-1.2_I 16S ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'RWF1-1.2_I',coords:'',altitude:'',authors:'Maric,I., Sokic,M., Rosic,I. and Beric,T.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:322596},
+  'Discodermia dissoluta':{acc:'LR655979',seqLen:761,sciName:'Discodermia dissoluta',definition:'Discodermia dissoluta partial 28S rRNA gene, specimen voucher HBOI',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Erpenbeck,D.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:76345},
+  'Discodermia sp.':{acc:'OR761638',seqLen:734,sciName:'Discodermia sp.',definition:'Discodermia sp. voucher HBOI 13-XI-98-3-010 large subunit ribosomal',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Carvalho,F.C., Schuster,A., Pomponi,S., Rapp,H.T., Malaquias,A. and',paperTitle:'Diversity patterns and biogeographic affinities of North Atlantic',institution:'',submitted:'',taxId:73796},
+  'Dragmacidon':{acc:'OM256553',seqLen:825,sciName:'Dragmacidon mexicanum',definition:'Dragmacidon mexicanum voucher TLT630 large subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Turner,T.L. and Pankey,M.S.',paperTitle:'The order Axinellida (Porifera: Demospongiae) in California',institution:'',submitted:'',taxId:361193},
+  'Emericella sp. SCSIO 05240':{acc:'KJ614489',seqLen:520,sciName:'Aspergillus sp. SCSIO 05240',definition:'Emericella sp. SCSIO 05240 internal transcribed spacer 1, partial',molType:'genomic DNA',isolation:'',culture:'SCSIO 05240',coords:'',altitude:'',authors:'Fredimoses,M., Zhou,X., Lin,X., Tian,X., Ai,W., Wang,J., Liao,S.,',paperTitle:'New Prenylxanthones from the Deep-Sea Derived Fungus Emericella sp.',institution:'',submitted:'',taxId:1505926},
+  'Engyodontium album Ea588':{acc:'PZ407642',seqLen:533,sciName:'Parengyodontium album',definition:'Parengyodontium album strain C009 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'C009',coords:'',altitude:'',authors:'Ugo,U.A., Odimegwu,D.C. and Onuigbo,E.B.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:37998},
+  'Entotheonella factor':{acc:'CAZZSR000000000.1',seqLen:149,sciName:'Candidatus Entotheonella factor',definition:'MAG: Candidatus Entotheonella factor isolate Candidatus',molType:'genomic DNA',isolation:'sponge tissue',culture:'',coords:'',altitude:'',authors:'Dell,M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1429438},
+  'Epicoccum nigrum':{acc:'PZ476674',seqLen:410,sciName:'Epicoccum nigrum',definition:'Epicoccum nigrum isolate G1 internal transcribed spacer 1, partial',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Zamani,S.M. and Sepasi,N.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:105696},
+  'Epicoccum nigrum SD-388':{acc:'MN089646',seqLen:549,sciName:'Epicoccum nigrum',definition:'Epicoccum nigrum strain SD388 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'deep sea-sediment from Mariana Trench',culture:'SD388',coords:'',altitude:'',authors:'Chi,L. and Wang,B.',paperTitle:'Thiodiketopiperazine Alkaloids Epicoccins U-W and Diphenylalazines',institution:'',submitted:'',taxId:105696},
+  'Eutypella sp. MCCC 3A00281':{acc:'KT366012',seqLen:576,sciName:'Peroneutypa scoparia',definition:'Peroneutypa scoparia strain MCCC 3A00281 18S ribosomal RNA gene,',molType:'genomic DNA',isolation:'sediment from South Atlantic Ocean',culture:'MCCC 3A00281',coords:'6.43 S 27.90 W',altitude:'-5610 m',authors:'Niu,S.W. and Shao,Z.Z.',paperTitle:'Secondary metabolites of marine fungus Eutypella scoparia',institution:'',submitted:'',taxId:1736665},
+  'Fusarium sp. ZEN-48':{acc:'PZ498890',seqLen:558,sciName:'Fusarium sp.',definition:'Fusarium sp. isolate XJHM-F1 small subunit ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Li,Y.',paperTitle:'First Report of Fusarium proliferatum Causing Postharvest Fruit Rot',institution:'',submitted:'',taxId:29916},
+  'Gellius':{acc:'PZ268877',seqLen:686,sciName:'Haliclona amboinensis',definition:'Haliclona amboinensis voucher AB3 cytochrome c oxidase subunit I',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Hayuningrat,S.J., Park,J., Setiawan,E., Prihantoro,A.W. and',paperTitle:'Species diversity and habitat distribution of sponges (Porifera) in',institution:'',submitted:'',taxId:1385777},
+  'Jorunna funebris':{acc:'KP871693',seqLen:399,sciName:'Jorunna funebris',definition:'Jorunna funebris voucher CPIC 00633 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Mahguib,J. and Valdes,A.A.',paperTitle:'Molecular investigation of the phylogenetic position of the polar',institution:'',submitted:'',taxId:1707719},
+  'Leptosphaerulina chartarum MCCC 3A00935':{acc:'PV533935',seqLen:894,sciName:'Pseudopithomyces chartarum',definition:'UNVERIFIED: Pseudopithomyces chartarum strain URM9232 translation',molType:'genomic DNA',isolation:'',culture:'URM9232',coords:'',altitude:'',authors:'Sa,C.E.V.A. and Machado,A.R.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1892770},
+  'Luffariella variabilis':{acc:'PX508294',seqLen:553,sciName:'Luffariella variabilis',definition:'Luffariella variabilis voucher HMPQ07-Tay Hon Dua cytochrome c',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Tran,M.L., Le,Q.T., Nguyen,C.M., Pham,T.H., Nguyen,T.V.,',paperTitle:'DNA barcoding of sponge species in Vietnam',institution:'',submitted:'',taxId:1162756},
+  'Mariana Trench-associated actinomycete Streptomyces sp. SY2255':{acc:'OR462162',seqLen:1356,sciName:'Streptomyces sp.',definition:'Streptomyces sp. strain SY2255 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'SY2255',coords:'',altitude:'',authors:'Liu,S.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1931},
+  'Marinactinospora thermotolerans SCSIO 00652':{acc:'KY938841',seqLen:7887,sciName:'Marinactinospora thermotolerans',definition:'Marinactinospora thermotolerans strain SCSIO 00652 mathermycin gene',molType:'genomic DNA',isolation:'deep sea marine sedmient of South China                      Sea',culture:'SCSIO 00652',coords:'',altitude:'',authors:'Chen,E., Chen,Q., Chen,S., Xu,B., Ju,J. and Wang,H.',paperTitle:'Discovery and biosynthesis of mathermycin from marine-derived',institution:'',submitted:'',taxId:531310},
+  'Micromonospora sp. 28ISP2-46T':{acc:'PZ467964',seqLen:414,sciName:'Micromonospora sp.',definition:'Micromonospora sp. strain PS28 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'PS28',coords:'',altitude:'',authors:'Cheptsov,V.S.',paperTitle:'Culturable bacteria from arid soil desiccated for two years under',institution:'',submitted:'',taxId:1876},
+  'Micromonospora sp. DPJ12 / RV115':{acc:'PZ467964',seqLen:414,sciName:'Micromonospora sp.',definition:'Micromonospora sp. strain PS28 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'PS28',coords:'',altitude:'',authors:'Cheptsov,V.S.',paperTitle:'Culturable bacteria from arid soil desiccated for two years under',institution:'',submitted:'',taxId:1876},
+  'Neocucurbitaria unguis-hominis FS685':{acc:'OL774511',seqLen:480,sciName:'Neocucurbitaria unguis-hominis',definition:'Neocucurbitaria unguis-hominis strain FS685 internal transcribed',molType:'genomic DNA',isolation:'',culture:'FS685',coords:'18.01 N 114.01 E',altitude:'',authors:'Li,S.N. and Zhang,W.M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:555973},
+  'Paraconiothyrium hawaiiense FS482':{acc:'MN788608',seqLen:542,sciName:'Paracamarosporium hawaiiense',definition:'Paracamarosporium hawaiiense isolate FS482 internal transcribed',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Li,S.N. and Zhang,W.M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:502129},
+  'Penicillium chrysogenum MCCC 3A00292':{acc:'PZ502395',seqLen:471,sciName:'Penicillium chrysogenum',definition:'Penicillium chrysogenum isolate TFE05 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:5076},
+  'Penicillium chrysogenum SCSIO 41001':{acc:'PZ502395',seqLen:471,sciName:'Penicillium chrysogenum',definition:'Penicillium chrysogenum isolate TFE05 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:5076},
+  'Penicillium chrysogenum SCSIO41001':{acc:'PZ502395',seqLen:471,sciName:'Penicillium chrysogenum',definition:'Penicillium chrysogenum isolate TFE05 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:5076},
+  'Penicillium expansum / Penicillium spp.':{acc:'PZ502418',seqLen:476,sciName:'Penicillium expansum',definition:'Penicillium expansum isolate TFE28 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Jeevanantham,S., John Christopher,D. and Kannan,C.',paperTitle:'Tfe',institution:'',submitted:'',taxId:27334},
+  'Penicillium granulatum MCCC 3A00475':{acc:'MH865752',seqLen:557,sciName:'Penicillium granulatum',definition:'Penicillium granulatum strain CBS 130206 small subunit ribosomal',molType:'genomic DNA',isolation:'',culture:'CBS 130206',coords:'',altitude:'',authors:'Vu,D., Groenewald,M., de Vries,M., Gehrmann,T., Stielow,B.,',paperTitle:'Large-scale generation and analysis of filamentous fungal DNA',institution:'',submitted:'',taxId:395885},
+  'Penicillium griseofulvum MCCC 3A00181':{acc:'PX928210',seqLen:553,sciName:'Penicillium griseofulvum',definition:'Penicillium griseofulvum strain BSF2 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'BSF2',coords:'',altitude:'',authors:'Sharma,S. and Dubey,A.',paperTitle:'Isolation and identification of Fungal species from Dendrocalamus',institution:'',submitted:'',taxId:5078},
+  'Penicillium griseofulvum MCCC 3A00225':{acc:'PX928210',seqLen:553,sciName:'Penicillium griseofulvum',definition:'Penicillium griseofulvum strain BSF2 small subunit ribosomal RNA',molType:'genomic DNA',isolation:'',culture:'BSF2',coords:'',altitude:'',authors:'Sharma,S. and Dubey,A.',paperTitle:'Isolation and identification of Fungal species from Dendrocalamus',institution:'',submitted:'',taxId:5078},
+  'Penicillium paxilli Bainier':{acc:'PZ484264',seqLen:547,sciName:'Penicillium paxilli',definition:'Penicillium paxilli isolate MFLUCC 25-0383 internal transcribed',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Bhunjun,C.S., Manawasinghe,I.S., Kandawatte,T.C., Tian,Q.,',paperTitle:'Taxonomy and Phylogeny of Eurotiomycetes: Insights into',institution:'',submitted:'',taxId:70109},
+  'Penicillium sajarovii KMM 4718Aspergillus protuberus KMM 4747':{acc:'PZ234830',seqLen:502,sciName:'Penicillium sajarovii',definition:'Penicillium sajarovii isolate EIR80 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Kumari,M. and Nonzom,S.',paperTitle:'Endophytic to root of Ephedra intermedia',institution:'',submitted:'',taxId:1167548},
+  'Penicillium solitum MCCC 3A00215':{acc:'PV469318',seqLen:430,sciName:'Penicillium solitum',definition:'Penicillium solitum isolate AQ15 beta-tubulin (benA) gene, partial',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Hernandez-Garcia,L., Molinos,X. and Martinez-Culebras,P.V.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:60172},
+  'Penicillium sp.':{acc:'PZ489331',seqLen:339,sciName:'Penicillium sp.',definition:'Penicillium sp. strain URMICRO 12266 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'soil',culture:'URMICRO 12266',coords:'',altitude:'',authors:'Figueiredo,C., de Paula,M., Guimaraes,H. and Pylro,V.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:5081},
+  'Penicillium sp. 20135；Aspergillus terreus RA2905':{acc:'MK611650',seqLen:613,sciName:'Aspergillus terreus var. subfloccosus',definition:'Aspergillus terreus var. subfloccosus isolate RA2905 small subunit',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Wang,c.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:657442},
+  'Penicillium sp. F23-2':{acc:'EU770318',seqLen:611,sciName:'Penicillium sp. F23-2',definition:'Penicillium sp. F23-2 internal transcribed spacer 1, partial',molType:'genomic DNA',isolation:'deep ocean sediment',culture:'F23-2',coords:'',altitude:'',authors:'Du,L., Li,D., Zhu,T., Cai,S., Wang,F., Xiao,X. and Gu,Q.',paperTitle:'New alkaloids and diterpenes from a deep ocean sediment derived',institution:'',submitted:'',taxId:543960},
+  'Penicillium sp. JMF034':{acc:'PZ489331',seqLen:339,sciName:'Penicillium sp.',definition:'Penicillium sp. strain URMICRO 12266 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'soil',culture:'URMICRO 12266',coords:'',altitude:'',authors:'Figueiredo,C., de Paula,M., Guimaraes,H. and Pylro,V.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:5081},
+  'Penicillium sp. SCSIO06868':{acc:'PZ489331',seqLen:339,sciName:'Penicillium sp.',definition:'Penicillium sp. strain URMICRO 12266 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'soil',culture:'URMICRO 12266',coords:'',altitude:'',authors:'Figueiredo,C., de Paula,M., Guimaraes,H. and Pylro,V.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:5081},
+  'Penicillium thomii YPGA3':{acc:'QP880262',seqLen:1455,sciName:'Penicillium thomii',definition:'JP 2025518489-A/112: COMPOSITIONS AND METHODS FOR PREVENTING,',molType:'unassigned DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'.',paperTitle:'COMPOSITIONS AND METHODS FOR PREVENTING, TREATING, SUPRESSING',institution:'',submitted:'',taxId:36647},
+  'Penicillium verruculosumAspergillus fumigatus SD-406':{acc:'OL662987',seqLen:546,sciName:'Aspergillus fumigatus',definition:'Aspergillus fumigatus strain SD-406 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'SD-406',coords:'',altitude:'',authors:'Yan,L.-h.',paperTitle:'Six New Antimicrobial Metabolites from the Deep-sea Sediment',institution:'',submitted:'',taxId:746128},
+  'Pestalotiopsis sp. SCSIO 41312':{acc:'PZ502249',seqLen:450,sciName:'Pestalotiopsis sp.',definition:'Pestalotiopsis sp. isolate RBK 203 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Khadka,R.B.B.',paperTitle:'First Report of Pestalotiopsis spp. Causing leaf spot on strawberry',institution:'',submitted:'',taxId:36460},
+  'Phomopsis tersa FS441':{acc:'MK592793',seqLen:556,sciName:'Diaporthe tersa',definition:'Diaporthe tersa strain FS441 internal transcribed spacer 1, partial',molType:'genomic DNA',isolation:'',culture:'FS441',coords:'',altitude:'',authors:'Z,W.M. and L,S.N.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1076735},
+  'Poecillastra':{acc:'OR659637',seqLen:658,sciName:'Poecillastra wondoensis',definition:'Poecillastra wondoensis voucher PC866 cytochrome c oxidase subunit',molType:'genomic DNA',isolation:'',culture:'',coords:'33.986186 N 126.932183 E',altitude:'',authors:'Cardenas,P., Gamaje,J., Zumberge,A., El-Seedi,H., Diaz,J.A.,',paperTitle:'Morphology, molecular markers and chemistry support the transfer of',institution:'',submitted:'',taxId:3080380},
+  'Pseudonocardia antitumoralis SCSIO 01299':{acc:'JN204514',seqLen:1435,sciName:'Pseudonocardia antitumoralis',definition:'Pseudonocardia antitumoralis strain SCSIO 01299 16S ribosomal RNA',molType:'genomic DNA',isolation:'South China Sea, 3258 m depth',culture:'SCSIO 01299',coords:'19.01 N 120.02 E',altitude:'',authors:'Tian,X.P., Long,L.J., Li,S.M., Zhang,J., Xu,Y., He,J., Li,J.,',paperTitle:'Pseudonocardia antitumoralis sp. nov., a deoxynyboquinone-producing',institution:'',submitted:'',taxId:1070982},
+  'Pseudonocardia sp. SCSIO 01299':{acc:'JN204514',seqLen:1435,sciName:'Pseudonocardia antitumoralis',definition:'Pseudonocardia antitumoralis strain SCSIO 01299 16S ribosomal RNA',molType:'genomic DNA',isolation:'South China Sea, 3258 m depth',culture:'SCSIO 01299',coords:'19.01 N 120.02 E',altitude:'',authors:'Tian,X.P., Long,L.J., Li,S.M., Zhang,J., Xu,Y., He,J., Li,J.,',paperTitle:'Pseudonocardia antitumoralis sp. nov., a deoxynyboquinone-producing',institution:'',submitted:'',taxId:1070982},
+  'Salinispora tropica CNB-392':{acc:'JX840769',seqLen:720,sciName:'Salinispora tropica',definition:'Salinispora tropica strain CNB-392 DNA-directed RNA polymerase',molType:'genomic DNA',isolation:'marine sediment',culture:'CNB-392',coords:'',altitude:'',authors:'Freel,K.C. and Millan-Aguinaga,N.',paperTitle:'Multilocus analysis of the genus Salinispora',institution:'',submitted:'',taxId:168695},
+  'Spiromastix sp. MCCC 3A00308':{acc:'PX506011',seqLen:592,sciName:'Spiromastix sp.',definition:'Spiromastix sp. isolate CMB-NB162 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Han,J.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:2044277},
+  'Spongosorites':{acc:'OM415585',seqLen:625,sciName:'Spongosorites calcicola',definition:'Spongosorites calcicola voucher LAR-180930-7479,7480 28S ribosomal',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Pereira,R., Cardenas,P. and Thollesson,M.',paperTitle:'Swedish marine demosponge (Porifera: Demospongiae) fauna 80 years',institution:'',submitted:'',taxId:3023830},
+  'Stachybotrys chartarum FS705':{acc:'OQ921429',seqLen:516,sciName:'Stachybotrys chartarum',definition:'Stachybotrys chartarum strain FS705 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'FS705',coords:'16.00 N 115.998 E',altitude:'',authors:'Li,S.N. and Zhang,W.M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:74722},
+  'Streptomyces':{acc:'NZ_JBYWKM010000000',seqLen:8002867,sciName:'Streptomyces sp. CPU-W6',definition:'Streptomyces sp. CPU-W6, whole genome shotgun sequencing project. ACCESSION   NZ_JBYWKM000000000 VERSION     NZ_JBYWKM000000000.1 DBLINK      BioProject: PRJNA224116',molType:'genomic DNA',isolation:'soil',culture:'CPU-W6',coords:'',altitude:'',authors:'Wu,X.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:3706726},
+  'Streptomyces atratus SCSIO ZH16treptomyces cyaneofuscatus M-169':{acc:'PY748591',seqLen:65,sciName:'Streptomyces atratus',definition:'Sequence 845 from patent US 12571058 B2. ACCESSION   PY748591 VERSION     PY748591.1 KEYWORDS    . SOURCE      Streptomyces atratus',molType:'other DNA',isolation:'',culture:'OK807',coords:'',altitude:'',authors:'Park,D.',paperTitle:'Biosensors for detecting and/or neutralizing bioavailable uranium',institution:'',submitted:'',taxId:1893},
+  'Streptomyces koyangensis SCSIO 5802':{acc:'NZ_CP049946',seqLen:140231,sciName:'Streptomyces koyangensis',definition:'Streptomyces koyangensis strain SCSIO 5802 plasmid unnamed,',molType:'genomic DNA',isolation:'Deep sea sediment',culture:'SCSIO 5802',coords:'',altitude:'',authors:'Ding,W.',paperTitle:'Genome mining and metabolic profiling illuminate the polycyclic',institution:'',submitted:'',taxId:188770},
+  'Streptomyces niveus SCSIO 3406':{acc:'NZ_CP018047',seqLen:7990492,sciName:'Streptomyces niveus',definition:'Streptomyces niveus strain SCSIO 3406 chromosome, complete genome. ACCESSION   NZ_CP018047 VERSION     NZ_CP018047.1 DBLINK      BioProject: PRJNA224116',molType:'genomic DNA',isolation:'deep sea sediment',culture:'SCSIO 3406',coords:'',altitude:'',authors:'Zhu,Q., Cheng,W., Song,Y., Li,Q. and Ju,J.',paperTitle:'Complete genome sequence of Streptomyces niveus SCSIO 3406',institution:'',submitted:'',taxId:193462},
+  'Streptomyces scopuliridis SCSIO ZJ46':{acc:'KJ784514',seqLen:1518,sciName:'Streptomyces scopuliridis',definition:'Streptomyces scopuliridis strain SCSIO ZJ46 16S ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'SCSIO ZJ46',coords:'',altitude:'',authors:'Song,Y., Huang,H., Liu,X., Chen,Y., Zhang,Y., Sun,A., Zhang,W.,',paperTitle:'Anti-pathogenic and anti-drug resistance cyclic hexapeptides from',institution:'',submitted:'',taxId:452529},
+  'Streptomyces sp. N11-34':{acc:'NZ_BNEK01000000',seqLen:10408210,sciName:'Streptomyces hygroscopicus subsp. sporocinereus',definition:'Streptomyces hygroscopicus subsp. sporocinereus strain N11-34,',molType:'genomic DNA',isolation:'Deep sea water',culture:'N11-34',coords:'',altitude:'',authors:'Komaki,H., Igarashi,Y. and Tamura,T.',paperTitle:'Taxonomic Positions of a Nyuzenamide-Producer and Its Closely',institution:'',submitted:'',taxId:3470008},
+  'Streptomyces sp. NTK 937':{acc:'NZ_JJOB01000001',seqLen:7003153,sciName:'Streptomyces sp. NTK 937',definition:'Streptomyces sp. NTK 937 contig00001, whole genome shotgun',molType:'genomic DNA',isolation:'deep-sea sediment',culture:'NTK 937',coords:'27.0442 N 18.2006 W',altitude:'',authors:'Olano,C., Cano-Prieto,C., Losada,A.A., Bull,A.T., Goodfellow,M.,',paperTitle:'Draft Genome Sequence of Marine Actinomycete Streptomyces sp.',institution:'',submitted:'',taxId:1487711},
+  'Streptomyces sp. SCSIO 01127':{acc:'JF794566',seqLen:1434,sciName:'Streptomyces sp. SCSIO 01127',definition:'Streptomyces sp. SCSIO 01127 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'South China Sea, 1350 meter depth',culture:'SCSIO 01127',coords:'8.93338 N 111.91155 E',altitude:'',authors:'Niu,S., Li,S., Chen,Y., Tian,X., Zhang,H., Zhang,G., Zhang,W.,',paperTitle:'Lobophorins E and F, new spirotetronate antibiotics from a South',institution:'',submitted:'',taxId:1035052},
+  'Streptomyces sp. SCSIO 03032':{acc:'NZ_CP021121',seqLen:6287975,sciName:'Streptomyces marincola',definition:'Streptomyces marincola strain SCSIO 03032 chromosome, complete',molType:'genomic DNA',isolation:'sediment',culture:'SCSIO 03032',coords:'',altitude:'',authors:'Ma,L., Zhu,Y., Zhang,W., Zhang,G., Tian,X., Zhang,S. and Zhang,C.',paperTitle:'Complete genome sequence of Streptomyces sp. SCSIO 03032 revealed',institution:'',submitted:'',taxId:2878388},
+  'Streptomyces sp. SCSIO 11878':{acc:'PZ502814',seqLen:1458,sciName:'Streptomyces sp.',definition:'Streptomyces sp. strain R-302 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'R-302',coords:'',altitude:'',authors:'Aguilar,G.M., Cuevas,M.Y.P., Demafelis,R.A.V., Diaz,A.M.R.,',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1931},
+  'Streptomyces sp. SY1414':{acc:'MT279471',seqLen:1378,sciName:'Streptomyces sp.',definition:'Streptomyces sp. strain SY1414 16S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'SY1414',coords:'',altitude:'',authors:'Zhang,D.',paperTitle:'The secondary metabolites from marine-derived Streptomyces sp.',institution:'',submitted:'',taxId:1931},
+  'Streptomyces sp. strain (NRRL 21611)Streptomyces scopuliridis SCSIO ZJ46':{acc:'KJ784514',seqLen:1518,sciName:'Streptomyces scopuliridis',definition:'Streptomyces scopuliridis strain SCSIO ZJ46 16S ribosomal RNA gene,',molType:'genomic DNA',isolation:'',culture:'SCSIO ZJ46',coords:'',altitude:'',authors:'Song,Y., Huang,H., Liu,X., Chen,Y., Zhang,Y., Sun,A., Zhang,W.,',paperTitle:'Anti-pathogenic and anti-drug resistance cyclic hexapeptides from',institution:'',submitted:'',taxId:452529},
+  'Talaromyces flavus':{acc:'PV820264',seqLen:521,sciName:'Talaromyces flavus',definition:'Talaromyces flavus isolate 5F-3-3-M1 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'0.04053 S 31.99372 E',altitude:'',authors:'Morales,C. and Quesada-Ocampo,L.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:5095},
+  'Talaromyces minioluteus CS-113':{acc:'MZ914411',seqLen:541,sciName:'Talaromyces minioluteus',definition:'Talaromyces minioluteus strain CS-113 internal transcribed spacer',molType:'genomic DNA',isolation:'',culture:'CS-113',coords:'',altitude:'',authors:'Yang,S.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:28574},
+  'Talaromyces sp. HDN1820200':{acc:'MW031818',seqLen:572,sciName:'Talaromyces sp.',definition:'Talaromyces sp. isolate HDN1820200 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Zhao,Y., Che,Q., Zhang,G., Zhu,T., Gu,Q. and Li,D.',paperTitle:'New nonadride derivatives from Antarctica-derived fungus',institution:'',submitted:'',taxId:1707706},
+  'Theonella sp.':{acc:'AJ005918',seqLen:582,sciName:'Theonella sp.',definition:'Theonella sp. (big barell) 28S rRNA gene. ACCESSION   AJ005918 VERSION     AJ005918.1 KEYWORDS    28S ribosomal RNA; 28S rRNA gene. SOURCE      Theonella sp.',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'McInerney,J.O., Adams,C.L. and Kelly-Borges,M.',paperTitle:'Phylogenetic resolution potential of 18S and 28S rRNA genes within',institution:'',submitted:'',taxId:73791},
+  'Trichobotrys effuse FS524':{acc:'MN545626',seqLen:555,sciName:'Trichobotrys effusa',definition:'Trichobotrys effusa strain FS524 internal transcribed spacer 1,',molType:'genomic DNA',isolation:'',culture:'FS524',coords:'',altitude:'',authors:'Li,S.N. and Zhang,W.M.',paperTitle:'Direct Submission',institution:'',submitted:'',taxId:1520157},
+  'Zyzzya fuliginosa':{acc:'KC869478',seqLen:2999,sciName:'Zyzzya fuliginosa',definition:'Zyzzya fuliginosa voucher NCI441 28S ribosomal RNA gene, partial',molType:'genomic DNA',isolation:'',culture:'',coords:'',altitude:'',authors:'Thacker,R.W., Hill,A.L., Hill,M.S., Redmond,N.E., Collins,A.G.,',paperTitle:'Nearly Complete 28S rRNA Gene Sequences Confirm New Hypotheses of',institution:'',submitted:'',taxId:1346156}
+};
+
+var container=document.getElementById('strainDetail');
+var params=new URLSearchParams(window.location.search);
+var orgName=params.get('org');
+if(!orgName){container.innerHTML='<div class="error-state">No strain specified. <a href="browse-strains.html" style="color:var(--primary)">Browse strains</a></div>';}
+else if(!window.STRAINS_DETAIL){container.innerHTML='<div class="error-state">Data not loaded. <a href="browse-strains.html" style="color:var(--primary)">Browse strains</a></div>';}
+else{
+var s=STRAINS_DETAIL.find(function(x){return x.o===orgName;});
+if(!s){container.innerHTML='<div class="error-state">Strain not found. <a href="browse-strains.html" style="color:var(--primary)">Browse strains</a></div>';}
+else{renderDetail(s);}
+}
+function renderDetail(s){
+document.title=s.o+' — Deep-Sea Compound Database';
+var t=s.t||{},tk=['kingdom','phylum','class','order','family','genus'];
+var fd=s.d&&s.d[0]||'',ls=s.l&&s.l.join('; ')||'Unknown';
+var h='<a href="browse-strains.html" class="back-link">← Back to Strains · 返回菌种列表</a>';
+var fc=s.cp&&s.cp[0],fi=fc?imgUrl(fc.i):'';
+h+='<div class="detail-hero" style="display:flex;flex-direction:row;gap:16px;align-items:center;">';
+if(fi){h+='<div style="width:80px;height:80px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--bg-card);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><img src="'+fi+'" alt="'+esc(fc.n)+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy"></div>';}
+h+='<div style="flex:1;min-width:0;">';
+h+='<h1 class="detail-hero-title"><i>'+esc(s.o)+'</i></h1>';
+h+='<div class="hero-badges" style="margin-top:6px;"><span class="hero-badge genus">'+esc(s.g)+'</span>';
+(s.d||[]).slice(0,3).forEach(function(d){var dc=depColor(d),r=depthRange(d);h+='<span class="hero-badge depth" style="background:'+dc+'">'+esc(shortDep(d))+(r?' ('+r+')':'')+'</span>';});
+if(s.d&&s.d.length>3){h+='<span class="hero-badge genus">+'+(s.d.length-3)+' more</span>';}
+h+='</div>';
+if(fc){h+='<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">🔬 Representative: <i>'+esc(fc.n)+'</i></div>';}
+h+='</div></div>';
+h+='<div class="info-row">';
+h+='<div class="info-card"><div class="info-card-icon">🧬</div><div class="info-card-label">Genus</div><div class="info-card-value">'+esc(s.g)+'</div></div>';
+h+='<div class="info-card"><div class="info-card-icon">🌍</div><div class="info-card-label">Location</div><div class="info-card-value" title="'+esc(ls)+'">'+(s.l&&s.l[0]?esc(s.l[0]):'Unknown')+'</div></div>';
+h+='<div class="info-card"><div class="info-card-icon">🏷️</div><div class="info-card-label">Source</div><div class="info-card-value">'+(s.s&&s.s[0]?esc(s.s[0]):'Unknown')+'</div></div>';
+h+='<div class="info-card"><div class="info-card-icon">🌊</div><div class="info-card-label">Depth</div><div class="info-card-value">'+esc(shortDep(fd))+'</div></div>';
+h+='<div class="info-card"><div class="info-card-icon">🧪</div><div class="info-card-label">Compounds</div><div class="info-card-value">'+(s.n||(s.cp?s.cp.length:0))+'</div></div>';
+h+='</div>';
+var ht=tk.some(function(k){return t[k];});
+if(ht){
+h+='<div class="taxonomy-bar">';
+tk.forEach(function(k,i){if(t[k]){if(i>0){h+='<span style="color:var(--border)">›</span>';}h+='<div class="tax-item"><span class="tax-rank">'+k+'</span><span class="tax-name">'+esc(t[k])+'</span></div>';}});
+h+='</div>';}
+var gb=GB_LOOKUP[s.o];
+h+='<div class="section"><div class="section-header"><h2>🔗 External Links · 外部链接</h2><div class="section-line"></div></div><div class="ext-links">';
+var tx=gb?gb.taxId:'';
+h+='<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?name='+encodeURIComponent(s.o)+'" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🔬</div><div class="ext-link-title">NCBI Taxonomy</div><div class="ext-link-desc">Taxonomic classification and lineage</div><div class="ext-link-id">'+(tx?'taxid:'+tx:esc(s.o).substring(0,24)+'…')+'</div></a>';
+if(gb){h+='<a href="https://www.ncbi.nlm.nih.gov/nuccore/'+gb.acc+'" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🫧</div><div class="ext-link-title">GenBank (rDNA ITS)</div><div class="ext-link-desc">'+gb.seqLen+' bp · '+gb.molType+' · '+gb.definition.substring(0,36)+'…</div><div class="ext-link-id">'+gb.acc+'</div></a>';}
+if(s.g){h+='<a href="https://www.mycobank.org/search?q='+encodeURIComponent(s.g)+'" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🧫</div><div class="ext-link-title">MycoBank</div><div class="ext-link-desc">Fungal nomenclatural database</div><div class="ext-link-id">genus:'+esc(s.g)+'</div></a>';}
+else{h+='<a href="https://www.gbif.org/search?q='+encodeURIComponent(s.o)+'" target="_blank" rel="noopener" class="ext-link"><div class="ext-link-icon">🌍</div><div class="ext-link-title">GBIF</div><div class="ext-link-desc">Global Biodiversity Information Facility</div><div class="ext-link-id">species search</div></a>';}
+h+='</div></div>';
+if(gb){
+h+='<div class="section"><div class="section-header"><h2>📊 Strain Details · 菌种详情</h2><div class="section-line"></div></div><div class="details-grid">';
+h+='<div class="detail-card"><h4><span>🛡️</span> Collection &amp; Isolation</h4>';
+h+='<div class="dtl-row"><span class="dtl-label">Scientific Name</span><span class="dtl-value"><i>'+esc(gb.sciName)+'</i> <a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id='+gb.taxId+'" target="_blank" rel="noopener" style="font-size:10px;color:var(--primary);text-decoration:none;">NCBI↗</a></span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Strain</span><span class="dtl-value">'+esc(gb.culture)+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Isolation Source</span><span class="dtl-value">'+capFirst(esc(gb.isolation))+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">GPS Coordinates</span><span class="dtl-value mono"><a href="https://www.google.com/maps/place/'+encodeURIComponent(gb.coords)+'" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;">'+esc(gb.coords)+' ↗</a></span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Depth (Altitude)</span><span class="dtl-value mono">'+esc(gb.altitude)+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Culture Collection</span><span class="dtl-value">MCCC <a href="https://www.ncbi.nlm.nih.gov/nuccore/'+gb.acc+'" target="_blank" rel="noopener" class="dtl-badge" style="text-decoration:none;">'+esc(gb.culture)+' ↗</a></span></div></div>';
+h+='<div class="detail-card"><h4><span>🫧</span> Molecular Data</h4>';
+h+='<div class="dtl-row"><span class="dtl-label">GenBank Accession</span><span class="dtl-value"><a href="https://www.ncbi.nlm.nih.gov/nuccore/'+gb.acc+'" target="_blank" rel="noopener" class="dtl-badge" style="text-decoration:none;">'+gb.acc+' ↗</a></span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Sequence Length</span><span class="dtl-value mono">'+gb.seqLen+' bp</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Molecule Type</span><span class="dtl-value">'+capFirst(esc(gb.molType))+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Description</span><span class="dtl-value" style="font-size:11px;">'+esc(gb.definition)+'</span></div></div>';
+var gq=encodeURIComponent(gb.paperTitle+' '+gb.authors);
+h+='<div class="detail-card"><h4><span>📖</span> Submission &amp; Reference</h4>';
+h+='<div class="dtl-row"><span class="dtl-label">Title</span><span class="dtl-value" style="font-size:11px;font-style:italic;">'+esc(gb.paperTitle)+' <a href="https://scholar.google.com/scholar?q='+gq+'" target="_blank" rel="noopener" style="font-size:10px;color:var(--primary);text-decoration:none;white-space:nowrap;">Scholar↗</a></span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Authors</span><span class="dtl-value">'+esc(gb.authors)+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Institution</span><span class="dtl-value" style="font-size:11px;">'+esc(gb.institution)+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Submitted</span><span class="dtl-value">'+esc(gb.submitted)+'</span></div>';
+h+='<div class="dtl-row"><span class="dtl-label">Sequencing</span><span class="dtl-value">Sanger dideoxy sequencing</span></div></div></div></div>';}
+if(s.c&&s.c.length>0){h+='<div class="section"><div class="section-header"><h2>🧪 Chemotypes · 化学类型</h2><div class="section-line"></div></div><div class="ctags">';s.c.forEach(function(ct){var cc=ctColor(ct);h+='<span class="ctag" style="background:'+cc+'18;color:'+cc+';border:1px solid '+cc+'30;">'+esc(ct)+'</span>';});h+='</div></div>';}
+var ca=(s.cp||[]).slice().sort(function(a,b){return a.n.localeCompare(b.n);}),cn=s.n||ca.length;
+var strainc_sf='name',strainc_sd=1;
+function strainc_sc(a,b){
+	var va,vb;
+	if(strainc_sf==='name'){va=a.n.toUpperCase();vb=b.n.toUpperCase();return strainc_sd*va.localeCompare(vb);}
+	if(strainc_sf==='formula'){va=(a.f||'').toUpperCase();vb=(b.f||'').toUpperCase();return strainc_sd*va.localeCompare(vb);}
+	if(strainc_sf==='mw'){va=parseFloat(a.m)||0;vb=parseFloat(b.m)||0;return strainc_sd*(va-vb);}
+	if(strainc_sf==='chemotype'){va=(a.y||'').toUpperCase();vb=(b.y||'').toUpperCase();return strainc_sd*va.localeCompare(vb);}
+	return 0;
+}
+function strainc_render(){
+	ca=(s.cp||[]).slice().sort(strainc_sc);
+	var grid=document.getElementById('strain-cpd-grid');
+	if(!grid)return;
+	grid.innerHTML='';
+	ca.forEach(function(c){grid.innerHTML+=renderCpdCard(c);});
+	document.querySelectorAll('.strain-sort-btn').forEach(function(b){b.classList.toggle('active',b.dataset.sort===strainc_sf);var a=b.querySelector('.ssa');if(a)a.textContent=b.classList.contains('active')?(strainc_sd===1?'▲':'▼'):'';});
+}
+h+='<div class="section"><div class="section-header"><h2>🧪 Associated Compounds · 相关化合物 ('+cn+')</h2><div class="section-line"></div></div>';
+h+='<div class="strain-sort-bar">';
+h+='  <span class="strain-sort-label">Sort:</span>';
+h+='  <button class="strain-sort-btn active" data-sort="name">Name <span class="ssa">▲</span></button>';
+h+='  <button class="strain-sort-btn" data-sort="formula">Formula <span class="ssa"></span></button>';
+h+='  <button class="strain-sort-btn" data-sort="mw">MW <span class="ssa"></span></button>';
+h+='  <button class="strain-sort-btn" data-sort="chemotype">Chemotype <span class="ssa"></span></button>';
+h+='</div>';
+h+='<div class="cpd-grid" id="strain-cpd-grid">';
+ca.forEach(function(c){h+=renderCpdCard(c);});h+='</div></div>';
+strainSortHandler();container.innerHTML=h;
+}
+function renderCpdCard(c){
+var im=imgUrl(c.i,'s'),cc=ctColor(c.y),dc=depColor(c.dp);
+var a='<a href="../1-Compounds/'+c.l+'" class="cpd-card" title="'+esc(c.n)+' \u00b7 '+(c.f||'')+(c.m?' \u00b7 MW '+c.m:'')+'">';
+a+='<div class="cpd-img">'+(im?'<img src="'+im+'" alt="" loading="lazy">':'<span class="cpd-img-fallback">?</span>')+'</div>';
+a+='<div class="cpd-info"><div class="cpd-name">'+esc(c.n)+'</div>';
+a+='<div class="cpd-formula">'+(c.f||'')+(c.m?' \u00b7 MW '+c.m:'')+'</div></div>';
+a+='<div class="cpd-tags"><span class="cpd-ct" style="background:'+cc+'18;color:'+cc+'">'+esc(c.y||'')+'</span>';
+a+='</div></a>';
+return a;
+}
+</script>
+
+</body>
+</html>
