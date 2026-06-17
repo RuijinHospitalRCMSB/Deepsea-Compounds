@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Compounds — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #1565c0;
+  --primary-hover: #0d47a1;
+  --primary-light: rgba(21,101,192,0.08);
+  --gold: #c9a84c;
+  --bg-page: #f0f4f8;
+  --bg-content: #ffffff;
+  --bg-card: #f8fafc;
+  --border: #dde4ec;
+  --border-light: #e8edf4;
+  --text-primary: #0d1b2a;
+  --text-secondary: #455a64;
+  --text-muted: #78909c;
+  --shadow-sm: 0 1px 3px rgba(13,27,42,0.06);
+  --shadow-md: 0 4px 12px rgba(13,27,42,0.08);
+  --shadow-lg: 0 8px 30px rgba(13,27,42,0.12);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --font-sans: 'Noto Sans SC', -apple-system, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --depth-shallow: #1565c0;
+  --depth-slope: #0d47a1;
+  --depth-deep: #071a5e;
+  --depth-hadal: #3b1f7a;
+}
+
+body { font-family: var(--font-sans); background: var(--bg-page); color: var(--text-primary); line-height: 1.65; min-height:100vh; -webkit-font-smoothing:antialiased; display:flex; }
+
+/* ═══ SIDEBAR (matching compound pages) ═══ */
+.side-nav { position:fixed; top:0; left:0; width:200px; height:100vh; background:var(--bg-content); border-right:1px solid var(--border); padding:28px 0; overflow-y:auto; z-index:100; display:flex; flex-direction:column; }
+.nav-header { padding:0 20px 20px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.nav-title { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+.nav-title em { color:var(--primary); font-style:normal; }
+.nav-sub { font-size:12px; color:var(--text-muted); margin-top:3px; }
+.nav-items { list-style:none; padding:0; margin:0; flex:1; }
+.nav-items li a { display:flex; align-items:center; gap:10px; padding:9px 20px; color:var(--text-secondary); text-decoration:none; font-size:13px; transition:all 0.15s; border-left:2px solid transparent; }
+.nav-items li a:hover { color:var(--text-primary); background:var(--bg-card); }
+.nav-items li a.active { color:var(--primary); border-left-color:var(--primary); background:var(--primary-light); font-weight:500; }
+.nav-dot { width:5px; height:5px; border-radius:50%; background:currentColor; opacity:0.35; flex-shrink:0; }
+.nav-footer { padding:12px 20px; border-top:1px solid var(--border); font-size:11px; color:var(--text-muted); margin-top:auto; text-align:center; }
+
+/* ═══ MAIN ═══ */
+.main-content { margin-left:200px; flex:1; min-width:0; background:var(--bg-page); }
+
+/* ── Hero / Page Header ── */
+.page-header {
+  background:linear-gradient(135deg, #e8eef6 0%, #dce6f2 40%, #f0f4f8 100%);
+  border-bottom:1px solid var(--border);
+  padding:36px 40px 28px;
+  position:relative; overflow:hidden;
+}
+.page-header::before {
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 400px 200px at 15% 30%, rgba(21,101,192,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 80% 20%, rgba(0,172,193,0.02) 0%, transparent 70%);
+  pointer-events:none;
+}
+.header-inner { position:relative; z-index:1; max-width:1100px; }
+.header-row { display:flex; align-items:center; gap:18px; margin-bottom:16px; flex-wrap:wrap; }
+.header-icon { font-size:36px; }
+.header-title { font-size:28px; font-weight:700; color:var(--text-primary); line-height:1.15; }
+.header-sub { font-size:14px; color:var(--text-muted); font-weight:400; letter-spacing:1px; margin-top:2px; }
+
+/* ── Summary Charts ── */
+.summary-section { max-width:1100px; margin:0; padding:24px 12px 8px; }
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.summary-card { background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px 20px; box-shadow:var(--shadow-sm); }
+.summary-card h3 { font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.summary-card h3 span { color:var(--primary); font-weight:700; }
+
+/* Depth pies */
+.pie-wrap { display:flex; align-items:center; gap:24px; }
+.pie-canvas { width:140px; height:140px; flex-shrink:0; }
+.pie-legend { display:flex; flex-direction:column; gap:6px; flex:1; }
+.leg-item { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); }
+.leg-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.leg-count { margin-left:auto; color:var(--text-primary); font-weight:600; font-family:var(--font-mono); font-size:11px; }
+
+/* MW bars */
+.mw-bars { display:flex; flex-direction:column; gap:8px; }
+.mw-row { display:flex; align-items:center; gap:10px; }
+.mw-label { width:50px; font-size:11px; color:var(--text-muted); text-align:right; flex-shrink:0; }
+.mw-track { flex:1; height:20px; background:var(--bg-card); border-radius:6px; overflow:hidden; }
+.mw-fill { height:100%; border-radius:6px; transition:width 0.8s ease; background:linear-gradient(90deg, #1565c0, #42a5f5); }
+.mw-value { width:30px; font-size:11px; font-family:var(--font-mono); color:var(--text-primary); font-weight:500; }
+
+/* ── Filter & Search Bar ── */
+.toolbar-section { max-width:1100px; margin:0; padding:8px 12px 0; }
+.toolbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:12px 18px; box-shadow:var(--shadow-sm); }
+.search-box { position:relative; flex:1; min-width:200px; max-width:360px; }
+.search-box input { width:100%; padding:8px 14px 8px 36px; border:1px solid var(--border); border-radius:20px; font-size:13px; background:var(--bg-page); color:var(--text-primary); outline:none; font-family:inherit; transition:border-color 0.15s; }
+.search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-light); }
+.search-box input::placeholder { color:var(--text-muted); }
+.search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:13px; opacity:0.4; pointer-events:none; }
+.filter-chips { display:flex; gap:5px; flex-wrap:wrap; flex:2; }
+.filter-chip { display:inline-block; padding:4px 12px; border:1px solid var(--border); border-radius:14px; font-size:11px; color:var(--text-secondary); background:var(--bg-content); cursor:pointer; transition:all 0.12s; user-select:none; white-space:nowrap; }
+.filter-chip:hover { border-color:var(--primary); color:var(--primary); }
+.filter-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.result-num { font-size:12px; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
+.result-num strong { color:var(--text-primary); }
+
+/* ── Compound Grid ── */
+.compounds-section { max-width:1100px; margin:0; padding:16px 12px 40px; }
+.cpd-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+
+/* Left-aligned card (like strains/targets) */
+.cpd-card {
+  display:flex; flex-direction:column;
+  background:var(--bg-content); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:18px;
+  transition:all 0.2s; text-decoration:none;
+  box-shadow:var(--shadow-sm);
+}
+.cpd-card:hover { border-color:var(--primary); box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+.cpd-row { display:flex; gap:12px; align-items:flex-start; }
+.cpd-img { width:40px; height:40px; border-radius:6px; overflow:hidden; background:var(--bg-card); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.cpd-img img { width:100%; height:100%; object-fit:contain; }
+.cpd-img .fallback { font-size:18px; color:var(--text-muted); opacity:0.3; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+.cpd-info { flex:1; min-width:0; }
+.cpd-name { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.3; margin-bottom:2px; }
+.cpd-formula { font-size:12px; color:var(--text-muted); margin-bottom:1px; display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden; }
+.cpd-mw { font-size:12px; color:var(--text-muted); font-family:var(--font-mono); }
+.cpd-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
+.ct-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:500; letter-spacing:.3px; }
+.depth-tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:4px; font-size:10px; }
+.depth-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+/* ── Pagination ── */
+.page-nav { display:flex; justify-content:center; align-items:center; gap:4px; margin-top:28px; }
+.page-btn { width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:13px; background:var(--bg-content); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all 0.12s; }
+.page-btn:hover { border-color:var(--primary); color:var(--primary); }
+.page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+/* ── Empty/Loading ── */
+.empty-state { grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:var(--radius-lg); background:var(--bg-content); }
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .side-nav{width:180px;}
+  .main-content{margin-left:180px;}
+  .cpd-grid{grid-template-columns:1fr;}
+  .summary-grid{grid-template-columns:1fr;}
+  .pie-wrap{flex-direction:row;}
+  .page-header{padding:28px 16px 20px;}
+  .toolbar-section{padding:8px 16px 0;}
+  .compounds-section{padding:16px 16px 40px;}
+  .summary-section{padding:24px 16px 8px;}
+}
+@media(max-width:600px){
+  .side-nav{display:none;}
+  .main-content{margin-left:0;}
+  .cpd-grid{grid-template-columns:1fr;}
+  .header-title{font-size:22px;}
+  .page-header{padding:20px 16px 16px;}
+  .toolbar-section{padding:8px 16px 0;}
+  .compounds-section{padding:12px 16px 30px;}
+  .summary-section{padding:16px 16px 4px;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{max-width:none;}
+  .filter-chips{justify-content:center;}
+  .result-num{margin-left:0;text-align:center;}
+}
+</style>
+</head><body>
+
+<!-- ═══ Sidebar ═══ -->
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="browse-compounds.html" class="active"><span class="nav-dot" style="background:var(--primary);opacity:1;"></span> Compounds · 化合物</a></li>
+    <li><a href="browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="browse-targets.html"><span class="nav-dot"></span> Targets · 靶标</a></li>
+    <li><a href="browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · 361 compounds</div>
+</nav>
+
+<!-- ═══ Main Content ═══ -->
+<div class="main-content">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-inner">
+      <div class="header-row">
+        <div class="header-icon">🧪</div>
+        <div>
+          <h1 class="header-title">Compounds · 化合物 <span id="badge-total" style="font-size:16px;font-weight:600;background:var(--primary-light);color:var(--primary);padding:2px 10px;border-radius:8px;vertical-align:middle;">361</span></h1>
+          <div class="header-sub">Browse all deep-sea natural products</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Section -->
+  <div class="summary-section">
+    <div class="summary-grid">
+      <!-- Depth Distribution Pie -->
+      <div class="summary-card">
+        <h3>🌊 <span>Depth Zone</span> Distribution · 深度分布</h3>
+        <div class="pie-wrap">
+          <canvas id="depthPie" class="pie-canvas" width="140" height="140"></canvas>
+          <div class="pie-legend" id="depthLegend"></div>
+        </div>
+      </div>
+      <!-- MW Distribution -->
+      <div class="summary-card">
+        <h3>⚖️ <span>Molecular Weight</span> Distribution · 分子量分布</h3>
+        <div class="mw-bars" id="mwBars"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar-section">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search name, formula, SMILES…">
+      </div>
+      <div class="filter-chips" id="filterChips">
+      </div>
+      <div class="result-num">Showing <strong id="resultCount">361</strong></div>
+    </div>
+  </div>
+
+  <!-- Compound Grid -->
+  <div class="compounds-section">
+    <div class="cpd-grid" id="cpdGrid"></div>
+    <div class="page-nav" id="pageNav"></div>
+  </div>
+
+</div>
+
+<script src="../assets/data/compounds_inline.js"></script>
+<script>
+// ═══ Data ═══
+var CT_COLORS = {
+  'Polyketide':'#1565c0','Terpenoid':'#d4532a','Alkaloid':'#2e7d32',
+  'Alkaloid-Peptide':'#6a1b9a','Polyketide-Peptide':'#e65100',
+  'Peptide':'#00838f','Azaphilone':'#00acc1','Phenylpropanoid':'#f9a825',
+  'Other':'#78909c','Unclassified':'#90a4ae'
+};
+var DEPTH_STYLE = {
+  'Shallow': {color:'#1565c0',label:'Shallow 0–200m'},
+  'Slope':   {color:'#0d47a1',label:'Slope 200–1000m'},
+  'Deep':    {color:'#071a5e',label:'Deep 1000–6000m'},
+  'Hadal':   {color:'#3b1f7a',label:'Hadal 6000m+'}
+};
+
+function classifyDepth(d) {
+  if (!d) return '';
+  if (d.indexOf('Hadal')!==-1) return 'Hadal';
+  if (d.indexOf('Deep')!==-1) return 'Deep';
+  if (d.indexOf('Slope')!==-1) return 'Slope';
+  if (d.indexOf('Shallow')!==-1) return 'Shallow';
+  return '';
+}
+
+// ═══ Load Data ═══
+var allCompounds = [];
+var currentCT = '';
+var currentPage = 0;
+var pageSize = 24;
+
+function fetchData() {
+  allCompounds = COMPOUNDS_DATA;
+  initApp();
+}
+
+// ═══ Init ═══
+function initApp() {
+  buildCharts(allCompounds);
+  buildFilters(allCompounds);
+  renderPage(0);
+  setupEvents();
+  document.getElementById('badge-total').textContent = allCompounds.length;
+}
+
+// ═══ Charts ═══
+function buildCharts(data) {
+  // Depth counts
+  var dc = {Shallow:0,Slope:0,Deep:0,Hadal:0};
+  data.forEach(function(c){
+    var z = classifyDepth(c.d) || 'Deep';
+    if (!dc[z]) dc[z]=0;
+    dc[z]++;
+  });
+  // Fill in any zero
+  ['Shallow','Slope','Deep','Hadal'].forEach(function(k){ if(!dc[k]) dc[k]=0; });
+
+  // Draw pie
+  var canvas = document.getElementById('depthPie');
+  var ctx = canvas.getContext('2d');
+  var total = data.length;
+  var cx = 70, cy = 70, r = 60;
+  var depthOrder = ['Shallow','Slope','Deep','Hadal'];
+  var colors = ['#1565c0','#0d47a1','#071a5e','#3b1f7a'];
+  var startAngle = -Math.PI/2;
+  depthOrder.forEach(function(k,i){
+    var val = dc[k];
+    if (val === 0) return;
+    var slice = (val/total) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    // border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    startAngle += slice;
+  });
+  // Center text
+  ctx.fillStyle = '#0d1b2a';
+  ctx.font = 'bold 18px "Noto Sans SC",sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(total, cx, cy-4);
+  ctx.font = '10px "Noto Sans SC",sans-serif';
+  ctx.fillStyle = '#78909c';
+  ctx.fillText('total', cx, cy+12);
+
+  // Legend
+  var legHtml = '';
+  depthOrder.forEach(function(k){
+    if (dc[k]===0) return;
+    legHtml += '<div class="leg-item"><span class="leg-dot" style="background:'+DEPTH_STYLE[k].color+'"></span> '+DEPTH_STYLE[k].label+'<span class="leg-count">'+dc[k]+' ('+Math.round(dc[k]/total*100)+'%)</span></div>';
+  });
+  document.getElementById('depthLegend').innerHTML = legHtml;
+
+  // MW bars
+  var mws = [];
+  data.forEach(function(c){
+    var mw = parseFloat((c.w||'').replace(' g/mol','').replace(' g·mol−1',''));
+    if (!isNaN(mw)) mws.push(mw);
+  });
+  var buckets = {'<300':0,'300-500':0,'500-700':0,'700-1000':0,'>1000':0};
+  mws.forEach(function(m){
+    if (m<300) buckets['<300']++;
+    else if (m<500) buckets['300-500']++;
+    else if (m<700) buckets['500-700']++;
+    else if (m<1000) buckets['700-1000']++;
+    else buckets['>1000']++;
+  });
+  var maxCount = Math.max(...Object.values(buckets));
+  var barHtml = '';
+  var barLabels = ['<300','300-500','500-700','700-1000','>1000'];
+  var barColors = ['#42a5f5','#1565c0','#0d47a1','#071a5e','#3b1f7a'];
+  barLabels.forEach(function(lbl,i){
+    var cnt = buckets[lbl]||0;
+    var pct = maxCount>0 ? (cnt/maxCount*100) : 0;
+    barHtml += '<div class="mw-row"><span class="mw-label">'+lbl+'</span><div class="mw-track"><div class="mw-fill" style="width:'+pct+'%;background:'+barColors[i]+'"></div></div><span class="mw-value">'+cnt+'</span></div>';
+  });
+  document.getElementById('mwBars').innerHTML = barHtml;
+}
+
+// ═══ Filters ═══
+function buildFilters(data) {
+  var bar = document.getElementById('filterChips');
+  // Add "All" chip
+  var allChip = document.createElement('div');
+  allChip.className = 'filter-chip active';
+  allChip.dataset.ct = '';
+  allChip.textContent = 'All ('+data.length+')';
+  bar.appendChild(allChip);
+
+  var counts = {};
+  data.forEach(function(c){
+    var ct = c.t || 'Unclassified';
+    counts[ct] = (counts[ct]||0) + 1;
+  });
+  Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; }).forEach(function(pair){
+    var chip = document.createElement('div');
+    chip.className = 'filter-chip';
+    chip.dataset.ct = pair[0];
+    chip.textContent = pair[0]+' ('+pair[1]+')';
+    bar.appendChild(chip);
+  });
+}
+
+function filterData(data, ct, query) {
+  var f = ct ? data.filter(function(c){ return (c.t||'Unclassified')===ct; }) : data;
+  if (query) {
+    var q = query.toLowerCase();
+    f = f.filter(function(c){
+      return (c.n&&c.n.toLowerCase().indexOf(q)!==-1) ||
+             (c.f&&c.f.toLowerCase().indexOf(q)!==-1) ||
+             (c.o&&c.o.toLowerCase().indexOf(q)!==-1);
+    });
+  }
+  return f;
+}
+
+function renderPage(page) {
+  var query = document.getElementById('searchInput').value;
+  var filtered = filterData(allCompounds, currentCT, query);
+  var total = filtered.length;
+  var pages = Math.max(1, Math.ceil(total / pageSize));
+  currentPage = Math.min(page, pages-1);
+  var start = currentPage * pageSize;
+  var pageData = filtered.slice(start, start + pageSize);
+
+  document.getElementById('resultCount').textContent = total;
+
+  var grid = document.getElementById('cpdGrid');
+  var html = '';
+  pageData.forEach(function(cpd){
+    var img = cpd.c ? 'https://pubchem.ncbi.nlm.nih.gov/image/imgsrv.fcgi?cid='+cpd.c+'&t=s' : '';
+    var ct = cpd.t || 'Unclassified';
+    var ctColor = CT_COLORS[ct] || '#78909c';
+    var dep = classifyDepth(cpd.d);
+    var ds = DEPTH_STYLE[dep] || {color:'#78909c'};
+
+    html += '<a href="../1-Compounds/'+(cpd.p||'#')+'" class="cpd-card">';
+    html += '  <div class="cpd-row">';
+    if (img) {
+      html += '    <div class="cpd-img"><img src="'+img+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.fallback\').style.display=\'flex\'"><span class="fallback" style="display:none">?</span></div>';
+    } else {
+      html += '    <div class="cpd-img"><span class="fallback">?</span></div>';
+    }
+    html += '    <div class="cpd-info">';
+    html += '      <div class="cpd-name">' + esc(cpd.n) + '</div>';
+    var orgShort = (cpd.o||'').split(/[;,]/)[0];
+    html += '      <div class="cpd-formula">' + esc(orgShort) + '</div>';
+    var mwStr = (cpd.w||'').replace(' g/mol','').replace(' g·mol−1','');
+    html += '      <div class="cpd-mw">MW ' + esc(mwStr) + '</div>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="cpd-tags">';
+    html += '    <span class="ct-tag" style="background:'+ctColor+'15;color:'+ctColor+';border:1px solid '+ctColor+'30">'+esc(ct)+'</span>';
+    html += '    <span class="depth-tag" style="background:'+ds.color+'10;color:'+ds.color+';border:1px solid '+ds.color+'20"><span class="depth-dot" style="background:'+ds.color+'"></span>'+esc(dep||'Unknown')+'</span>';
+    html += '  </div></a>';
+  });
+  if (!html) {
+    html = '<div class="empty-state">🔬 No compounds match your filter</div>';
+  }
+  grid.innerHTML = html;
+
+  // Pagination
+  var pn = document.getElementById('pageNav');
+  var ph = '';
+  if (pages > 1) {
+    ph += '<div class="page-btn" data-p="'+(currentPage-1)+'" style="'+(currentPage===0?'opacity:0.3;cursor:default;':'')+'">‹</div>';
+    for(var i=0;i<pages;i++){
+      if (i===0||i===pages-1||Math.abs(i-currentPage)<=2) {
+        ph += '<div class="page-btn'+(i===currentPage?' active':'')+'" data-p="'+i+'">'+(i+1)+'</div>';
+      } else if ((i===1&&currentPage>3)||(i===pages-2&&currentPage<pages-4)) {
+        ph += '<span style="color:var(--text-muted);font-size:12px;padding:0 2px;">…</span>';
+      }
+    }
+    ph += '<div class="page-btn" data-p="'+(currentPage+1)+'" style="'+(currentPage>=pages-1?'opacity:0.3;cursor:default;':'')+'">›</div>';
+  }
+  pn.innerHTML = ph;
+}
+
+function esc(t) { if(!t)return''; var d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+function setupEvents() {
+  document.getElementById('filterChips').addEventListener('click', function(e){
+    var chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    document.querySelectorAll('.filter-chip').forEach(function(c){ c.classList.remove('active'); });
+    chip.classList.add('active');
+    currentCT = chip.dataset.ct || '';
+    currentPage = 0;
+    renderPage(0);
+  });
+  var st;
+  document.getElementById('searchInput').addEventListener('input', function(){
+    clearTimeout(st);
+    var self = this;
+    st = setTimeout(function(){ currentPage=0; renderPage(0); }, 200);
+  });
+  document.getElementById('pageNav').addEventListener('click', function(e){
+    var btn = e.target.closest('.page-btn');
+    if (!btn) return;
+    var p = parseInt(btn.dataset.p);
+    if (!isNaN(p)) renderPage(p);
+  });
+}
+// Start the app - COMPOUNDS_DATA loaded from external script
+var allCpds = typeof COMPOUNDS_DATA !== 'undefined' ? COMPOUNDS_DATA : [];
+allCompounds = allCpds;
+initApp();
+</script>
+</body>
+</html>
