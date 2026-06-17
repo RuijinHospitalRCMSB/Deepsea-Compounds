@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Protein Targets — Deep-Sea Compound Database</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #0077b6;
+  --primary-hover: #005f8c;
+  --primary-light: rgba(0,119,182,0.08);
+  --bg-page: #f5f0f8;
+  --bg-content: #ffffff;
+  --bg-card: #faf8fc;
+  --border: #dde4ec;
+  --border-light: #e8edf4;
+  --text-primary: #0d1b2a;
+  --text-secondary: #455a64;
+  --text-muted: #78909c;
+  --shadow-sm: 0 1px 3px rgba(13,27,42,0.06);
+  --shadow-md: 0 4px 12px rgba(13,27,42,0.08);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --font-sans: 'Noto Sans SC', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+body { font-family:var(--font-sans); background:var(--bg-page); color:var(--text-primary); line-height:1.65; min-height:100vh; -webkit-font-smoothing:antialiased; display:flex; }
+
+/* SIDEBAR */
+.side-nav { position:fixed; top:0; left:0; width:200px; height:100vh; background:var(--bg-content); border-right:1px solid var(--border); padding:28px 0; overflow-y:auto; z-index:100; display:flex; flex-direction:column; }
+.nav-header { padding:0 20px 20px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+.nav-title { font-size:15px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+.nav-title em { color:var(--primary); font-style:normal; }
+.nav-sub { font-size:12px; color:var(--text-muted); margin-top:3px; }
+.nav-items { list-style:none; padding:0; margin:0; flex:1; }
+.nav-items li a { display:flex; align-items:center; gap:10px; padding:9px 20px; color:var(--text-secondary); text-decoration:none; font-size:13px; transition:all 0.15s; border-left:2px solid transparent; }
+.nav-items li a:hover { color:var(--text-primary); background:var(--bg-card); }
+.nav-items li a.active { color:var(--primary); border-left-color:var(--primary); background:var(--primary-light); font-weight:500; }
+.nav-dot { width:5px; height:5px; border-radius:50%; background:currentColor; opacity:0.35; flex-shrink:0; }
+.nav-footer { padding:12px 20px; border-top:1px solid var(--border); font-size:11px; color:var(--text-muted); margin-top:auto; text-align:center; }
+
+/* MAIN */
+.main-content { margin-left:200px; flex:1; min-width:0; background:var(--bg-page); }
+
+/* Header */
+.page-header {
+  background:linear-gradient(135deg,#fce4ec 0%,#f3e5f5 40%,#f0f4f8 100%);
+  border-bottom:1px solid var(--border);
+  padding:24px 12px 20px; position:relative; overflow:hidden;
+}
+.page-header::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 400px 200px at 15% 30%, rgba(229,57,53,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 300px 200px at 80% 20%, rgba(142,36,170,0.02) 0%, transparent 70%);
+  pointer-events:none;
+}
+.header-inner { position:relative; z-index:1; max-width:1100px; }
+.header-row { display:flex; align-items:center; gap:18px; margin-bottom:16px; }
+.header-icon { font-size:36px; }
+.header-title { font-size:28px; font-weight:700; color:var(--text-primary); line-height:1.15; }
+.header-count { font-size:16px; font-weight:600; background:var(--primary-light); color:var(--primary); padding:2px 10px; border-radius:8px; vertical-align:middle; }
+.header-sub { font-size:14px; color:var(--text-muted); font-weight:400; letter-spacing:1px; margin-top:2px; }
+
+/* Summary Charts */
+.summary-section { max-width:1100px; margin:0; padding:16px 12px 8px; }
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.summary-card { background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; box-shadow:var(--shadow-sm); }
+.summary-card h3 { font-size:13px; font-weight:600; color:var(--text-secondary); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.summary-card h3 span { color:var(--primary); font-weight:700; }
+.bar-chart { display:flex; flex-direction:column; gap:5px; }
+.bar-row { display:flex; align-items:center; gap:10px; }
+.bar-label { width:140px; font-size:11px; color:var(--text-muted); text-align:right; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:18px; background:var(--bg-card); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; background:linear-gradient(90deg,#0077b6,#00b4d8); }
+.bar-count { width:30px; font-size:11px; font-family:var(--font-mono); color:var(--text-primary); font-weight:500; text-align:right; }
+.donut-wrap { display:flex; align-items:center; gap:24px; }
+.donut-canvas { width:180px; height:180px; flex-shrink:0; }
+.donut-legend { display:flex; flex-direction:column; gap:5px; flex:1; }
+.leg-item { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-secondary); }
+.leg-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.leg-count { margin-left:auto; color:var(--text-primary); font-weight:600; font-family:var(--font-mono); font-size:11px; }
+
+/* Stats bar */
+.stats-row { display:flex; gap:10px; margin:14px 0 0; flex-wrap:wrap; }
+.stat-item { flex:1; min-width:100px; padding:10px 14px; border:1px solid var(--border-light); border-radius:8px; background:var(--bg-content); text-align:left; }
+.stat-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+.stat-value { font-size:20px; font-weight:700; color:var(--text-primary); margin-top:2px; }
+.stat-sub { font-size:11px; color:var(--text-muted); margin-top:1px; }
+
+/* Toolbar */
+.toolbar-section { max-width:1100px; margin:0; padding:8px 12px 0; }
+.toolbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:var(--bg-content); border:1px solid var(--border); border-radius:var(--radius-lg); padding:12px 18px; box-shadow:var(--shadow-sm); }
+.search-box { position:relative; flex:1; min-width:200px; max-width:360px; }
+.search-box input { width:100%; padding:8px 14px 8px 36px; border:1px solid var(--border); border-radius:20px; font-size:13px; background:var(--bg-page); color:var(--text-primary); outline:none; font-family:inherit; transition:border-color 0.15s; }
+.search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary-light); }
+.search-box input::placeholder { color:var(--text-muted); }
+.search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:13px; opacity:0.4; }
+.filter-chips { display:flex; gap:5px; flex-wrap:wrap; flex:2; }
+.filter-chip { padding:4px 12px; border:1px solid var(--border); border-radius:14px; font-size:11px; color:var(--text-secondary); background:var(--bg-content); cursor:pointer; transition:all 0.12s; user-select:none; white-space:nowrap; }
+.filter-chip:hover { border-color:var(--primary); color:var(--primary); }
+.filter-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.result-num { font-size:12px; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
+.result-num strong { color:var(--text-primary); }
+
+/* Target Cards */
+.targets-section { max-width:1100px; margin:0; padding:16px 12px 40px; }
+.target-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.target-card {
+  display:flex; flex-direction:column;
+  background:var(--bg-content); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:16px 16px 12px;
+  transition:all 0.2s; cursor:pointer; text-decoration:none;
+  box-shadow:var(--shadow-sm); position:relative; overflow:hidden;
+}
+.target-card:hover { border-color:var(--primary); box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.target-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--primary),#00b4d8); opacity:0; transition:opacity 0.2s; }
+.target-card:hover::before { opacity:1; }
+.tcard-row { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:4px; }
+.tcard-left { display:flex; flex-direction:column; gap:3px; }
+.tcard-right { display:flex; flex-direction:column; align-items:center; gap:0; flex-shrink:0; }
+.tcard-gene { display:inline-block; font-family:var(--font-mono); font-size:11px; font-weight:500; color:var(--text-muted); background:var(--bg-card); padding:1px 6px; border-radius:4px; }
+.tcard-id { font-family:var(--font-mono); font-size:10px; color:var(--text-muted); letter-spacing:.2px; }
+.tcard-cpd-num { font-size:28px; font-weight:700; color:var(--primary); line-height:1; }
+.tcard-cpd-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; font-weight:500; }
+.tcard-name { font-size:13px; font-weight:600; color:var(--text-primary); margin:2px 0 8px; line-height:1.35; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.tcard-bottom { display:flex; align-items:center; gap:6px; }
+.tcard-cat { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; letter-spacing:.3px; }
+
+/* Pagination */
+.page-nav { display:flex; justify-content:center; align-items:center; gap:4px; margin-top:28px; }
+.page-btn { width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:13px; background:var(--bg-content); border:1px solid var(--border); color:var(--text-secondary); cursor:pointer; transition:all 0.12s; }
+.page-btn:hover { border-color:var(--primary); color:var(--primary); }
+.page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); font-size:13px; border:1px dashed var(--border); border-radius:var(--radius-lg); background:var(--bg-content); grid-column:1/-1; }
+
+@media(max-width:900px){
+  .side-nav{width:180px;}
+  .main-content{margin-left:180px;}
+  .target-grid{grid-template-columns:repeat(2,1fr);}
+  .summary-grid{grid-template-columns:1fr;}
+  .page-header{padding:28px 16px 20px;}
+  .toolbar-section{padding:8px 16px 0;}
+  .targets-section{padding:16px 16px 40px;}
+  .summary-section{padding:24px 16px 8px;}
+}
+@media(max-width:600px){
+  .side-nav{display:none;}
+  .main-content{margin-left:0;}
+  .header-title{font-size:22px;}
+  .page-header{padding:20px 16px 16px;}
+  .toolbar-section{padding:8px 16px 0;}
+  .targets-section{padding:12px 16px 30px;}
+  .summary-section{padding:16px 16px 4px;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{max-width:none;}
+  .filter-chips{justify-content:center;}
+  .result-num{margin-left:0;text-align:center;}
+  .target-grid{grid-template-columns:1fr;}
+}
+</style>
+</head><body>
+
+<nav class="side-nav">
+  <div class="nav-header">
+    <div class="nav-title">🌊 Deep-Sea <em>DB</em></div>
+    <div class="nav-sub">深海化合物数据库</div>
+  </div>
+  <ul class="nav-items">
+    <li><a href="../index.html"><span class="nav-dot"></span> Home · 首页</a></li>
+    <li><a href="browse-compounds.html"><span class="nav-dot"></span> Compounds · 化合物</a></li>
+    <li><a href="browse-strains.html"><span class="nav-dot"></span> Strains · 菌种</a></li>
+    <li><a href="browse-targets.html" class="active"><span class="nav-dot" style="background:var(--primary);opacity:1;"></span> Targets · 靶标</a></li>
+    <li><a href="browse-phenotypes.html"><span class="nav-dot"></span> Phenotypes · 表型</a></li>
+    <li><a href="browse-chemotypes.html"><span class="nav-dot"></span> Chemotypes · 化学分类</a></li>
+    <li><a href="browse-references.html"><span class="nav-dot"></span> References · 参考文献</a></li>
+  </ul>
+  <div class="nav-footer">v2.0 · 255 targets</div>
+</nav>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="header-inner">
+      <div class="header-row">
+        <div class="header-icon">🎯</div>
+        <div>
+          <h1 class="header-title">Protein Targets · 靶标 <span class="header-count" id="target-count">255</span></h1>
+          <div class="header-sub">Browse protein targets and their active compounds from deep-sea sources · 浏览深海化合物靶标</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>🏆 <span>Most Studied Targets</span> · 热门靶标</h3>
+        <div class="bar-chart" id="topTargetBars"></div>
+      </div>
+      <div class="summary-card">
+        <h3>📂 <span>Category Distribution</span> · 分类分布</h3>
+        <div style="text-align:center;">
+          <canvas id="catDonut" class="donut-canvas" width="180" height="180" style="display:block;margin:0 auto;"></canvas>
+          <div id="catLegend"></div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row" id="stats-row">
+      <div class="stat-item"><div class="stat-label">Total Targets</div><div class="stat-value" id="stat-total">—</div><div class="stat-sub">protein targets</div></div>
+      <div class="stat-item"><div class="stat-label">With UniProt</div><div class="stat-value" id="stat-uniprot">—</div><div class="stat-sub">with UniProt IDs</div></div>
+      <div class="stat-item"><div class="stat-label">Categories</div><div class="stat-value" id="stat-categories">—</div><div class="stat-sub">classifications</div></div>
+      <div class="stat-item"><div class="stat-label">Compounds</div><div class="stat-value" id="stat-compounds">—</div><div class="stat-sub">517 total associations</div></div>
+    </div>
+  </div>
+
+  <div class="toolbar-section">
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="target-search" placeholder="Search targets by name...">
+      </div>
+      <div class="filter-chips" id="target-category-filters">
+        <div class="filter-chip active" data-category="">All · 全部</div>
+      </div>
+      <div class="result-num">Showing <strong id="resultCount">290</strong></div>
+    </div>
+  </div>
+
+  <div class="targets-section">
+    <div class="target-grid" id="target-list"></div>
+    <div class="page-nav" id="pageNav"></div>
+  </div>
+</div>
+
+<script src="../assets/js/targets-data.js"></script>
+<script src="../assets/js/targets.js"></script>
+</body></html>
